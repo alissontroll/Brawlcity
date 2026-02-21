@@ -356,7 +356,7 @@ function renderMapas(apiData) {
     const brawlers = getBrawlers(modeId);
     const mapName = (ev.map && ev.map.name) || 'Mapa';
     const mapId = (ev.map && ev.map.id) || '';
-    const mapImg = mapId ? 'https://cdn.brawlify.com/map/regular/' + mapId + '.png' : '';
+    const mapImg = mapId ? 'https://cdn.brawlify.com/maps/regular/' + mapId + '.png' : '';
     const endTime = ev.endTime ? new Date(ev.endTime).getTime() : 0;
     const timerId = 'timer_' + idx;
 
@@ -399,7 +399,7 @@ function renderMapas(apiData) {
       const modo = getModo(modeId);
       const mapName = (ev.map && ev.map.name) || 'Mapa';
       const mapId2 = (ev.map && ev.map.id) || '';
-      const mapImg = mapId2 ? 'https://cdn.brawlify.com/map/regular/' + mapId2 + '.png' : '';
+      const mapImg = mapId2 ? 'https://cdn.brawlify.com/maps/regular/' + mapId2 + '.png' : '';
       const startTime = ev.startTime ? new Date(ev.startTime).getTime() : 0;
       const item = document.createElement('div');
       item.className = 'next-map-card';
