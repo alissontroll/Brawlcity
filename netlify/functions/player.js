@@ -16,24 +16,15 @@ exports.handler = async (event) => {
   const path = event.path || '';
   const params = event.queryStringParameters || {};
 
-  // Rota: buscar eventos ativos (mapas)
+  // ROTA DOS MAPAS: Puxa direto do Brawlify para as imagens funcionarem
   if (path.endsWith('/events') || params.type === 'events') {
     try {
-      const res = await fetch('https://bsproxy.royaleapi.dev/v1/events/rotation', {
-        headers: { Authorization: `Bearer ${API_KEY}` }
-      });
+      const res = await fetch('https://api.brawlapi.com/v1/events');
       const data = await res.json();
-      if (!res.ok) {
-        return {
-          statusCode: res.status,
-          headers: { "Access-Control-Allow-Origin": "*" },
-          body: JSON.stringify({ error: data.message || "Erro ao buscar eventos" })
-        };
-      }
       return {
         statusCode: 200,
         headers: { "Access-Control-Allow-Origin": "*" },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data.active) // Manda a lista de mapas ativos
       };
     } catch (e) {
       return {
@@ -44,7 +35,7 @@ exports.handler = async (event) => {
     }
   }
 
-  // Rota padrão: buscar jogador por TAG
+  // ROTA PADRÃO: Buscar jogador por TAG (Usa a sua API_KEY)
   const tag = params.tag;
   if (!tag) {
     return {
