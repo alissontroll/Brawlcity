@@ -356,8 +356,8 @@ function renderMapas(apiData) {
   }
 
   // Filtra só Showdown
-  const ativosFiltrados = ativos.filter(ev => ev.mode && ev.mode.name && ev.mode.name.toLowerCase().includes('showdown'));
-  const proximosShowdown = proximos.filter(ev => ev.mode && ev.mode.name && ev.mode.name.toLowerCase().includes('showdown'));
+  const ativosFiltrados = ativos.filter(ev => ev.mode && ev.mode.name && ev.mode.name.toUpperCase().includes('SHOWDOWN'));
+  const proximosShowdown = proximos.filter(ev => ev.mode && ev.mode.name && ev.mode.name.toUpperCase().includes('SHOWDOWN'));
 
   grid.innerHTML = '';
   ativosFiltrados.forEach((ev, idx) => {
