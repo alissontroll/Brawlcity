@@ -304,13 +304,23 @@ const BRAWLERS_POR_MODO = {
 };
 
 function getModo(id) {
-  const key = id || 'unknown';
-  return MODOS[key] || MODOS['unknown'];
+  if (!id) return MODOS['unknown'];
+  // Tenta direto, depois capitalizado, depois maiúsculo
+  if (MODOS[id]) return MODOS[id];
+  const cap = id.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+  if (MODOS[cap]) return MODOS[cap];
+  return MODOS['unknown'];
 }
 
-function getBrawlers(modeId) {
-  return BRAWLERS_POR_MODO[modeId] || { best: ['—'], worst: ['—'] };
+function getBrawlers(id) {
+  if (!id) return { best: ['—'], worst: ['—'] };
+  if (BRAWLERS_POR_MODO[id]) return BRAWLERS_POR_MODO[id];
+  const cap = id.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+  if (BRAWLERS_POR_MODO[cap]) return BRAWLERS_POR_MODO[cap];
+  return { best: ['—'], worst: ['—'] };
 }
+
+
 
 function formatTempo(ms) {
   if (!ms || ms <= 0) return 'Encerrando...';
@@ -340,12 +350,13 @@ function renderMapas(apiData) {
 
   grid.innerHTML = '';
   ativos.forEach((ev, idx) => {
-    // BrawlAPI: ev.map.gameMode.name, ev.map.name, ev.map.imageUrl, ev.endTime
-    const modeId = ev.map && ev.map.gameMode && ev.map.gameMode.name ? ev.map.gameMode.name : 'unknown';
+    // BrawlAPI formato real: ev.mode.name, ev.map.name, ev.map.id, ev.endTime
+    const modeId = (ev.mode && ev.mode.name) ? ev.mode.name : 'unknown';
     const modo = getModo(modeId);
     const brawlers = getBrawlers(modeId);
     const mapName = (ev.map && ev.map.name) || 'Mapa';
-    const mapImg = (ev.map && ev.map.imageUrl) || '';
+    const mapId = (ev.map && ev.map.id) || '';
+    const mapImg = mapId ? 'https://cdn.brawlify.com/map/regular/' + mapId + '.png' : '';
     const endTime = ev.endTime ? new Date(ev.endTime).getTime() : 0;
     const timerId = 'timer_' + idx;
 
@@ -384,10 +395,11 @@ function renderMapas(apiData) {
   if (proximos.length) {
     nextDiv.innerHTML = '';
     proximos.forEach(ev => {
-      const modeId = ev.map && ev.map.gameMode && ev.map.gameMode.name ? ev.map.gameMode.name : 'unknown';
+      const modeId = (ev.mode && ev.mode.name) ? ev.mode.name : 'unknown';
       const modo = getModo(modeId);
       const mapName = (ev.map && ev.map.name) || 'Mapa';
-      const mapImg = (ev.map && ev.map.imageUrl) || '';
+      const mapId2 = (ev.map && ev.map.id) || '';
+      const mapImg = mapId2 ? 'https://cdn.brawlify.com/map/regular/' + mapId2 + '.png' : '';
       const startTime = ev.startTime ? new Date(ev.startTime).getTime() : 0;
       const item = document.createElement('div');
       item.className = 'next-map-card';
