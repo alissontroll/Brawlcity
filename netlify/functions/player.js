@@ -40,10 +40,23 @@ exports.handler = async (event) => {
       };
     }
 
+    // Estimar horas: cada vitória 3v3 ~7min, solo ~4min, duo ~5min
+    const v3 = data['3v3Victories'] || 0;
+    const solo = data['soloVictories'] || 0;
+    const duo = data['duoVictories'] || 0;
+    const minutosEstimados = (v3 * 7) + (solo * 4) + (duo * 5);
+    const horas = Math.round(minutosEstimados / 60);
+
     return {
       statusCode: 200,
       headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ trophies: data.trophies, name: data.name, tag: data.tag })
+      body: JSON.stringify({
+        trophies: data.trophies,
+        name: data.name,
+        tag: data.tag,
+        horas: horas,
+        icon: data.icon ? data.icon.id : null
+      })
     };
   } catch (e) {
     return {
