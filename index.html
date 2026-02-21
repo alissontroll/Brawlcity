@@ -462,7 +462,7 @@ function renderMapas(apiData) {
 
 async function carregarMapas() {
   try {
-    const res = await fetch('/.netlify/functions/player?type=events');
+    const res = await fetch('https://api.brawlapi.com/v1/events');
     if (!res.ok) throw new Error('Erro ao buscar eventos');
     const data = await res.json();
     renderMapas(data);
