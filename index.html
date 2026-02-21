@@ -49,7 +49,6 @@ main{position:relative;z-index:10;max-width:780px;margin:0 auto;padding:16px 16p
 .input-wrap input:focus,.input-wrap select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,200,255,0.07);}
 .input-wrap select option{background:#0a0a0f;}
 .hint{font-size:0.63rem;color:var(--text-muted);font-weight:500;margin-top:2px;}
-.hint a{color:var(--accent);text-decoration:none;}
 .btn-register{background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:3px;color:#000;font-family:'Teko',sans-serif;font-size:1.2rem;letter-spacing:3px;padding:11px 24px;cursor:pointer;transition:all 0.2s;width:100%;font-weight:600;}
 .btn-register:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,208,0,0.25);}
 .btn-register:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
@@ -87,9 +86,11 @@ main{position:relative;z-index:10;max-width:780px;margin:0 auto;padding:16px 16p
 .player-city{font-size:0.68rem;color:var(--text-dim);font-weight:700;}
 .verify-link{font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:var(--accent);text-decoration:none;opacity:0.6;transition:opacity 0.2s;}
 .verify-link:hover{opacity:1;}
-.player-score{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;}
+.player-score{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;gap:4px;}
 .trophy-num{font-family:'Teko',sans-serif;font-size:1.45rem;font-weight:600;color:var(--gold);letter-spacing:1px;line-height:1;}
 .trophy-label{font-family:'JetBrains Mono',monospace;font-size:0.52rem;color:var(--text-muted);letter-spacing:2px;}
+.horas-num{font-family:'Teko',sans-serif;font-size:1rem;font-weight:600;color:var(--accent);letter-spacing:1px;line-height:1;}
+.horas-label{font-family:'JetBrains Mono',monospace;font-size:0.48rem;color:var(--text-muted);letter-spacing:2px;}
 .crown-icon{position:absolute;top:-5px;right:12px;font-size:1rem;animation:float 2.5s ease-in-out infinite;filter:drop-shadow(0 0 6px rgba(255,208,0,0.6));}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 .shimmer{position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,208,0,0.03) 50%,transparent 60%);animation:sweep 4s infinite;}
@@ -121,14 +122,12 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
 <div class="city-bar" id="cityBar"></div>
 <main>
   <div class="tab-content active" id="tab-cidade">
-    <div class="info-bar">🛡 <span>Anti-trapaça:</span> TAG + troféus obrigatórios. Verificável em brawlify.com. Dados salvos online em tempo real. 🌐</div>
+    <div class="info-bar">⚡ <span>Automático:</span> Digite só sua TAG e o sistema busca seu nome e troféus direto do Brawl Stars! Verificável em brawlify.com 🌐</div>
     <div class="register-card">
       <div class="section-label">Entrar no Ranking</div>
       <div class="form-grid">
-        <div class="input-wrap"><label>Nome no Jogo</label><input type="text" id="inputName" placeholder="KingBrawler" maxlength="20"></div>
-        <div class="input-wrap"><label>TAG do Brawl Stars</label><input type="text" id="inputTag" placeholder="#JQ2UUJLP" maxlength="15"></div>
-        <div class="input-wrap"><label>Troféus Atuais 🏆</label><input type="number" id="inputTrophies" placeholder="37837" min="0"><div class="hint">Verificável em <a href="https://brawlify.com" target="_blank">brawlify.com</a></div></div>
-        <div class="input-wrap"><label>Cidade</label><select id="inputCity"></select></div>
+        <div class="input-wrap full"><label>TAG do Brawl Stars</label><input type="text" id="inputTag" placeholder="#JQ2UUJLP" maxlength="15"><div class="hint">Encontre sua TAG no perfil do jogo. Verificável em <a href="https://brawlify.com" target="_blank" style="color:var(--accent)">brawlify.com</a></div></div>
+        <div class="input-wrap full"><label>Cidade</label><select id="inputCity"></select></div>
         <div class="input-wrap full"><button class="btn-register" id="btnRegister" onclick="register()">ENTRAR NO RANKING</button></div>
       </div>
       <div class="toast" id="toast"></div>
@@ -154,7 +153,7 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
 <footer>BRAWLCITY RANK • PERNAMBUCO • VERIFIQUE EM BRAWLIFY.COM</footer>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyAi05OMG44jmNm_HUEtv9LS_wa-tBvErd8",
   authDomain: "brawlcity-rank.firebaseapp.com",
@@ -191,7 +190,7 @@ function setCity(city) {
 const q = query(collection(db, 'players'), orderBy('trophies', 'desc'));
 onSnapshot(q, snapshot => {
   allPlayers = [];
-  snapshot.forEach(doc => allPlayers.push({ id: doc.id, ...doc.data() }));
+  snapshot.forEach(d => allPlayers.push({ id: d.id, ...d.data() }));
   renderRanking(); renderRankingPE();
   const t = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
   document.getElementById('updateInfo').textContent = '🟢 ' + t;
@@ -201,70 +200,79 @@ onSnapshot(q, snapshot => {
   document.getElementById('updateInfoPE').textContent = '🔴 OFFLINE';
 });
 
-// Atualização automática de troféus via BrawlAPI
-async function atualizarTrofeus() {
+// Busca dados na API
+async function buscarJogador(tag) {
+  const cleanTag = tag.startsWith('#') ? tag : '#' + tag;
+  const res = await fetch('/.netlify/functions/player?tag=' + encodeURIComponent(cleanTag));
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Erro ao buscar jogador');
+  }
+  return await res.json();
+}
+
+// Atualização automática de troféus e horas via API
+async function atualizarDados() {
   if (!allPlayers.length) return;
   for (const player of allPlayers) {
     try {
-      const cleanTag = player.tag.replace('#', '');
-      const res = await fetch('/.netlify/functions/player?tag=' + encodeURIComponent('#' + cleanTag));
-      if (!res.ok) continue;
-      const data = await res.json();
-      const novosTrofeus = data.trophies;
-      if (novosTrofeus && novosTrofeus !== player.trophies) {
-        const ref = doc(db, 'players', player.id);
-        await updateDoc(ref, { trophies: novosTrofeus });
+      const data = await buscarJogador(player.tag);
+      const updates = {};
+      if (data.trophies && data.trophies !== player.trophies) updates.trophies = data.trophies;
+      if (data.horas && data.horas !== player.horas) updates.horas = data.horas;
+      if (Object.keys(updates).length > 0) {
+        await updateDoc(doc(db, 'players', player.id), updates);
       }
     } catch(e) { /* ignora erros individuais */ }
   }
 }
-// Atualiza 5s após carregar e depois a cada 30 minutos
-setTimeout(atualizarTrofeus, 5000);
-setInterval(atualizarTrofeus, 30 * 60 * 1000);
-const PALAVROES = ['vagina','pinto','pau','rola','buceta','cu','merda','porra','caralho','viado','puta','piroca','punheta','cuzao','fdp','filhadaputa','desgraça','inferno','arrombado','babaca','idiota','imbecil','retardado','corno','vadia','safada','safado','canalha','lixo','burro','otario','otário','nojento','nojentoass','ass','fuck','shit','bitch','dick','cock','pussy','cunt','bastard','asshole'];
+setTimeout(atualizarDados, 5000);
+setInterval(atualizarDados, 30 * 60 * 1000);
+
+const PALAVROES = ['vagina','pinto','pau','rola','buceta','cu','merda','porra','caralho','viado','puta','piroca','punheta','cuzao','fdp','filhadaputa','arrombado','babaca','idiota','imbecil','retardado','corno','vadia','safada','safado','canalha','ass','fuck','shit','bitch','dick','cock','pussy','cunt','bastard','asshole'];
 function contemPalavroes(texto) {
   const t = texto.toLowerCase().replace(/[^a-z0-9]/g,'');
   return PALAVROES.some(p => t.includes(p));
 }
 function tagValida(tag) {
   const semHash = tag.replace('#','');
-  return /^[0289PYLQGRJCUV]{4,10}$/.test(semHash);
+  return /^[0289PYLQGRJCUV]{4,12}$/i.test(semHash);
 }
+
 window.register = async function() {
   const btn = document.getElementById('btnRegister');
-  const name = document.getElementById('inputName').value.trim();
   let tag = document.getElementById('inputTag').value.trim().toUpperCase();
-  const trophiesRaw = document.getElementById('inputTrophies').value.trim();
   const city = document.getElementById('inputCity').value;
-  if (!name) return showToast('Digite seu nome!', 'error');
-  if (name.length < 2) return showToast('Nome muito curto!', 'error');
-  if (contemPalavroes(name)) return showToast('Nome inválido!', 'error');
   if (!tag) return showToast('Digite sua TAG!', 'error');
   if (!tag.startsWith('#')) tag = '#' + tag;
-  if (tag.length < 4) return showToast('TAG inválida!', 'error');
   if (!tagValida(tag)) return showToast('TAG inválida! Use sua TAG real do Brawl Stars.', 'error');
-  if (contemPalavroes(tag)) return showToast('TAG inválida!', 'error');
-  if (!trophiesRaw) return showToast('Digite seus troféus!', 'error');
-  const trophies = parseInt(trophiesRaw);
-  if (isNaN(trophies) || trophies < 0) return showToast('Troféus inválido!', 'error');
-  if (trophies > 10000000) return showToast('Número de troféus inválido!', 'error');
   if (allPlayers.find(p => p.tag.toUpperCase() === tag)) return showToast('TAG já cadastrada!', 'error');
-  btn.disabled = true; btn.textContent = 'SALVANDO...';
+  btn.disabled = true; btn.textContent = 'BUSCANDO...';
+  showToast('🔍 Buscando dados no Brawl Stars...', 'info');
   try {
-    await addDoc(collection(db, 'players'), { name, tag, city, trophies, emoji: EMOJIS[Math.floor(Math.random()*EMOJIS.length)], color: COLORS[Math.floor(Math.random()*COLORS.length)], joined: Date.now() });
-    document.getElementById('inputName').value = '';
+    const data = await buscarJogador(tag);
+    if (!data.trophies || !data.name) throw new Error('Jogador não encontrado');
+    const name = data.name;
+    const trophies = data.trophies;
+    const horas = data.horas || 0;
+    const emoji = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+    const color = COLORS[Math.floor(Math.random()*COLORS.length)];
+    await addDoc(collection(db, 'players'), { name, tag, city, trophies, horas, emoji, color, joined: Date.now() });
     document.getElementById('inputTag').value = '';
-    document.getElementById('inputTrophies').value = '';
-    showToast('✓ ' + name + ' entrou com ' + trophies.toLocaleString('pt-BR') + ' troféus!', 'success');
+    showToast('✓ ' + name + ' entrou com ' + trophies.toLocaleString('pt-BR') + ' troféus e ~' + horas + 'h de jogo!', 'success');
     setCity(city);
-  } catch(e) { showToast('Erro ao salvar. Tente novamente!', 'error'); }
+  } catch(e) {
+    showToast('❌ ' + (e.message || 'Erro ao buscar jogador. Verifique a TAG!'), 'error');
+  }
   btn.disabled = false; btn.textContent = 'ENTRAR NO RANKING';
 };
+
 function showToast(msg, type='info') {
   const t = document.getElementById('toast');
   t.textContent = msg; t.className = 'toast ' + type;
   clearTimeout(t._t); t._t = setTimeout(() => t.className = 'toast', 5000);
 }
+
 function buildCards(players, containerId) {
   const list = document.getElementById(containerId);
   if (!players.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">🎮</div><p>NENHUM JOGADOR AINDA</p></div>'; return; }
@@ -275,6 +283,7 @@ function buildCards(players, containerId) {
     const rankClass = pos===1?'r1':pos===2?'r2':pos===3?'r3':'rn';
     const rankLabel = pos===1?'🥇':pos===2?'🥈':pos===3?'🥉':'#'+pos;
     const cleanTag = p.tag.replace('#','');
+    const horas = p.horas || '?';
     const card = document.createElement('div');
     card.className = 'player-card ' + topClass;
     card.style.animationDelay = (i*0.04) + 's';
@@ -285,7 +294,10 @@ function buildCards(players, containerId) {
       '<div class="player-meta"><span class="player-tag">' + p.tag + '</span>' +
       '<span class="player-city">📍 ' + p.city + '</span>' +
       '<a class="verify-link" href="https://brawlify.com/stats/profile/' + cleanTag + '" target="_blank">↗ BRAWLIFY</a></div></div>' +
-      '<div class="player-score"><div class="trophy-num">🏆 ' + p.trophies.toLocaleString('pt-BR') + '</div><div class="trophy-label">TROFÉUS</div></div>';
+      '<div class="player-score">' +
+      '<div class="trophy-num">🏆 ' + p.trophies.toLocaleString('pt-BR') + '</div><div class="trophy-label">TROFÉUS</div>' +
+      '<div class="horas-num">⏱ ' + horas + 'h</div><div class="horas-label">DE JOGO</div>' +
+      '</div>';
     list.appendChild(card);
   });
 }
@@ -294,29 +306,17 @@ function renderRankingPE() { buildCards([...allPlayers].sort((a,b) => b.trophies
 </script>
 <audio id="bgMusic" src="song.mp3" loop preload="auto"></audio>
 <script>
-// Start music on first user interaction (required by browsers)
 document.addEventListener('click', function startMusic() {
   const music = document.getElementById('bgMusic');
-  if (music.paused) {
-    music.volume = 0.4;
-    music.play();
-  }
+  if (music.paused) { music.volume = 0.4; music.play(); }
   document.removeEventListener('click', startMusic);
 }, { once: false });
-
-// Music toggle button
 function toggleMusic() {
   const music = document.getElementById('bgMusic');
   const btn = document.getElementById('musicBtn');
-  if (music.paused) {
-    music.play();
-    btn.textContent = '🔊';
-  } else {
-    music.pause();
-    btn.textContent = '🔇';
-  }
+  if (music.paused) { music.play(); btn.textContent = '🔊'; }
+  else { music.pause(); btn.textContent = '🔇'; }
 }
-
 function switchTab(tab, el) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
