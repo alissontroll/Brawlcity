@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -26,10 +27,11 @@ header{position:relative;z-index:10;padding:36px 20px 18px;text-align:center;bor
 .live-dot{width:5px;height:5px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green);animation:blink 1.2s infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
 .tab-bar{position:relative;z-index:10;display:flex;max-width:780px;margin:0 auto;padding:16px 16px 0;gap:4px;}
-.tab-btn{flex:1;background:var(--surface);border:1px solid var(--border);border-bottom:none;color:var(--text-dim);padding:10px 16px;font-family:'Teko',sans-serif;font-size:1.1rem;letter-spacing:2px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;border-radius:4px 4px 0 0;}
+.tab-btn{flex:1;background:var(--surface);border:1px solid var(--border);border-bottom:none;color:var(--text-dim);padding:10px 8px;font-family:'Teko',sans-serif;font-size:1rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;border-radius:4px 4px 0 0;}
 .tab-btn:hover{color:var(--text);background:var(--surface2);}
 .tab-btn.active{background:var(--surface2);border-color:rgba(0,200,255,0.2);color:var(--accent);border-bottom:2px solid var(--accent);}
 .tab-btn.pe-tab.active{color:var(--pe);border-bottom-color:var(--pe);border-color:rgba(255,68,0,0.2);}
+.tab-btn.map-tab.active{color:var(--green);border-bottom-color:var(--green);border-color:rgba(0,255,136,0.2);}
 .city-bar{position:relative;z-index:10;display:flex;gap:6px;padding:14px 16px 0;overflow-x:auto;scrollbar-width:none;max-width:780px;margin:0 auto;}
 .city-bar::-webkit-scrollbar{display:none;}
 .city-btn{flex-shrink:0;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:3px;font-family:'Barlow',sans-serif;font-weight:700;font-size:0.78rem;cursor:pointer;transition:all 0.2s;text-transform:uppercase;white-space:nowrap;}
@@ -40,6 +42,8 @@ main{position:relative;z-index:10;max-width:780px;margin:0 auto;padding:16px 16p
 .register-card{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:4px;padding:22px;margin-bottom:24px;}
 .section-label{font-family:'Teko',sans-serif;font-size:1.2rem;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
 .section-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,200,255,0.2),transparent);}
+.section-label.green{color:var(--green);}
+.section-label.green::after{background:linear-gradient(90deg,rgba(0,255,136,0.2),transparent);}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .form-grid .full{grid-column:1/-1;}
 .input-wrap{display:flex;flex-direction:column;gap:4px;}
@@ -98,145 +102,7 @@ main{position:relative;z-index:10;max-width:780px;margin:0 auto;padding:16px 16p
 .pe-banner{background:linear-gradient(135deg,rgba(255,68,0,0.08),rgba(255,208,0,0.05));border:1px solid rgba(255,68,0,0.15);border-radius:4px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:12px;}
 .pe-flag{font-size:1.8rem;}
 .pe-title{font-family:'Teko',sans-serif;font-size:1.2rem;letter-spacing:2px;color:var(--pe);}
-.pe-desc{font-size:0.72rem;color:var(--text-dim);font-weight:600;margin-top:1px;}
-.empty-state,.loading-state{text-align:center;padding:60px 20px;color:var(--text-muted);}
-.empty-icon{font-size:2rem;margin-bottom:10px;opacity:0.4;}
-.empty-state p,.loading-state p{font-family:'JetBrains Mono',monospace;font-size:0.7rem;letter-spacing:2px;}
-.info-bar{background:rgba(0,200,255,0.04);border:1px solid rgba(0,200,255,0.08);border-radius:3px;padding:10px 14px;margin-bottom:18px;font-size:0.73rem;color:var(--text-muted);font-weight:600;line-height:1.5;}
-.info-bar span{color:var(--accent);}
-footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:var(--text-muted);letter-spacing:2px;border-top:1px solid var(--border);max-width:780px;margin:0 auto;}
-@media(max-width:480px){.form-grid{grid-template-columns:1fr;}.form-grid .full{grid-column:1;}.tab-btn{font-size:0.9rem;padding:8px 10px;letter-spacing:1px;}}
-</style>
-</head>
-<body>
-<header>
-  <div class="logo">BrawlCity</div>
-  <div class="logo-sub">Ranking Competitivo • Pernambuco</div>
-  <div class="live-badge"><span class="live-dot"></span> AO VIVO</div>
-  <button id="musicBtn" onclick="toggleMusic()" style="margin-top:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:var(--text);padding:5px 14px;border-radius:3px;font-family:'Barlow',sans-serif;font-size:0.8rem;font-weight:700;cursor:pointer;letter-spacing:1px;">🔇 MÚSICA</button>
-</header>
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('cidade',this)">🏙 Por Cidade</button>
-  <button class="tab-btn pe-tab" onclick="switchTab('pe',this)">🏆 Top Pernambuco</button>
-</div>
-<div class="city-bar" id="cityBar"></div>
-<main>
-  <div class="tab-content active" id="tab-cidade">
-    <div class="info-bar">⚡ <span>Automático:</span> Digite só sua TAG e o sistema busca seu nome e troféus direto do Brawl Stars! Verificável em brawlify.com 🌐</div>
-    <div class="register-card">
-      <div class="section-label">Entrar no Ranking</div>
-      <div class="form-grid">
-        <div class="input-wrap full"><label>TAG do Brawl Stars</label><input type="text" id="inputTag" placeholder="#JQ2UUJLP" maxlength="15"><div class="hint">Encontre sua TAG no perfil do jogo. Verificável em <a href="https://brawlify.com" target="_blank" style="color:var(--accent)">brawlify.com</a></div></div>
-        <div class="input-wrap full"><label>Cidade</label><select id="inputCity"></select></div>
-        <div class="input-wrap full"><button class="btn-register" id="btnRegister" onclick="register()">ENTRAR NO RANKING</button></div>
-      </div>
-      <div class="toast" id="toast"></div>
-    </div>
-    <div class="ranking-header">
-      <div class="ranking-title">TOP <span class="city-pill" id="activeCityTag">AGRESTINA-PE</span></div>
-      <div class="update-info" id="updateInfo">CONECTANDO...</div>
-    </div>
-    <div id="rankingList"><div class="loading-state"><div class="empty-icon">⏳</div><p>CARREGANDO...</p></div></div>
-  </div>
-  <div class="tab-content" id="tab-pe">
-    <div class="pe-banner">
-      <div class="pe-flag">🦁</div>
-      <div><div class="pe-title">TOP PERNAMBUCO</div><div class="pe-desc">Os melhores jogadores de todo o estado — todas as cidades</div></div>
-    </div>
-    <div class="ranking-header">
-      <div class="ranking-title">RANKING <span class="pe-pill">PERNAMBUCO</span></div>
-      <div class="update-info" id="updateInfoPE">AO VIVO</div>
-    </div>
-    <div id="rankingListPE"><div class="loading-state"><div class="empty-icon">⏳</div><p>CARREGANDO...</p></div></div>
-  </div>
-</main>
-<footer>BRAWLCITY RANK • PERNAMBUCO • VERIFIQUE EM BRAWLIFY.COM</footer>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-const firebaseConfig = {
-  apiKey: "AIzaSyAi05OMG44jmNm_HUEtv9LS_wa-tBvErd8",
-  authDomain: "brawlcity-rank.firebaseapp.com",
-  projectId: "brawlcity-rank",
-  storageBucket: "brawlcity-rank.firebasestorage.app",
-  messagingSenderId: "929168855194",
-  appId: "1:929168855194:web:c41092248e5863f5dc0f23"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const CITIES = ['Agrestina-PE','Altinho-PE','Cupira-PE','Caruaru-PE','Petrolina-PE','Recife-PE','Garanhuns-PE','Vitória de Santo Antão-PE'];
-const EMOJIS = ['🦁','🐯','🦊','🐺','🦅','🐉','🦈','🐻','🦝','🦉','🔥','⚡','💎'];
-const COLORS = ['#FF6B00','#7B2FBE','#00BFFF','#FF3D5A','#00E676','#FFD000','#FF69B4'];
-let activeCity = 'Agrestina-PE';
-let allPlayers = [];
-const cityBar = document.getElementById('cityBar');
-const citySelect = document.getElementById('inputCity');
-CITIES.forEach(c => {
-  const btn = document.createElement('button');
-  btn.className = 'city-btn' + (c === activeCity ? ' active' : '');
-  btn.textContent = c; btn.dataset.city = c;
-  btn.onclick = () => setCity(c);
-  cityBar.appendChild(btn);
-  const opt = document.createElement('option');
-  opt.value = c; opt.textContent = c;
-  citySelect.appendChild(opt);
-});
-function setCity(city) {
-  activeCity = city;
-  document.querySelectorAll('.city-btn').forEach(b => b.classList.toggle('active', b.dataset.city === city));
-  document.getElementById('activeCityTag').textContent = city.toUpperCase();
-  renderRanking();
-}
-const q = query(collection(db, 'players'), orderBy('trophies', 'desc'));
-onSnapshot(q, snapshot => {
-  allPlayers = [];
-  snapshot.forEach(d => allPlayers.push({ id: d.id, ...d.data() }));
-  renderRanking(); renderRankingPE();
-  const t = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-  document.getElementById('updateInfo').textContent = '🟢 ' + t;
-  document.getElementById('updateInfoPE').textContent = '🟢 ' + t;
-}, () => {
-  document.getElementById('updateInfo').textContent = '🔴 OFFLINE';
-  document.getElementById('updateInfoPE').textContent = '🔴 OFFLINE';
-});
-
-// Busca dados na API
-async function buscarJogador(tag) {
-  const cleanTag = tag.startsWith('#') ? tag : '#' + tag;
-  const res = await fetch('/.netlify/functions/player?tag=' + encodeURIComponent(cleanTag));
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || 'Erro ao buscar jogador');
-  }
-  return await res.json();
-}
-
-// Atualização automática de troféus e horas via API
-async function atualizarDados() {
-  if (!allPlayers.length) return;
-  for (const player of allPlayers) {
-    try {
-      const data = await buscarJogador(player.tag);
-      const updates = {};
-      if (data.trophies && data.trophies !== player.trophies) updates.trophies = data.trophies;
-      if (data.horas && data.horas !== player.horas) updates.horas = data.horas;
-      if (Object.keys(updates).length > 0) {
-        await updateDoc(doc(db, 'players', player.id), updates);
-      }
-    } catch(e) { /* ignora erros individuais */ }
-  }
-}
-setTimeout(atualizarDados, 5000);
-setInterval(atualizarDados, 30 * 60 * 1000);
-
-const PALAVROES = ['vagina','pinto','pau','rola','buceta','cu','merda','porra','caralho','viado','puta','piroca','punheta','cuzao','fdp','filhadaputa','arrombado','babaca','idiota','imbecil','retardado','corno','vadia','safada','safado','canalha','ass','fuck','shit','bitch','dick','cock','pussy','cunt','bastard','asshole'];
-function contemPalavroes(texto) {
-  const t = texto.toLowerCase().replace(/[^a-z0-9]/g,'');
-  return PALAVROES.some(p => t.includes(p));
-}
-function tagValida(tag) {
-  const semHash = tag.replace('#','');
-  return /^[0289PYLQGRJCUV]{4,12}$/i.test(semHash);
+< truncated lines 104-492 >
 }
 
 window.register = async function() {
@@ -303,6 +169,9 @@ function buildCards(players, containerId) {
 }
 function renderRanking() { buildCards(allPlayers.filter(p => p.city === activeCity).sort((a,b) => b.trophies-a.trophies), 'rankingList'); }
 function renderRankingPE() { buildCards([...allPlayers].sort((a,b) => b.trophies-a.trophies), 'rankingListPE'); }
+
+// Expõe funções globais
+window.carregarMapas = carregarMapas;
 </script>
 <audio id="bgMusic" src="song.mp3" loop preload="auto"></audio>
 <script>
@@ -323,6 +192,15 @@ function switchTab(tab, el) {
   document.getElementById('tab-'+tab).classList.add('active');
   el.classList.add('active');
   document.getElementById('cityBar').style.display = tab==='cidade'?'flex':'none';
+  if (tab === 'mapas' && !window._mapaCarregado) {
+    window._mapaCarregado = true;
+    setTimeout(function() {
+      if (typeof window.carregarMapas === 'function') {
+        window.carregarMapas();
+        setInterval(window.carregarMapas, 5 * 60 * 1000);
+      }
+    }, 300);
+  }
 }
 </script>
 </body>
