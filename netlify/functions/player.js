@@ -13,7 +13,39 @@ exports.handler = async (event) => {
     };
   }
 
-  const tag = event.queryStringParameters && event.queryStringParameters.tag;
+  const path = event.path || '';
+  const params = event.queryStringParameters || {};
+
+  // Rota: buscar eventos ativos (mapas)
+  if (path.endsWith('/events') || params.type === 'events') {
+    try {
+      const res = await fetch('https://bsproxy.royaleapi.dev/v1/events/rotation', {
+        headers: { Authorization: `Bearer ${API_KEY}` }
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return {
+          statusCode: res.status,
+          headers: { "Access-Control-Allow-Origin": "*" },
+          body: JSON.stringify({ error: data.message || "Erro ao buscar eventos" })
+        };
+      }
+      return {
+        statusCode: 200,
+        headers: { "Access-Control-Allow-Origin": "*" },
+        body: JSON.stringify(data)
+      };
+    } catch (e) {
+      return {
+        statusCode: 500,
+        headers: { "Access-Control-Allow-Origin": "*" },
+        body: JSON.stringify({ error: "Erro ao buscar eventos", detail: e.message })
+      };
+    }
+  }
+
+  // Rota padrão: buscar jogador por TAG
+  const tag = params.tag;
   if (!tag) {
     return {
       statusCode: 400,
@@ -40,7 +72,7 @@ exports.handler = async (event) => {
       };
     }
 
-    // Estimar horas: cada vitória 3v3 ~7min, solo ~4min, duo ~5min
+    // Estimar horas de jogo
     const v3 = data['3v3Victories'] || 0;
     const solo = data['soloVictories'] || 0;
     const duo = data['duoVictories'] || 0;
@@ -54,8 +86,7 @@ exports.handler = async (event) => {
         trophies: data.trophies,
         name: data.name,
         tag: data.tag,
-        horas: horas,
-        icon: data.icon ? data.icon.id : null
+        horas: horas
       })
     };
   } catch (e) {
