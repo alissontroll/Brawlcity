@@ -6,14 +6,7 @@
 <title>BrawlCity Rank</title>
 <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Barlow:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:#060608;--bg2:#0a0a0f;--surface:#0f0f18;--surface2:#141420;
-  --border:rgba(255,255,255,0.06);--gold:#FFD000;--gold2:#FF9500;
-  --silver:#A8B8C8;--bronze:#C87840;--accent:#00C8FF;
-  --green:#00FF88;--red:#FF3355;--text:#D8D8E8;
-  --text-dim:rgba(216,216,232,0.45);--text-muted:rgba(216,216,232,0.22);
-  --pe:#FF4400;
-}
+:root{--bg:#060608;--bg2:#0a0a0f;--surface:#0f0f18;--surface2:#141420;--border:rgba(255,255,255,0.06);--gold:#FFD000;--gold2:#FF9500;--silver:#A8B8C8;--bronze:#C87840;--accent:#00C8FF;--green:#00FF88;--red:#FF3355;--text:#D8D8E8;--text-dim:rgba(216,216,232,0.45);--text-muted:rgba(216,216,232,0.22);--pe:#FF4400;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,200,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,0.025) 1px,transparent 1px);background-size:50px 50px;pointer-events:none;z-index:0;}
@@ -36,13 +29,10 @@ header{position:relative;z-index:10;padding:36px 20px 18px;text-align:center;bor
 .city-btn{flex-shrink:0;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:3px;font-family:'Barlow',sans-serif;font-weight:700;font-size:0.78rem;cursor:pointer;transition:all 0.2s;text-transform:uppercase;white-space:nowrap;}
 .city-btn:hover,.city-btn.active{background:rgba(255,208,0,0.08);border-color:var(--gold);color:var(--gold);}
 main{position:relative;z-index:10;max-width:780px;margin:0 auto;padding:16px 16px 80px;background:var(--surface2);border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;}
-.tab-content{display:none;}
-.tab-content.active{display:block;}
+.tab-content{display:none;}.tab-content.active{display:block;}
 .register-card{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:4px;padding:22px;margin-bottom:24px;}
 .section-label{font-family:'Teko',sans-serif;font-size:1.2rem;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
 .section-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,200,255,0.2),transparent);}
-.section-label.green{color:var(--green);}
-.section-label.green::after{background:linear-gradient(90deg,rgba(0,255,136,0.2),transparent);}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .form-grid .full{grid-column:1/-1;}
 .input-wrap{display:flex;flex-direction:column;gap:4px;}
@@ -55,11 +45,10 @@ main{position:relative;z-index:10;max-width:780px;margin:0 auto;padding:16px 16p
 .btn-register{background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:3px;color:#000;font-family:'Teko',sans-serif;font-size:1.2rem;letter-spacing:3px;padding:11px 24px;cursor:pointer;transition:all 0.2s;width:100%;font-weight:600;}
 .btn-register:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,208,0,0.25);}
 .btn-register:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
-.toast{display:none;padding:10px 14px;border-radius:3px;margin-top:12px;font-size:0.85rem;font-weight:700;animation:toastIn 0.3s ease;}
+.toast{display:none;padding:10px 14px;border-radius:3px;margin-top:12px;font-size:0.85rem;font-weight:700;}
 .toast.success{display:block;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.25);color:var(--green);}
 .toast.error{display:block;background:rgba(255,51,85,0.08);border:1px solid rgba(255,51,85,0.25);color:var(--red);}
 .toast.info{display:block;background:rgba(0,200,255,0.08);border:1px solid rgba(0,200,255,0.25);color:var(--accent);}
-@keyframes toastIn{from{transform:translateY(-6px);opacity:0}to{transform:translateY(0);opacity:1}}
 .ranking-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
 .ranking-title{font-family:'Teko',sans-serif;font-size:1.5rem;letter-spacing:3px;display:flex;align-items:center;gap:10px;}
 .city-pill{font-family:'JetBrains Mono',monospace;font-size:0.58rem;background:rgba(0,200,255,0.08);border:1px solid rgba(0,200,255,0.2);color:var(--accent);padding:3px 8px;border-radius:2px;letter-spacing:1px;}
@@ -71,9 +60,7 @@ main{position:relative;z-index:10;max-width:780px;margin:0 auto;padding:16px 16p
 .player-card:hover::before{background:var(--accent);}
 .player-card.top1{border-color:rgba(255,208,0,0.18);background:linear-gradient(135deg,rgba(255,208,0,0.04),var(--surface));}
 .player-card.top1::before{background:var(--gold);box-shadow:0 0 12px rgba(255,208,0,0.4);}
-.player-card.top2{border-color:rgba(168,184,200,0.18);}
 .player-card.top2::before{background:var(--silver);}
-.player-card.top3{border-color:rgba(200,120,64,0.18);}
 .player-card.top3::before{background:var(--bronze);}
 @keyframes cardIn{from{transform:translateX(-12px);opacity:0}to{transform:translateX(0);opacity:1}}
 .rank-num{font-family:'Teko',sans-serif;font-size:1.7rem;font-weight:600;min-width:42px;text-align:center;line-height:1;}
@@ -108,17 +95,15 @@ main{position:relative;z-index:10;max-width:780px;margin:0 auto;padding:16px 16p
 .info-bar{background:rgba(0,200,255,0.04);border:1px solid rgba(0,200,255,0.08);border-radius:3px;padding:10px 14px;margin-bottom:18px;font-size:0.73rem;color:var(--text-muted);font-weight:600;line-height:1.5;}
 .info-bar span{color:var(--accent);}
 footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:var(--text-muted);letter-spacing:2px;border-top:1px solid var(--border);max-width:780px;margin:0 auto;}
-
 /* MAPAS */
-.map-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-top:4px;}
-.map-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;animation:cardIn 0.35s ease both;transition:all 0.2s;}
+.map-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:14px;animation:cardIn 0.35s ease both;transition:all 0.2s;cursor:pointer;}
 .map-card:hover{transform:translateY(-2px);border-color:rgba(0,255,136,0.2);}
-.map-card-top{position:relative;height:160px;overflow:hidden;background:var(--bg2);}
-.map-card-top img{width:100%;height:100%;object-fit:cover;opacity:0.9;}
-.map-mode-badge{position:absolute;top:8px;left:8px;padding:3px 10px;border-radius:3px;font-family:'Teko',sans-serif;font-size:0.85rem;letter-spacing:2px;font-weight:600;backdrop-filter:blur(8px);}
-.map-timer{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--gold);letter-spacing:1px;}
-.map-card-body{padding:12px 14px;}
-.map-name{font-family:'Teko',sans-serif;font-size:1.2rem;letter-spacing:2px;font-weight:600;line-height:1.2;margin-bottom:10px;}
+.map-card-top{position:relative;height:200px;overflow:hidden;background:var(--bg2);}
+.map-card-top img{width:100%;height:100%;object-fit:cover;}
+.map-mode-badge{position:absolute;top:8px;left:8px;padding:4px 12px;border-radius:3px;font-family:'Teko',sans-serif;font-size:1rem;letter-spacing:2px;font-weight:600;backdrop-filter:blur(8px);}
+.map-timer{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.75);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:3px 10px;font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--gold);letter-spacing:1px;}
+.map-card-body{padding:14px 16px;}
+.map-name{font-family:'Teko',sans-serif;font-size:1.4rem;letter-spacing:2px;font-weight:600;margin-bottom:12px;}
 .brawler-section{margin-top:8px;}
 .brawler-section-title{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:2px;margin-bottom:6px;font-weight:700;}
 .brawler-section-title.best{color:var(--green);}
@@ -127,27 +112,16 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
 .brawler-tag{font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:3px;}
 .brawler-tag.best{background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);color:var(--green);}
 .brawler-tag.worst{background:rgba(255,51,85,0.08);border:1px solid rgba(255,51,85,0.2);color:var(--red);}
-.next-section{margin-top:28px;}
-.next-section-title{font-family:'Teko',sans-serif;font-size:1.1rem;letter-spacing:3px;color:var(--text-dim);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-.next-section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,0.06),transparent);}
-.next-map-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;opacity:0.7;}
-.expand-hint{font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--text-muted);letter-spacing:1px;margin-top:10px;text-align:center;}
-.next-preview{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:12px;margin-top:10px;}
-.next-preview-title{font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--accent);letter-spacing:2px;margin-bottom:8px;}
-.next-preview-img{width:100%;height:100px;object-fit:cover;border-radius:3px;margin-bottom:6px;}
-.next-preview-name{font-weight:800;font-size:0.95rem;}
+.expand-hint{font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--text-muted);letter-spacing:1px;margin-top:12px;text-align:center;padding:6px;border:1px dashed rgba(255,255,255,0.08);border-radius:3px;}
+.next-preview{background:var(--bg2);border:1px solid rgba(0,255,136,0.15);border-radius:4px;padding:12px;margin-top:12px;}
+.next-preview-title{font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--green);letter-spacing:2px;margin-bottom:8px;}
+.next-preview-img{width:100%;height:110px;object-fit:cover;border-radius:3px;margin-bottom:8px;}
+.next-preview-name{font-weight:800;font-size:1rem;}
 .next-preview-mode{font-size:0.72rem;color:var(--text-dim);margin-top:2px;font-weight:600;}
-.next-map-img{width:56px;height:40px;border-radius:3px;object-fit:cover;background:var(--bg2);}
-.next-map-info{flex:1;}
-.next-map-name{font-weight:700;font-size:0.9rem;}
-.next-map-mode{font-size:0.68rem;color:var(--text-dim);font-weight:600;margin-top:2px;}
-.next-map-time{font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--text-muted);}
-
 @media(max-width:480px){
   .form-grid{grid-template-columns:1fr;}
   .form-grid .full{grid-column:1;}
-  .tab-btn{font-size:0.8rem;padding:8px 6px;letter-spacing:0px;}
-  .map-grid{grid-template-columns:1fr;}
+  .tab-btn{font-size:0.8rem;padding:8px 6px;letter-spacing:0;}
 }
 </style>
 </head>
@@ -165,13 +139,12 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
 </div>
 <div class="city-bar" id="cityBar"></div>
 <main>
-  <!-- ABA CIDADE -->
   <div class="tab-content active" id="tab-cidade">
-    <div class="info-bar">⚡ <span>Automático:</span> Digite só sua TAG e o sistema busca seu nome e troféus direto do Brawl Stars! Verificável em brawlify.com 🌐</div>
+    <div class="info-bar">⚡ <span>Automático:</span> Digite só sua TAG e o sistema busca seu nome e troféus direto do Brawl Stars!</div>
     <div class="register-card">
       <div class="section-label">Entrar no Ranking</div>
       <div class="form-grid">
-        <div class="input-wrap full"><label>TAG do Brawl Stars</label><input type="text" id="inputTag" placeholder="#JQ2UUJLP" maxlength="15"><div class="hint">Encontre sua TAG no perfil do jogo. Verificável em <a href="https://brawlify.com" target="_blank" style="color:var(--accent)">brawlify.com</a></div></div>
+        <div class="input-wrap full"><label>TAG do Brawl Stars</label><input type="text" id="inputTag" placeholder="#JQ2UUJLP" maxlength="15"><div class="hint">Encontre sua TAG no perfil do jogo</div></div>
         <div class="input-wrap full"><label>Cidade</label><select id="inputCity"></select></div>
         <div class="input-wrap full"><button class="btn-register" id="btnRegister" onclick="register()">ENTRAR NO RANKING</button></div>
       </div>
@@ -183,12 +156,10 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
     </div>
     <div id="rankingList"><div class="loading-state"><div class="empty-icon">⏳</div><p>CARREGANDO...</p></div></div>
   </div>
-
-  <!-- ABA PERNAMBUCO -->
   <div class="tab-content" id="tab-pe">
     <div class="pe-banner">
       <div class="pe-flag">🦁</div>
-      <div><div class="pe-title">TOP PERNAMBUCO</div><div class="pe-desc">Os melhores jogadores de todo o estado — todas as cidades</div></div>
+      <div><div class="pe-title">TOP PERNAMBUCO</div><div class="pe-desc">Os melhores jogadores de todo o estado</div></div>
     </div>
     <div class="ranking-header">
       <div class="ranking-title">RANKING <span class="pe-pill">PERNAMBUCO</span></div>
@@ -196,21 +167,16 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
     </div>
     <div id="rankingListPE"><div class="loading-state"><div class="empty-icon">⏳</div><p>CARREGANDO...</p></div></div>
   </div>
-
-  <!-- ABA MAPAS -->
   <div class="tab-content" id="tab-mapas">
     <div class="ranking-header">
-      <div class="ranking-title" style="color:var(--green)">🗺️ <span style="font-size:1rem;font-family:'JetBrains Mono',monospace;font-size:0.7rem;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);color:var(--green);padding:3px 8px;border-radius:2px;">EVENTOS ATIVOS</span></div>
+      <div class="ranking-title" style="color:var(--green);font-size:1.1rem;">🗺️ SHOWDOWN AO VIVO</div>
       <div class="update-info" id="updateInfoMapas">CARREGANDO...</div>
     </div>
-    <div id="mapGrid" class="map-grid"><div class="loading-state" style="grid-column:1/-1"><div class="empty-icon">🗺️</div><p>CARREGANDO MAPAS...</p></div></div>
-    <div class="next-section">
-      <div class="next-section-title">⏭ PRÓXIMOS MAPAS</div>
-      <div id="nextMaps"><div class="loading-state"><div class="empty-icon">⏳</div><p>CARREGANDO...</p></div></div>
-    </div>
+    <div id="mapGrid"><div class="loading-state"><div class="empty-icon">🗺️</div><p>CARREGANDO MAPAS...</p></div></div>
   </div>
 </main>
 <footer>BRAWLCITY RANK • PERNAMBUCO • VERIFIQUE EM BRAWLIFY.COM</footer>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -229,385 +195,267 @@ const CITIES = ['Agrestina-PE','Altinho-PE','Cupira-PE','Caruaru-PE','Petrolina-
 const EMOJIS = ['🦁','🐯','🦊','🐺','🦅','🐉','🦈','🐻','🦝','🦉','🔥','⚡','💎'];
 const COLORS = ['#FF6B00','#7B2FBE','#00BFFF','#FF3D5A','#00E676','#FFD000','#FF69B4'];
 
-// Traduções dos modos de jogo (iguais ao jogo em PT-BR) - nomes da BrawlAPI
 const MODOS = {
-  'Gem Grab': { nome: 'Pique-Gema', cor: '#9B59B6', bg: 'rgba(155,89,182,0.15)' },
-  'Brawl Ball': { nome: 'Futebol Brawl', cor: '#27AE60', bg: 'rgba(39,174,96,0.15)' },
-  'Heist': { nome: 'Assalto ao Cofre', cor: '#E74C3C', bg: 'rgba(231,76,60,0.15)' },
-  'Bounty': { nome: 'Caça-Estrelas', cor: '#F39C12', bg: 'rgba(243,156,18,0.15)' },
-  'Hot Zone': { nome: 'Zona Quente', cor: '#E67E22', bg: 'rgba(230,126,34,0.15)' },
-  'Knockout': { nome: 'Nocaute', cor: '#E74C3C', bg: 'rgba(231,76,60,0.15)' },
-  'Solo Showdown': { nome: 'Sobrevivência Solo', cor: '#2ECC71', bg: 'rgba(46,204,113,0.15)' },
-  'Duo Showdown': { nome: 'Sobrevivência Dupla', cor: '#1ABC9C', bg: 'rgba(26,188,156,0.15)' },
-  'Showdown': { nome: 'Sobrevivência', cor: '#2ECC71', bg: 'rgba(46,204,113,0.15)' },
-  'Duels': { nome: 'Duelos', cor: '#E74C3C', bg: 'rgba(231,76,60,0.15)' },
-  'Wipeout': { nome: 'Aniquilação', cor: '#C0392B', bg: 'rgba(192,57,43,0.15)' },
-  'Siege': { nome: 'Cerco', cor: '#2980B9', bg: 'rgba(41,128,185,0.15)' },
-  'Payload': { nome: 'Carga', cor: '#8E44AD', bg: 'rgba(142,68,173,0.15)' },
-  'Bot Drop': { nome: 'Queda de Robôs', cor: '#16A085', bg: 'rgba(22,160,133,0.15)' },
-  'Hunters': { nome: 'Caçadores', cor: '#D35400', bg: 'rgba(211,84,0,0.15)' },
-  'Volley Brawl': { nome: 'Vôlei Brawl', cor: '#3498DB', bg: 'rgba(52,152,219,0.15)' },
-  'Basket Brawl': { nome: 'Basquete Brawl', cor: '#E67E22', bg: 'rgba(230,126,34,0.15)' },
-  'Air Hockey': { nome: 'Hóquei Brawl', cor: '#3498DB', bg: 'rgba(52,152,219,0.15)' },
-  'Brawl Arena': { nome: 'Arena Brawl', cor: '#FF6B00', bg: 'rgba(255,107,0,0.15)' },
-  'Token Run': { nome: 'Corrida de Fichas', cor: '#F1C40F', bg: 'rgba(241,196,15,0.15)' },
-  'Dodgeball': { nome: 'Queimada Brawl', cor: '#E91E63', bg: 'rgba(233,30,99,0.15)' },
-  'Paint Brawl': { nome: 'Batalha de Tinta', cor: '#FF4081', bg: 'rgba(255,64,129,0.15)' },
-  'Unknown': { nome: 'Modo Especial', cor: '#95A5A6', bg: 'rgba(149,165,166,0.15)' },
-  'unknown': { nome: 'Modo Especial', cor: '#95A5A6', bg: 'rgba(149,165,166,0.15)' },
+  'Solo Showdown': {nome:'Sobrevivência Solo',cor:'#2ECC71',bg:'rgba(46,204,113,0.15)'},
+  'Duo Showdown': {nome:'Sobrevivência Dupla',cor:'#1ABC9C',bg:'rgba(26,188,156,0.15)'},
+  'Showdown': {nome:'Sobrevivência',cor:'#2ECC71',bg:'rgba(46,204,113,0.15)'},
 };
 
-// Melhores e piores brawlers por modo
-const BRAWLERS_POR_MODO = {
-  'gemGrab': {
-    best: ['Poco', 'Gene', 'Max', 'Tara', 'Sandy'],
-    worst: ['Shelly', 'Colt', 'El Primo', 'Bull', 'Darryl']
-  },
-  'brawlBall': {
-    best: ['El Primo', 'Rosa', 'Frank', 'Bibi', 'Jacky'],
-    worst: ['Piper', 'Brock', 'Tick', 'Barley', 'Dynamike']
-  },
-  'heist': {
-    best: ['Colt', 'Brock', 'Dynamike', 'Tick', 'Piper'],
-    worst: ['Poco', 'Gene', 'Sandy', 'Frank', 'Rosa']
-  },
-  'bounty': {
-    best: ['Piper', 'Brock', 'Colt', 'Bo', '8-Bit'],
-    worst: ['El Primo', 'Rosa', 'Bull', 'Darryl', 'Frank']
-  },
-  'hotZone': {
-    best: ['Sandy', 'Poco', 'Gene', 'Max', 'Sprout'],
-    worst: ['Piper', 'Brock', 'Sniper', 'Colt', 'Tick']
-  },
-  'knockout': {
-    best: ['Brock', 'Piper', 'Colt', 'Bo', 'Spike'],
-    worst: ['El Primo', 'Rosa', 'Bull', 'Frank', 'Darryl']
-  },
-  'showdown': {
-    best: ['Shelly', 'Bull', 'El Primo', 'Rosa', 'Brock'],
-    worst: ['Poco', 'Gene', 'Sandy', 'Sprout', 'Tara']
-  },
-  'soloShowdown': {
-    best: ['Shelly', 'Bull', 'El Primo', 'Brock', 'Piper'],
-    worst: ['Poco', 'Gene', 'Sandy', 'Sprout', 'Tara']
-  },
-  'duoShowdown': {
-    best: ['Poco', 'Gene', 'Sandy', 'Max', 'Shelly'],
-    worst: ['Tick', 'Dynamike', 'Barley', 'Piper', 'Brock']
-  },
-  'duels': {
-    best: ['Shelly', 'Colt', 'Brock', 'El Primo', 'Rosa'],
-    worst: ['Poco', 'Sprout', 'Sandy', 'Gene', 'Tara']
-  },
-  'wipeout': {
-    best: ['Colt', 'Brock', 'Sandy', 'Max', '8-Bit'],
-    worst: ['El Primo', 'Rosa', 'Bull', 'Frank', 'Darryl']
-  },
-  'siege': {
-    best: ['Colt', 'Brock', '8-Bit', 'Piper', 'Tick'],
-    worst: ['El Primo', 'Rosa', 'Bull', 'Frank', 'Darryl']
-  },
-};
-
-function getModo(id) {
-  if (!id) return MODOS['unknown'];
-  // Tenta direto, depois capitalizado, depois maiúsculo
-  if (MODOS[id]) return MODOS[id];
-  const cap = id.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-  if (MODOS[cap]) return MODOS[cap];
-  return MODOS['unknown'];
+function getModo(name) {
+  if (!name) return {nome:'Showdown',cor:'#2ECC71',bg:'rgba(46,204,113,0.15)'};
+  const n = name.trim();
+  if (MODOS[n]) return MODOS[n];
+  const lower = n.toLowerCase();
+  if (lower.includes('duo')) return MODOS['Duo Showdown'];
+  if (lower.includes('trio')) return {nome:'Sobrevivência em Trio',cor:'#1ABC9C',bg:'rgba(26,188,156,0.15)'};
+  return {nome:'Sobrevivência',cor:'#2ECC71',bg:'rgba(46,204,113,0.15)'};
 }
-
-function getBrawlers(id) {
-  if (!id) return { best: ['—'], worst: ['—'] };
-  if (BRAWLERS_POR_MODO[id]) return BRAWLERS_POR_MODO[id];
-  const cap = id.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-  if (BRAWLERS_POR_MODO[cap]) return BRAWLERS_POR_MODO[cap];
-  return { best: ['—'], worst: ['—'] };
-}
-
-
 
 function formatTempo(ms) {
   if (!ms || ms <= 0) return 'Encerrando...';
   const s = Math.floor(ms / 1000);
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
-  if (h > 0) return h + 'h ' + m + 'm';
-  return m + 'm';
+  return h > 0 ? h + 'h ' + m + 'm' : m + 'm';
 }
 
 let eventTimers = [];
 
-function renderMapas(apiData) {
+function renderMapas(ativos, proximos) {
   const grid = document.getElementById('mapGrid');
-  const nextDiv = document.getElementById('nextMaps');
-  eventTimers.forEach(t => clearInterval(t));
+  eventTimers.forEach(function(t){ clearInterval(t); });
   eventTimers = [];
 
-  // BrawlAPI retorna { active: [...], upcoming: [...] }
-  const ativos = (apiData.active || []);
-  const proximos = (apiData.upcoming || []).slice(0, 5);
-
-  if (!ativosFiltrados.length) {
-    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🗺️</div><p>SEM SHOWDOWN ATIVO AGORA</p></div>';
-    document.getElementById('updateInfoMapas').textContent = '🟢 ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  if (!ativos.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🗺️</div><p>SEM SHOWDOWN ATIVO</p></div>';
+    document.getElementById('updateInfoMapas').textContent = '🟢 ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     return;
   }
 
-  // Filtra só Showdown
-  // Nome do modo está em ev.map.name na BrawlAPI
-  const getNomeModo = (ev) => {
-    if (ev.mode && ev.mode.name) return ev.mode.name.toUpperCase();
-    if (ev.map && ev.map.name) return ev.map.name.toUpperCase();
-    return '';
-  };
-  const ativosFiltrados = ativos.filter(ev => getNomeModo(ev).includes('SHOWDOWN'));
-  const proximosShowdown = proximos.filter(ev => getNomeModo(ev).includes('SHOWDOWN'));
-
   grid.innerHTML = '';
-  ativosFiltrados.forEach((ev, idx) => {
-    // BrawlAPI formato real: ev.mode.name, ev.map.name, ev.map.id, ev.endTime
-    const modeId = (ev.mode && ev.mode.name) ? ev.mode.name : (ev.map && ev.map.name ? ev.map.name : 'unknown');
-    const modo = getModo(modeId);
-    const brawlers = getBrawlers(modeId);
-    const mapName = (ev.map && ev.map.name) || 'Mapa';
-    const mapId = (ev.map && ev.map.id) || (ev.id) || '';
-    const mapImg = mapId ? 'https://cdn.brawlify.com/maps/regular/' + mapId + '.png' : '';
-    const endTime = ev.endTime ? new Date(ev.endTime).getTime() : 0;
-    const timerId = 'timer_' + idx;
-    // Acha o próximo mapa do mesmo slot
-    const slot = ev.slot;
-    const proximoSlot = proximosShowdown.find(p => p.slot === slot);
-    const proximoNome = proximoSlot && proximoSlot.map ? proximoSlot.map.name : null;
-    const proximoModo = proximoSlot && proximoSlot.mode ? getModo(proximoSlot.mode.name).nome : null;
-    const proximoId = proximoSlot && proximoSlot.map ? proximoSlot.map.id : null;
-    const proximoImg = proximoId ? 'https://cdn.brawlify.com/maps/regular/' + proximoId + '.png' : '';
 
-    const card = document.createElement('div');
-    card.className = 'map-card';
-    card.style.animationDelay = (idx * 0.07) + 's';
-    const proximoHtml = proximoNome ? `
-      <div class="next-preview">
-        <div class="next-preview-title">⏭ PRÓXIMO NESTE SLOT</div>
-        ${proximoImg ? `<img src="${proximoImg}" class="next-preview-img" alt="${proximoNome}">` : ''}
-        <div class="next-preview-name">${proximoNome}</div>
-        ${proximoModo ? `<div class="next-preview-mode">${proximoModo}</div>` : ''}
-      </div>` : '<div class="next-preview"><div class="next-preview-title">⏭ PRÓXIMO NESTE SLOT</div><div style="color:var(--text-muted);font-size:0.75rem;margin-top:6px;">Sem informação</div></div>';
+  for (var idx = 0; idx < ativos.length; idx++) {
+    var ev = ativos[idx];
+    var modeName = '';
+    if (ev.gameMode && ev.gameMode.name) modeName = ev.gameMode.name;
+    else if (ev.map && ev.map.gameMode && ev.map.gameMode.name) modeName = ev.map.gameMode.name;
+    var modo = getModo(modeName);
+    var mapName = (ev.map && ev.map.name) ? ev.map.name : 'Mapa';
+    var mapImg = (ev.map && ev.map.imageUrl) ? ev.map.imageUrl : '';
+    var endTime = ev.endTime ? new Date(ev.endTime).getTime() : 0;
+    var timerId = 'timer_' + idx;
 
-    card.innerHTML = `
-      <div class="map-card-top">
-        ${mapImg ? `<img src="${mapImg}" onerror="this.style.display='none'" alt="${mapName}" style="width:100%;height:100%;object-fit:cover;">` : ''}
-        <div class="map-mode-badge" style="background:${modo.bg};color:${modo.cor};border:1px solid ${modo.cor}40;">${modo.nome}</div>
-        <div class="map-timer" id="${timerId}">⏱ --</div>
-      </div>
-      <div class="map-card-body">
-        <div class="map-name">${mapName}</div>
-        <div class="brawler-section">
-          <div class="brawler-section-title best">✅ MELHORES</div>
-          <div class="brawler-tags">${brawlers.best.map(b => `<span class="brawler-tag best">${b}</span>`).join('')}</div>
-        </div>
-        <div class="brawler-section" style="margin-top:8px;">
-          <div class="brawler-section-title worst">❌ PIORES</div>
-          <div class="brawler-tags">${brawlers.worst.map(b => `<span class="brawler-tag worst">${b}</span>`).join('')}</div>
-        </div>
-        <div class="expand-hint">👆 Toque para ver próximo mapa</div>
-        <div class="next-preview-wrap" style="display:none;">${proximoHtml}</div>
-      </div>`;
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', () => {
-      const wrap = card.querySelector('.next-preview-wrap');
-      const hint = card.querySelector('.expand-hint');
-      if (wrap.style.display === 'none') {
-        wrap.style.display = 'block';
-        hint.style.display = 'none';
-      } else {
-        wrap.style.display = 'none';
-        hint.style.display = 'block';
+    // Melhores e piores por winrate real
+    var stats = (ev.map && ev.map.stats) ? ev.map.stats : [];
+    var sorted = stats.filter(function(s){ return s.winRate > 0; }).sort(function(a,b){ return b.winRate - a.winRate; });
+    var melhores = sorted.slice(0,5);
+    var piores = sorted.slice(-5).reverse();
+
+    // Próximo mapa
+    var proximo = null;
+    for (var j = 0; j < proximos.length; j++) {
+      var p = proximos[j];
+      var pMode = (p.gameMode && p.gameMode.name) ? p.gameMode.name.toUpperCase() : '';
+      if (pMode.includes('SHOWDOWN')) { proximo = p; break; }
+    }
+    var proximoNome = (proximo && proximo.map) ? proximo.map.name : '';
+    var proximoImg = (proximo && proximo.map && proximo.map.imageUrl) ? proximo.map.imageUrl : '';
+    var proximoModoNome = proximo && proximo.gameMode ? getModo(proximo.gameMode.name).nome : '';
+
+    var melhorHTML = '';
+    if (melhores.length) {
+      for (var k = 0; k < melhores.length; k++) {
+        var nome = melhores[k].brawler || '?';
+        melhorHTML += '<span class="brawler-tag best">' + nome + '</span>';
       }
-    });
+    } else {
+      melhorHTML = '<span style="color:var(--text-muted);font-size:0.7rem;">Sem dados</span>';
+    }
+
+    var piorHTML = '';
+    if (piores.length) {
+      for (var k = 0; k < piores.length; k++) {
+        var nome = piores[k].brawler || '?';
+        piorHTML += '<span class="brawler-tag worst">' + nome + '</span>';
+      }
+    } else {
+      piorHTML = '<span style="color:var(--text-muted);font-size:0.7rem;">Sem dados</span>';
+    }
+
+    var proximoHTML = '';
+    if (proximoNome) {
+      proximoHTML = '<div class="next-preview">' +
+        '<div class="next-preview-title">⏭ PRÓXIMO MAPA DE SHOWDOWN</div>' +
+        (proximoImg ? '<img class="next-preview-img" src="' + proximoImg + '" alt="' + proximoNome + '">' : '') +
+        '<div class="next-preview-name">' + proximoNome + '</div>' +
+        (proximoModoNome ? '<div class="next-preview-mode">' + proximoModoNome + '</div>' : '') +
+        '</div>';
+    } else {
+      proximoHTML = '<div class="next-preview"><div class="next-preview-title">⏭ PRÓXIMO MAPA</div><div style="color:var(--text-muted);font-size:0.75rem;margin-top:6px;">Sem informação</div></div>';
+    }
+
+    var card = document.createElement('div');
+    card.className = 'map-card';
+    card.style.animationDelay = (idx * 0.1) + 's';
+    card.innerHTML =
+      '<div class="map-card-top">' +
+        (mapImg ? '<img src="' + mapImg + '" alt="' + mapName + '">' : '') +
+        '<div class="map-mode-badge" style="background:' + modo.bg + ';color:' + modo.cor + ';border:1px solid ' + modo.cor + '40;">' + modo.nome + '</div>' +
+        '<div class="map-timer" id="' + timerId + '">⏱ --</div>' +
+      '</div>' +
+      '<div class="map-card-body">' +
+        '<div class="map-name">' + mapName + '</div>' +
+        '<div class="brawler-section"><div class="brawler-section-title best">✅ MELHORES</div><div class="brawler-tags">' + melhorHTML + '</div></div>' +
+        '<div class="brawler-section" style="margin-top:8px;"><div class="brawler-section-title worst">❌ PIORES</div><div class="brawler-tags">' + piorHTML + '</div></div>' +
+        '<div class="expand-hint">👆 Toque para ver próximo mapa</div>' +
+        '<div class="next-preview-wrap" style="display:none;">' + proximoHTML + '</div>' +
+      '</div>';
+
+    card.addEventListener('click', (function(c){
+      return function() {
+        var wrap = c.querySelector('.next-preview-wrap');
+        var hint = c.querySelector('.expand-hint');
+        if (wrap.style.display === 'none') { wrap.style.display = 'block'; hint.style.display = 'none'; }
+        else { wrap.style.display = 'none'; hint.style.display = 'block'; }
+      };
+    })(card));
+
     grid.appendChild(card);
 
-    const updateTimer = () => {
-      const el = document.getElementById(timerId);
-      if (!el) return;
-      el.textContent = '⏱ ' + formatTempo(endTime - Date.now());
-    };
-    updateTimer();
-    eventTimers.push(setInterval(updateTimer, 30000));
-  });
-
-  // Próximos mapas (oculto pois aparece no card)
-  nextDiv.style.display = 'none';
-  if (false && proximos.length) {
-    nextDiv.innerHTML = '';
-    proximos.forEach(ev => {
-      const modeId = (ev.mode && ev.mode.name) ? ev.mode.name : 'unknown';
-      const modo = getModo(modeId);
-      const mapName = (ev.map && ev.map.name) || 'Mapa';
-      const mapId2 = (ev.map && ev.map.id) || '';
-      const mapImg = mapId2 ? 'https://cdn.brawlify.com/maps/regular/' + mapId2 + '.png' : '';
-      const startTime = ev.startTime ? new Date(ev.startTime).getTime() : 0;
-      const item = document.createElement('div');
-      item.className = 'next-map-card';
-      item.innerHTML = `
-        ${mapImg ? `<img class="next-map-img" src="${mapImg}" alt="${mapName}">` : '<div class="next-map-img"></div>'}
-        <div class="next-map-info">
-          <div class="next-map-name">${mapName}</div>
-          <div class="next-map-mode" style="color:${modo.cor}">${modo.nome}</div>
-        </div>
-        <div class="next-map-time">em ${formatTempo(startTime - Date.now())}</div>`;
-      nextDiv.appendChild(item);
-    });
-  } else {
-    nextDiv.innerHTML = '<div style="font-family:JetBrains Mono,monospace;font-size:0.7rem;color:var(--text-muted);text-align:center;padding:20px;">SEM PRÓXIMOS EVENTOS</div>';
+    (function(tid, et){
+      var fn = function() {
+        var el = document.getElementById(tid);
+        if (el) el.textContent = '⏱ ' + formatTempo(et - Date.now());
+      };
+      fn();
+      eventTimers.push(setInterval(fn, 30000));
+    })(timerId, endTime);
   }
 
-  document.getElementById('updateInfoMapas').textContent = '🟢 ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  document.getElementById('updateInfoMapas').textContent = '🟢 ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 }
 
 async function carregarMapas() {
-  const grid = document.getElementById('mapGrid');
-  grid.innerHTML = '<div class="loading-state" style="grid-column:1/-1"><p>BUSCANDO...</p></div>';
   try {
-    const res = await fetch('/.netlify/functions/player?type=events');
-    const data = await res.json();
-    const ativos = data.active || [];
-    const showdowns = ativos.filter(ev => {
-      const n = (ev.map && ev.map.name) || '';
-      return n.toUpperCase().includes('SHOWDOWN');
+    var res = await fetch('https://api.brawlify.com/v1/events');
+    if (!res.ok) throw new Error('Erro ' + res.status);
+    var data = await res.json();
+    var ativos = data.active || [];
+    var upcoming = data.upcoming || [];
+    var showdownAtivos = ativos.filter(function(ev) {
+      var m = (ev.gameMode && ev.gameMode.name) ? ev.gameMode.name.toUpperCase() : '';
+      var m2 = (ev.map && ev.map.gameMode && ev.map.gameMode.name) ? ev.map.gameMode.name.toUpperCase() : '';
+      return m.includes('SHOWDOWN') || m2.includes('SHOWDOWN');
     });
-    if (showdowns.length === 0) {
-      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🗺️</div><p>SHOWDOWN: ' + ativos.map(e => (e.map&&e.map.name)||'?').join(' | ') + '</p></div>';
-      return;
-    }
-    renderMapas(data);
+    renderMapas(showdownAtivos, upcoming);
   } catch(e) {
-    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>ERRO: ' + e.message + '</p></div>';
+    document.getElementById('mapGrid').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>ERRO AO CARREGAR</p></div>';
     document.getElementById('updateInfoMapas').textContent = '🔴 ERRO';
   }
 }
 
-// Carrega mapas quando abre a aba
-let mapaCarregado = false;
+window.carregarMapas = carregarMapas;
 
 // Ranking Firebase
-let activeCity = 'Agrestina-PE';
-let allPlayers = [];
-const cityBar = document.getElementById('cityBar');
-const citySelect = document.getElementById('inputCity');
-CITIES.forEach(c => {
-  const btn = document.createElement('button');
+var activeCity = 'Agrestina-PE';
+var allPlayers = [];
+var cityBar = document.getElementById('cityBar');
+var citySelect = document.getElementById('inputCity');
+CITIES.forEach(function(c) {
+  var btn = document.createElement('button');
   btn.className = 'city-btn' + (c === activeCity ? ' active' : '');
-  btn.textContent = c; btn.dataset.city = c;
-  btn.onclick = () => setCity(c);
+  btn.textContent = c;
+  btn.dataset.city = c;
+  btn.onclick = function(){ setCity(c); };
   cityBar.appendChild(btn);
-  const opt = document.createElement('option');
+  var opt = document.createElement('option');
   opt.value = c; opt.textContent = c;
   citySelect.appendChild(opt);
 });
+
 function setCity(city) {
   activeCity = city;
-  document.querySelectorAll('.city-btn').forEach(b => b.classList.toggle('active', b.dataset.city === city));
+  document.querySelectorAll('.city-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.city === city); });
   document.getElementById('activeCityTag').textContent = city.toUpperCase();
   renderRanking();
 }
-const q = query(collection(db, 'players'), orderBy('trophies', 'desc'));
-onSnapshot(q, snapshot => {
+
+var q = query(collection(db, 'players'), orderBy('trophies', 'desc'));
+onSnapshot(q, function(snapshot) {
   allPlayers = [];
-  snapshot.forEach(d => allPlayers.push({ id: d.id, ...d.data() }));
+  snapshot.forEach(function(d){ allPlayers.push(Object.assign({id: d.id}, d.data())); });
   renderRanking(); renderRankingPE();
-  const t = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  var t = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   document.getElementById('updateInfo').textContent = '🟢 ' + t;
   document.getElementById('updateInfoPE').textContent = '🟢 ' + t;
-}, () => {
+}, function() {
   document.getElementById('updateInfo').textContent = '🔴 OFFLINE';
   document.getElementById('updateInfoPE').textContent = '🔴 OFFLINE';
 });
 
 async function buscarJogador(tag) {
-  const cleanTag = tag.startsWith('#') ? tag : '#' + tag;
-  const res = await fetch('/.netlify/functions/player?tag=' + encodeURIComponent(cleanTag));
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || 'Erro ao buscar jogador');
-  }
+  var cleanTag = tag.startsWith('#') ? tag : '#' + tag;
+  var res = await fetch('/.netlify/functions/player?tag=' + encodeURIComponent(cleanTag));
+  if (!res.ok) { var err = await res.json(); throw new Error(err.error || 'Erro ao buscar jogador'); }
   return await res.json();
 }
 
 async function atualizarDados() {
-  if (!allPlayers.length) return;
-  for (const player of allPlayers) {
+  for (var i = 0; i < allPlayers.length; i++) {
+    var player = allPlayers[i];
     try {
-      const data = await buscarJogador(player.tag);
-      const updates = {};
+      var data = await buscarJogador(player.tag);
+      var updates = {};
       if (data.trophies && data.trophies !== player.trophies) updates.trophies = data.trophies;
       if (data.horas && data.horas !== player.horas) updates.horas = data.horas;
-      if (Object.keys(updates).length > 0) {
-        await updateDoc(doc(db, 'players', player.id), updates);
-      }
+      if (Object.keys(updates).length > 0) await updateDoc(doc(db, 'players', player.id), updates);
     } catch(e) {}
   }
 }
 setTimeout(atualizarDados, 5000);
 setInterval(atualizarDados, 30 * 60 * 1000);
 
-const PALAVROES = ['vagina','pinto','pau','rola','buceta','cu','merda','porra','caralho','viado','puta','piroca','punheta','cuzao','fdp','filhadaputa','arrombado','babaca','idiota','imbecil','retardado','corno','vadia','safada','safado','canalha','ass','fuck','shit','bitch','dick','cock','pussy','cunt','bastard','asshole'];
-function contemPalavroes(texto) {
-  const t = texto.toLowerCase().replace(/[^a-z0-9]/g,'');
-  return PALAVROES.some(p => t.includes(p));
-}
-function tagValida(tag) {
-  const semHash = tag.replace('#','');
-  return /^[0289PYLQGRJCUV]{4,12}$/i.test(semHash);
-}
-
 window.register = async function() {
-  const btn = document.getElementById('btnRegister');
-  let tag = document.getElementById('inputTag').value.trim().toUpperCase();
-  const city = document.getElementById('inputCity').value;
+  var btn = document.getElementById('btnRegister');
+  var tag = document.getElementById('inputTag').value.trim().toUpperCase();
+  var city = document.getElementById('inputCity').value;
   if (!tag) return showToast('Digite sua TAG!', 'error');
   if (!tag.startsWith('#')) tag = '#' + tag;
-  if (!tagValida(tag)) return showToast('TAG inválida! Use sua TAG real do Brawl Stars.', 'error');
-  if (allPlayers.find(p => p.tag.toUpperCase() === tag)) return showToast('TAG já cadastrada!', 'error');
+  if (allPlayers.find(function(p){ return p.tag.toUpperCase() === tag; })) return showToast('TAG já cadastrada!', 'error');
   btn.disabled = true; btn.textContent = 'BUSCANDO...';
   showToast('🔍 Buscando dados no Brawl Stars...', 'info');
   try {
-    const data = await buscarJogador(tag);
+    var data = await buscarJogador(tag);
     if (!data.trophies || !data.name) throw new Error('Jogador não encontrado');
-    const name = data.name;
-    const trophies = data.trophies;
-    const horas = data.horas || 0;
-    const emoji = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
-    const color = COLORS[Math.floor(Math.random()*COLORS.length)];
-    await addDoc(collection(db, 'players'), { name, tag, city, trophies, horas, emoji, color, joined: Date.now() });
+    var emoji = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+    var color = COLORS[Math.floor(Math.random()*COLORS.length)];
+    await addDoc(collection(db, 'players'), {name: data.name, tag: data.tag, city: city, trophies: data.trophies, horas: data.horas || 0, emoji: emoji, color: color, joined: Date.now()});
     document.getElementById('inputTag').value = '';
-    showToast('✓ ' + name + ' entrou com ' + trophies.toLocaleString('pt-BR') + ' troféus e ~' + horas + 'h de jogo!', 'success');
+    showToast('✓ ' + data.name + ' entrou com ' + data.trophies.toLocaleString('pt-BR') + ' troféus!', 'success');
     setCity(city);
   } catch(e) {
-    showToast('❌ ' + (e.message || 'Erro ao buscar jogador. Verifique a TAG!'), 'error');
+    showToast('❌ ' + (e.message || 'Erro ao buscar jogador'), 'error');
   }
   btn.disabled = false; btn.textContent = 'ENTRAR NO RANKING';
 };
 
-function showToast(msg, type='info') {
-  const t = document.getElementById('toast');
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
   t.textContent = msg; t.className = 'toast ' + type;
-  clearTimeout(t._t); t._t = setTimeout(() => t.className = 'toast', 5000);
+  clearTimeout(t._t); t._t = setTimeout(function(){ t.className = 'toast'; }, 5000);
 }
 
 function buildCards(players, containerId) {
-  const list = document.getElementById(containerId);
+  var list = document.getElementById(containerId);
   if (!players.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">🎮</div><p>NENHUM JOGADOR AINDA</p></div>'; return; }
   list.innerHTML = '';
-  players.forEach((p, i) => {
-    const pos = i+1;
-    const topClass = pos===1?'top1':pos===2?'top2':pos===3?'top3':'';
-    const rankClass = pos===1?'r1':pos===2?'r2':pos===3?'r3':'rn';
-    const rankLabel = pos===1?'🥇':pos===2?'🥈':pos===3?'🥉':'#'+pos;
-    const cleanTag = p.tag.replace('#','');
-    const horas = p.horas || '?';
-    const card = document.createElement('div');
+  players.forEach(function(p, i) {
+    var pos = i+1;
+    var topClass = pos===1?'top1':pos===2?'top2':pos===3?'top3':'';
+    var rankClass = pos===1?'r1':pos===2?'r2':pos===3?'r3':'rn';
+    var rankLabel = pos===1?'🥇':pos===2?'🥈':pos===3?'🥉':'#'+pos;
+    var cleanTag = p.tag.replace('#','');
+    var card = document.createElement('div');
     card.className = 'player-card ' + topClass;
     card.style.animationDelay = (i*0.04) + 's';
     card.innerHTML = (pos===1?'<div class="crown-icon">👑</div><div class="shimmer"></div>':'') +
@@ -619,44 +467,37 @@ function buildCards(players, containerId) {
       '<a class="verify-link" href="https://brawlify.com/stats/profile/' + cleanTag + '" target="_blank">↗ BRAWLIFY</a></div></div>' +
       '<div class="player-score">' +
       '<div class="trophy-num">🏆 ' + p.trophies.toLocaleString('pt-BR') + '</div><div class="trophy-label">TROFÉUS</div>' +
-      '<div class="horas-num">⏱ ' + horas + 'h</div><div class="horas-label">DE JOGO</div>' +
+      '<div class="horas-num">⏱ ' + (p.horas||'?') + 'h</div><div class="horas-label">DE JOGO</div>' +
       '</div>';
     list.appendChild(card);
   });
 }
-function renderRanking() { buildCards(allPlayers.filter(p => p.city === activeCity).sort((a,b) => b.trophies-a.trophies), 'rankingList'); }
-function renderRankingPE() { buildCards([...allPlayers].sort((a,b) => b.trophies-a.trophies), 'rankingListPE'); }
-
-// Expõe funções globais
-window.carregarMapas = carregarMapas;
+function renderRanking() { buildCards(allPlayers.filter(function(p){ return p.city === activeCity; }).sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingList'); }
+function renderRankingPE() { buildCards(allPlayers.slice().sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingListPE'); }
 </script>
+
 <audio id="bgMusic" src="song.mp3" loop preload="auto"></audio>
 <script>
-document.addEventListener('click', function startMusic() {
-  const music = document.getElementById('bgMusic');
-  if (music.paused) { music.volume = 0.4; music.play(); }
-  document.removeEventListener('click', startMusic);
-}, { once: false });
 function toggleMusic() {
-  const music = document.getElementById('bgMusic');
-  const btn = document.getElementById('musicBtn');
-  if (music.paused) { music.play(); btn.textContent = '🔊'; }
-  else { music.pause(); btn.textContent = '🔇'; }
+  var music = document.getElementById('bgMusic');
+  var btn = document.getElementById('musicBtn');
+  if (music.paused) { music.volume = 0.4; music.play(); btn.textContent = '🔊 MÚSICA'; }
+  else { music.pause(); btn.textContent = '🔇 MÚSICA'; }
 }
 function switchTab(tab, el) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
   document.getElementById('tab-'+tab).classList.add('active');
   el.classList.add('active');
-  document.getElementById('cityBar').style.display = tab==='cidade'?'flex':'none';
+  document.getElementById('cityBar').style.display = tab==='cidade' ? 'flex' : 'none';
   if (tab === 'mapas' && !window._mapaCarregado) {
     window._mapaCarregado = true;
-    setTimeout(function() {
+    setTimeout(function(){
       if (typeof window.carregarMapas === 'function') {
         window.carregarMapas();
         setInterval(window.carregarMapas, 5 * 60 * 1000);
       }
-    }, 300);
+    }, 200);
   }
 }
 </script>
