@@ -356,17 +356,23 @@ function renderMapas(apiData) {
   }
 
   // Filtra só Showdown
-  const ativosFiltrados = ativos.filter(ev => ev.mode && ev.mode.name && ev.mode.name.toUpperCase().includes('SHOWDOWN'));
-  const proximosShowdown = proximos.filter(ev => ev.mode && ev.mode.name && ev.mode.name.toUpperCase().includes('SHOWDOWN'));
+  // Nome do modo está em ev.map.name na BrawlAPI
+  const getNomeModo = (ev) => {
+    if (ev.mode && ev.mode.name) return ev.mode.name.toUpperCase();
+    if (ev.map && ev.map.name) return ev.map.name.toUpperCase();
+    return '';
+  };
+  const ativosFiltrados = ativos.filter(ev => getNomeModo(ev).includes('SHOWDOWN'));
+  const proximosShowdown = proximos.filter(ev => getNomeModo(ev).includes('SHOWDOWN'));
 
   grid.innerHTML = '';
   ativosFiltrados.forEach((ev, idx) => {
     // BrawlAPI formato real: ev.mode.name, ev.map.name, ev.map.id, ev.endTime
-    const modeId = ev.mode.name;
+    const modeId = (ev.mode && ev.mode.name) ? ev.mode.name : (ev.map && ev.map.name ? ev.map.name : 'unknown');
     const modo = getModo(modeId);
     const brawlers = getBrawlers(modeId);
     const mapName = (ev.map && ev.map.name) || 'Mapa';
-    const mapId = (ev.map && ev.map.id) || '';
+    const mapId = (ev.map && ev.map.id) || (ev.id) || '';
     const mapImg = mapId ? 'https://cdn.brawlify.com/maps/regular/' + mapId + '.png' : '';
     const endTime = ev.endTime ? new Date(ev.endTime).getTime() : 0;
     const timerId = 'timer_' + idx;
@@ -462,13 +468,23 @@ function renderMapas(apiData) {
 
 async function carregarMapas() {
   try {
-    const res = await fetch('https://api.brawlapi.com/v1/events');
+    // Tenta pelo Netlify primeiro, fallback direto
+    let res = await fetch('/.netlify/functions/player?type=events');
+    if (!res.ok) {
+      res = await fetch('https://api.brawlapi.com/v1/events');
+    }
     if (!res.ok) throw new Error('Erro ao buscar eventos');
     const data = await res.json();
-    renderMapas(data);
+    // Suporte aos dois formatos: array direto ou {active:[...]}
+    if (Array.isArray(data)) {
+      renderMapas({ active: data, upcoming: [] });
+    } else {
+      renderMapas(data);
+    }
   } catch(e) {
     document.getElementById('mapGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>ERRO AO CARREGAR MAPAS</p></div>';
     document.getElementById('updateInfoMapas').textContent = '🔴 ERRO';
+    console.error('Erro mapas:', e);
   }
 }
 
