@@ -131,6 +131,12 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
 .next-section-title{font-family:'Teko',sans-serif;font-size:1.1rem;letter-spacing:3px;color:var(--text-dim);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
 .next-section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,0.06),transparent);}
 .next-map-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;opacity:0.7;}
+.expand-hint{font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--text-muted);letter-spacing:1px;margin-top:10px;text-align:center;}
+.next-preview{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:12px;margin-top:10px;}
+.next-preview-title{font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--accent);letter-spacing:2px;margin-bottom:8px;}
+.next-preview-img{width:100%;height:100px;object-fit:cover;border-radius:3px;margin-bottom:6px;}
+.next-preview-name{font-weight:800;font-size:0.95rem;}
+.next-preview-mode{font-size:0.72rem;color:var(--text-dim);margin-top:2px;font-weight:600;}
 .next-map-img{width:56px;height:40px;border-radius:3px;object-fit:cover;background:var(--bg2);}
 .next-map-info{flex:1;}
 .next-map-name{font-weight:700;font-size:0.9rem;}
@@ -343,15 +349,20 @@ function renderMapas(apiData) {
   const ativos = (apiData.active || []);
   const proximos = (apiData.upcoming || []).slice(0, 5);
 
-  if (!ativos.length) {
-    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🗺️</div><p>NENHUM EVENTO ENCONTRADO</p></div>';
+  if (!ativosFiltrados.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🗺️</div><p>SEM SHOWDOWN ATIVO AGORA</p></div>';
+    document.getElementById('updateInfoMapas').textContent = '🟢 ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
     return;
   }
 
+  // Filtra só Showdown
+  const ativosFiltrados = ativos.filter(ev => ev.mode && ev.mode.name && ev.mode.name.toLowerCase().includes('showdown'));
+  const proximosShowdown = proximos.filter(ev => ev.mode && ev.mode.name && ev.mode.name.toLowerCase().includes('showdown'));
+
   grid.innerHTML = '';
-  ativos.forEach((ev, idx) => {
+  ativosFiltrados.forEach((ev, idx) => {
     // BrawlAPI formato real: ev.mode.name, ev.map.name, ev.map.id, ev.endTime
-    const modeId = (ev.mode && ev.mode.name) ? ev.mode.name : 'unknown';
+    const modeId = ev.mode.name;
     const modo = getModo(modeId);
     const brawlers = getBrawlers(modeId);
     const mapName = (ev.map && ev.map.name) || 'Mapa';
@@ -359,10 +370,25 @@ function renderMapas(apiData) {
     const mapImg = mapId ? 'https://cdn.brawlify.com/maps/regular/' + mapId + '.png' : '';
     const endTime = ev.endTime ? new Date(ev.endTime).getTime() : 0;
     const timerId = 'timer_' + idx;
+    // Acha o próximo mapa do mesmo slot
+    const slot = ev.slot;
+    const proximoSlot = proximosShowdown.find(p => p.slot === slot);
+    const proximoNome = proximoSlot && proximoSlot.map ? proximoSlot.map.name : null;
+    const proximoModo = proximoSlot && proximoSlot.mode ? getModo(proximoSlot.mode.name).nome : null;
+    const proximoId = proximoSlot && proximoSlot.map ? proximoSlot.map.id : null;
+    const proximoImg = proximoId ? 'https://cdn.brawlify.com/maps/regular/' + proximoId + '.png' : '';
 
     const card = document.createElement('div');
     card.className = 'map-card';
     card.style.animationDelay = (idx * 0.07) + 's';
+    const proximoHtml = proximoNome ? `
+      <div class="next-preview">
+        <div class="next-preview-title">⏭ PRÓXIMO NESTE SLOT</div>
+        ${proximoImg ? `<img src="${proximoImg}" class="next-preview-img" alt="${proximoNome}">` : ''}
+        <div class="next-preview-name">${proximoNome}</div>
+        ${proximoModo ? `<div class="next-preview-mode">${proximoModo}</div>` : ''}
+      </div>` : '<div class="next-preview"><div class="next-preview-title">⏭ PRÓXIMO NESTE SLOT</div><div style="color:var(--text-muted);font-size:0.75rem;margin-top:6px;">Sem informação</div></div>';
+
     card.innerHTML = `
       <div class="map-card-top">
         ${mapImg ? `<img src="${mapImg}" onerror="this.style.display='none'" alt="${mapName}" style="width:100%;height:100%;object-fit:cover;">` : ''}
@@ -379,7 +405,21 @@ function renderMapas(apiData) {
           <div class="brawler-section-title worst">❌ PIORES</div>
           <div class="brawler-tags">${brawlers.worst.map(b => `<span class="brawler-tag worst">${b}</span>`).join('')}</div>
         </div>
+        <div class="expand-hint">👆 Toque para ver próximo mapa</div>
+        <div class="next-preview-wrap" style="display:none;">${proximoHtml}</div>
       </div>`;
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', () => {
+      const wrap = card.querySelector('.next-preview-wrap');
+      const hint = card.querySelector('.expand-hint');
+      if (wrap.style.display === 'none') {
+        wrap.style.display = 'block';
+        hint.style.display = 'none';
+      } else {
+        wrap.style.display = 'none';
+        hint.style.display = 'block';
+      }
+    });
     grid.appendChild(card);
 
     const updateTimer = () => {
@@ -391,8 +431,9 @@ function renderMapas(apiData) {
     eventTimers.push(setInterval(updateTimer, 30000));
   });
 
-  // Próximos mapas
-  if (proximos.length) {
+  // Próximos mapas (oculto pois aparece no card)
+  nextDiv.style.display = 'none';
+  if (false && proximos.length) {
     nextDiv.innerHTML = '';
     proximos.forEach(ev => {
       const modeId = (ev.mode && ev.mode.name) ? ev.mode.name : 'unknown';
