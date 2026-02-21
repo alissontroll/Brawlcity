@@ -467,24 +467,24 @@ function renderMapas(apiData) {
 }
 
 async function carregarMapas() {
+  const grid = document.getElementById('mapGrid');
+  grid.innerHTML = '<div class="loading-state" style="grid-column:1/-1"><p>BUSCANDO...</p></div>';
   try {
-    // Tenta pelo Netlify primeiro, fallback direto
-    let res = await fetch('/.netlify/functions/player?type=events');
-    if (!res.ok) {
-      res = await fetch('https://api.brawlapi.com/v1/events');
-    }
-    if (!res.ok) throw new Error('Erro ao buscar eventos');
+    const res = await fetch('/.netlify/functions/player?type=events');
     const data = await res.json();
-    // Suporte aos dois formatos: array direto ou {active:[...]}
-    if (Array.isArray(data)) {
-      renderMapas({ active: data, upcoming: [] });
-    } else {
-      renderMapas(data);
+    const ativos = data.active || [];
+    const showdowns = ativos.filter(ev => {
+      const n = (ev.map && ev.map.name) || '';
+      return n.toUpperCase().includes('SHOWDOWN');
+    });
+    if (showdowns.length === 0) {
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🗺️</div><p>SHOWDOWN: ' + ativos.map(e => (e.map&&e.map.name)||'?').join(' | ') + '</p></div>';
+      return;
     }
+    renderMapas(data);
   } catch(e) {
-    document.getElementById('mapGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>ERRO AO CARREGAR MAPAS</p></div>';
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>ERRO: ' + e.message + '</p></div>';
     document.getElementById('updateInfoMapas').textContent = '🔴 ERRO';
-    console.error('Erro mapas:', e);
   }
 }
 
