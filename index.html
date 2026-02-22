@@ -257,6 +257,18 @@ function renderMapas(ativos, proximos) {
     var melhores = sorted.slice(0,5);
     var piores = sorted.slice(-5).reverse();
 
+    // Fallback: lista manual quando nao tiver stats reais
+    var FALLBACK = {
+      solo: {best:['Bull','Shelly','Frank','Brock','Piper'], worst:['Poco','Sprout','Gene','Sandy','Tara']},
+      duo:  {best:['Poco','Gene','Max','Sandy','Rosa'],      worst:['Piper','Brock','Tick','Dynamike','Barley']},
+      trio: {best:['Poco','Gene','Max','Sandy','Rosa'],      worst:['Piper','Brock','Tick','Dynamike','Barley']}
+    };
+    if (!melhores.length) {
+      var modeKey = modeName.toUpperCase().includes('DUO') ? 'duo' : modeName.toUpperCase().includes('TRIO') ? 'trio' : 'solo';
+      melhores = FALLBACK[modeKey].best.map(function(n){ return {brawler: n}; });
+      piores   = FALLBACK[modeKey].worst.map(function(n){ return {brawler: n}; });
+    }
+
     // Próximo mapa - pega o do mesmo índice ou o primeiro disponível
     var proximo = proximos[idx] || proximos[0] || null;
     var proximoNome = (proximo && proximo.map) ? proximo.map.name : '';
@@ -286,7 +298,11 @@ function renderMapas(ativos, proximos) {
     }
 
     // Proximo mapa: da lista upcoming da Brawlify
-    var outroShowdown = proximos[idx] || proximos[0] || null;
+    var outroShowdown = null;
+    for (var oi = 0; oi < ativos.length; oi++) {
+      if (oi !== idx) { outroShowdown = ativos[oi]; break; }
+    }
+    if (!outroShowdown) outroShowdown = proximos[0] || null;
     var proximoHTML = '';
     if (proximoNome) {
       proximoHTML = '<div class="next-preview">' +
@@ -294,6 +310,7 @@ function renderMapas(ativos, proximos) {
         (proximoImg ? '<img class="next-preview-img" src="' + proximoImg + '" alt="' + proximoNome + '">' : '') +
         '<div class="next-preview-name">' + proximoNome + '</div>' +
         (proximoModoNome ? '<div class="next-preview-mode">' + proximoModoNome + '</div>' : '') +
+        (proximoStart ? '<div style="font-family:JetBrains Mono,monospace;font-size:0.62rem;color:var(--gold);margin-top:4px;">⏱ Entra em: ' + proximoStart + '</div>' : '') +
         '</div>';
     } else if (outroShowdown && outroShowdown.map) {
       var onome = outroShowdown.map.name || '';
@@ -306,8 +323,7 @@ function renderMapas(ativos, proximos) {
         '<div class="next-preview-mode">' + omodo + '</div>' +
         '</div>';
     } else {
-      var endStr = endTime ? 'Encerra em: ' + formatTempo(endTime - Date.now()) : 'Sem informação';
-      proximoHTML = '<div class="next-preview"><div class="next-preview-title">⏭ PRÓXIMO MAPA</div><div style="color:var(--text-muted);font-size:0.75rem;margin-top:6px;">Próximo mapa entra quando este encerrar</div></div>';
+      proximoHTML = '<div class="next-preview"><div class="next-preview-title">⏭ PRÓXIMO MAPA</div><div style="color:var(--text-muted);font-size:0.75rem;margin-top:6px;">A API não divulga o próximo mapa com antecedência</div></div>';
     }
 
     var card = document.createElement('div');
@@ -403,16 +419,19 @@ async function carregarMapas() {
       };
     });
 
-    // Proximos: showdowns que ainda nao começaram
+    // Proximos: eventos com startTime no futuro (ainda nao começaram)
     var proximos = (dataOficial.active || []).filter(function(ev) {
       var m = ev.mode && ev.mode.name ? ev.mode.name.toUpperCase() : '';
       var start = ev.startTime ? new Date(ev.startTime).getTime() : 0;
       return m.includes('SHOWDOWN') && start > Date.now();
+    }).sort(function(a,b) {
+      return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
     }).map(function(ev) {
       var mapId = ev.map && ev.map.id ? ev.map.id : 0;
       return {
         gameMode: {name: ev.mode ? ev.mode.name : 'Showdown'},
         map: {name: ev.map ? ev.map.name : '', imageUrl: mapId ? 'https://cdn.brawlify.com/maps/regular/' + mapId + '.png' : ''},
+        startTime: ev.startTime,
         endTime: ev.endTime
       };
     });
