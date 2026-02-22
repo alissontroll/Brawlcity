@@ -257,6 +257,10 @@ function renderMapas(ativos, proximos) {
     var melhores = sorted.slice(0,5);
     var piores = sorted.slice(-5).reverse();
 
+    // Converte ID para nome usando brawlerMap
+    if (melhores.length && typeof melhores[0].brawler === 'number') {
+      // IDs numericos - ja converte na exibicao
+    }
     // Fallback: lista manual quando nao tiver stats reais
     var FALLBACK = {
       solo: {best:['Bull','Shelly','Frank','Brock','Piper'], worst:['Poco','Sprout','Gene','Sandy','Tara']},
@@ -279,7 +283,7 @@ function renderMapas(ativos, proximos) {
     if (melhores.length) {
       for (var k = 0; k < melhores.length; k++) {
         var bid = melhores[k].brawler || melhores[k].id || '';
-        var nome = bmap[bid] || bmap[parseInt(bid)] || bid || '?';
+        var nome = bmap[bid] || bmap[parseInt(bid)] || (typeof bid === 'string' ? bid : '?');
         melhorHTML += '<span class="brawler-tag best">' + nome + '</span>';
       }
     } else {
@@ -290,7 +294,7 @@ function renderMapas(ativos, proximos) {
     if (piores.length) {
       for (var k = 0; k < piores.length; k++) {
         var bid2 = piores[k].brawler || piores[k].id || '';
-        var nome2 = bmap[bid2] || bmap[parseInt(bid2)] || bid2 || '?';
+        var nome2 = bmap[bid2] || bmap[parseInt(bid2)] || (typeof bid2 === 'string' ? bid2 : '?');
         piorHTML += '<span class="brawler-tag worst">' + nome2 + '</span>';
       }
     } else {
@@ -387,31 +391,48 @@ async function carregarMapas() {
     var dataBrawlify = resBrawlify.ok ? await resBrawlify.json() : {active:[]};
     var brawlifyAtivos = dataBrawlify.active || [];
 
-    // Filtra só showdowns da API oficial
+    // Filtra só SOLO SHOWDOWN
     var showdowns = todos.filter(function(ev) {
       var m = ev.mode && ev.mode.name ? ev.mode.name.toUpperCase() : '';
-      return m.includes('SHOWDOWN');
+      return m === 'SOLO SHOWDOWN';
     });
 
-    // Monta cards cruzando com Brawlify para stats
+    // Busca stats dos mapas de showdown via Brawlify
+    var statsCache = {};
+    for (var si = 0; si < showdowns.length; si++) {
+      var evStat = showdowns[si];
+      var mapIdStat = evStat.map && evStat.map.id ? evStat.map.id : 0;
+      var mapNameStat = evStat.map && evStat.map.name ? evStat.map.name : '';
+      if (mapIdStat) {
+        try {
+          var resMapStats = await fetch('https://api.brawlify.com/v1/maps/' + mapIdStat);
+          if (resMapStats.ok) {
+            var mapData = await resMapStats.json();
+            statsCache[mapIdStat] = mapData.stats || [];
+          }
+        } catch(e) {}
+      }
+      // Fallback: busca nos ativos da Brawlify pelo nome
+      if (!statsCache[mapIdStat] || !statsCache[mapIdStat].length) {
+        for (var j = 0; j < brawlifyAtivos.length; j++) {
+          var bev = brawlifyAtivos[j];
+          var bname = bev.map && bev.map.name ? bev.map.name : '';
+          if (bname.toLowerCase() === mapNameStat.toLowerCase() && bev.map && bev.map.stats) {
+            statsCache[mapIdStat] = bev.map.stats;
+            break;
+          }
+        }
+      }
+    }
+
+    // Monta cards
     var resultado = showdowns.map(function(ev) {
       var mapId = ev.map && ev.map.id ? ev.map.id : 0;
       var mapName = ev.map && ev.map.name ? ev.map.name : '';
       var modeName = ev.mode && ev.mode.name ? ev.mode.name : 'Showdown';
       var imgUrl = mapId ? 'https://cdn.brawlify.com/maps/regular/' + mapId + '.png' : '';
       var endTime = ev.endTime || '';
-
-      // Busca stats na Brawlify pelo nome do mapa
-      var stats = [];
-      for (var j = 0; j < brawlifyAtivos.length; j++) {
-        var bev = brawlifyAtivos[j];
-        var bname = bev.map && bev.map.name ? bev.map.name : '';
-        if (bname.toLowerCase() === mapName.toLowerCase() && bev.map && bev.map.stats) {
-          stats = bev.map.stats;
-          break;
-        }
-      }
-
+      var stats = statsCache[mapId] || [];
       return {
         gameMode: {name: modeName},
         map: {name: mapName, imageUrl: imgUrl, stats: stats},
@@ -419,39 +440,33 @@ async function carregarMapas() {
       };
     });
 
-    // Busca proximos mapas pelo rotation cycle do Brawlify
+    // Proximo mapa: usa previsao do backend baseada no historico de rotacao
     var proximos = [];
-    try {
-      for (var si = 0; si < resultado.length; si++) {
-        var currentMapId = showdowns[si] && showdowns[si].map ? showdowns[si].map.id : 0;
-        if (!currentMapId) continue;
-        var resRotation = await fetch('https://api.brawlify.com/v1/maps/' + currentMapId);
-        if (!resRotation.ok) continue;
-        var rotData = await resRotation.json();
-        // Pega o próximo mapa no rotation cycle
-        var cycle = (rotData.rotationCycle && rotData.rotationCycle.maps) ? rotData.rotationCycle.maps : [];
-        var nextMap = null;
-        for (var ci = 0; ci < cycle.length; ci++) {
-          if (cycle[ci].isCurrent) {
-            nextMap = cycle[ci + 1] || cycle[0] || null;
-            break;
-          }
+    var nextPredicted = dataOficial.nextSoloShowdown || null;
+    var rotationSize = dataOficial.rotationSize || 0;
+    if (nextPredicted && nextPredicted.mapId) {
+      proximos = [{
+        gameMode: {name: 'SOLO SHOWDOWN'},
+        map: {
+          name: nextPredicted.mapName || '',
+          imageUrl: 'https://cdn.brawlify.com/maps/regular/' + nextPredicted.mapId + '.png'
         }
-        if (nextMap) {
-          var nextId = nextMap.id || nextMap.mapId || 0;
-          proximos.push({
-            gameMode: {name: showdowns[si].mode ? showdowns[si].mode.name : 'Showdown'},
-            map: {
-              name: nextMap.name || '',
-              imageUrl: nextId ? 'https://cdn.brawlify.com/maps/regular/' + nextId + '.png' : ''
-            },
-            startTime: nextMap.startTime || ''
-          });
-        } else {
-          proximos.push(null);
-        }
-      }
-    } catch(e) { proximos = []; }
+      }];
+    } else {
+      // Fallback: eventos futuros da API
+      proximos = todos.filter(function(ev) {
+        var m = ev.mode && ev.mode.name ? ev.mode.name.toUpperCase() : '';
+        var start = ev.startTime ? new Date(ev.startTime).getTime() : 0;
+        return m === 'SOLO SHOWDOWN' && start > Date.now();
+      }).map(function(ev) {
+        var mid = ev.map && ev.map.id ? ev.map.id : 0;
+        return {
+          gameMode: {name: 'SOLO SHOWDOWN'},
+          map: {name: ev.map ? ev.map.name : '', imageUrl: mid ? 'https://cdn.brawlify.com/maps/regular/' + mid + '.png' : ''},
+          startTime: ev.startTime
+        };
+      });
+    }
 
     renderMapas(resultado, proximos);
   } catch(e) {
