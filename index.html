@@ -391,18 +391,20 @@ async function carregarMapas() {
     var dataBrawlify = resBrawlify.ok ? await resBrawlify.json() : {active:[]};
     var brawlifyAtivos = dataBrawlify.active || [];
 
-    // Filtra só SOLO SHOWDOWN
+    // Filtra só SOLO SHOWDOWN - API retorna como "soloShowdown"
     var showdowns = todos.filter(function(ev) {
-      var m = ev.mode && ev.mode.name ? ev.mode.name.toUpperCase() : '';
-      return m === 'SOLO SHOWDOWN';
+      var m = ev.event && ev.event.mode ? ev.event.mode : 
+              (ev.mode && ev.mode.name ? ev.mode.name : 
+              (ev.mode ? String(ev.mode) : ''));
+      return m === 'soloShowdown' || m.toUpperCase() === 'SOLO SHOWDOWN' || m.toUpperCase() === 'SOLO_SHOWDOWN';
     });
 
     // Busca stats dos mapas de showdown via Brawlify
     var statsCache = {};
     for (var si = 0; si < showdowns.length; si++) {
       var evStat = showdowns[si];
-      var mapIdStat = evStat.map && evStat.map.id ? evStat.map.id : 0;
-      var mapNameStat = evStat.map && evStat.map.name ? evStat.map.name : '';
+      var mapIdStat = evStat.event ? evStat.event.id : (evStat.map && evStat.map.id ? evStat.map.id : 0);
+      var mapNameStat = evStat.event ? evStat.event.map : (evStat.map && evStat.map.name ? evStat.map.name : '');
       if (mapIdStat) {
         try {
           var resMapStats = await fetch('https://api.brawlify.com/v1/maps/' + mapIdStat);
@@ -425,11 +427,11 @@ async function carregarMapas() {
       }
     }
 
-    // Monta cards
+    // Monta cards - suporta formato {event:{id,mode,map}} e {map:{id,name},mode:{name}}
     var resultado = showdowns.map(function(ev) {
-      var mapId = ev.map && ev.map.id ? ev.map.id : 0;
-      var mapName = ev.map && ev.map.name ? ev.map.name : '';
-      var modeName = ev.mode && ev.mode.name ? ev.mode.name : 'Showdown';
+      var mapId = ev.event ? ev.event.id : (ev.map && ev.map.id ? ev.map.id : 0);
+      var mapName = ev.event ? ev.event.map : (ev.map && ev.map.name ? ev.map.name : '');
+      var modeName = ev.event ? ev.event.mode : (ev.mode && ev.mode.name ? ev.mode.name : 'Showdown');
       var imgUrl = mapId ? 'https://cdn.brawlify.com/maps/regular/' + mapId + '.png' : '';
       var endTime = ev.endTime || '';
       var stats = statsCache[mapId] || [];
