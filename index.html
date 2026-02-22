@@ -24,6 +24,15 @@ header{position:relative;z-index:10;padding:36px 20px 18px;text-align:center;bor
 .tab-btn.active{background:var(--surface2);border-color:rgba(0,200,255,0.2);color:var(--accent);border-bottom:2px solid var(--accent);}
 .tab-btn.pe-tab.active{color:var(--pe);border-bottom-color:var(--pe);border-color:rgba(255,68,0,0.2);}
 .tab-btn.map-tab.active{color:var(--green);border-bottom-color:var(--green);border-color:rgba(0,255,136,0.2);}
+.tab-btn.notif-tab.active{color:#f39c12;border-bottom-color:#f39c12;border-color:rgba(243,156,18,0.2);}
+.notif-badge{display:inline-block;background:#e74c3c;color:#fff;border-radius:50%;width:16px;height:16px;font-size:0.6rem;text-align:center;line-height:16px;margin-left:4px;animation:pulse 1.5s infinite;}
+.notif-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:12px;}
+.notif-icon{font-size:1.5rem;}
+.notif-text{flex:1;}
+.notif-name{font-family:'Teko',sans-serif;font-size:1.1rem;color:var(--accent);letter-spacing:1px;}
+.notif-desc{font-size:0.8rem;color:var(--text-muted);margin-top:2px;}
+.notif-time{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--text-dim);margin-top:4px;}
+.notif-empty{text-align:center;padding:40px;color:var(--text-dim);font-family:'Teko',sans-serif;font-size:1.2rem;letter-spacing:2px;}
 .city-bar{position:relative;z-index:10;display:flex;gap:6px;padding:14px 16px 0;overflow-x:auto;scrollbar-width:none;max-width:780px;margin:0 auto;}
 .city-bar::-webkit-scrollbar{display:none;}
 .city-btn{flex-shrink:0;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:3px;font-family:'Barlow',sans-serif;font-weight:700;font-size:0.78rem;cursor:pointer;transition:all 0.2s;text-transform:uppercase;white-space:nowrap;}
@@ -136,6 +145,7 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
   <button class="tab-btn active" onclick="switchTab('cidade',this)">🏙 Cidade</button>
   <button class="tab-btn pe-tab" onclick="switchTab('pe',this)">🏆 Pernambuco</button>
   <button class="tab-btn map-tab" onclick="switchTab('mapas',this)">🗺️ Mapas</button>
+  <button class="tab-btn notif-tab" id="btnNotif" onclick="switchTab('notif',this)">🔔 <span id="notifBadge" style="display:none" class="notif-badge">0</span></button>
 </div>
 <div class="city-bar" id="cityBar"></div>
 <main>
@@ -175,11 +185,18 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
     <div id="mapGrid"><div class="loading-state"><div class="empty-icon">🗺️</div><p>CARREGANDO MAPAS...</p></div></div>
   </div>
 </main>
+  <div class="tab-content" id="tab-notif">
+    <div style="padding:16px;">
+      <div style="font-family:'Teko',sans-serif;font-size:1.3rem;color:#f39c12;letter-spacing:2px;margin-bottom:16px;">🔔 NOVIDADES</div>
+      <div id="notifList"><div class="notif-empty">NENHUMA NOVIDADE AINDA</div></div>
+    </div>
+  </div>
+
 <footer>BRAWLCITY RANK • PERNAMBUCO • VERIFIQUE EM BRAWLIFY.COM</footer>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyAi05OMG44jmNm_HUEtv9LS_wa-tBvErd8",
   authDomain: "brawlcity-rank.firebaseapp.com",
@@ -539,8 +556,12 @@ async function atualizarDados() {
       if (data.trophies && data.trophies !== player.trophies) updates.trophies = data.trophies;
       if (data.horas && data.horas !== player.horas) updates.horas = data.horas;
       if (data.brawlerCount && player.brawlerCount && data.brawlerCount > player.brawlerCount) {
-        updates.newBrawlers = data.brawlerCount - player.brawlerCount;
+        var diff = data.brawlerCount - player.brawlerCount;
+        updates.newBrawlers = diff;
         updates.brawlerCount = data.brawlerCount;
+        // Salva notificação no Firebase
+        var notif = {playerName: player.name, count: diff, timestamp: Date.now()};
+        addDoc(collection(db, 'notifications'), notif).catch(function(){});
       } else if (data.brawlerCount && !player.brawlerCount) {
         updates.brawlerCount = data.brawlerCount;
       }
@@ -550,6 +571,45 @@ async function atualizarDados() {
 }
 setTimeout(atualizarDados, 5000);
 setInterval(atualizarDados, 30 * 60 * 1000);
+
+// Listener de notificações - mostra novos brawlers
+var qNotif = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'));
+onSnapshot(qNotif, function(snap) {
+  var agora = Date.now();
+  var validas = [];
+  snap.forEach(function(d) {
+    var n = Object.assign({id: d.id}, d.data());
+    // Só mostra notificações das últimas 24h
+    if (agora - n.timestamp < 24 * 60 * 60 * 1000) validas.push(n);
+    // Deleta notificações com mais de 24h
+    else deleteDoc(doc(db, 'notifications', n.id)).catch(function(){});
+  });
+
+  var badge = document.getElementById('notifBadge');
+  var list = document.getElementById('notifList');
+  if (!badge || !list) return;
+
+  if (validas.length > 0) {
+    badge.style.display = 'inline-block';
+    badge.textContent = validas.length;
+    list.innerHTML = validas.map(function(n) {
+      var tempo = agora - n.timestamp;
+      var tempoStr = tempo < 60000 ? 'agora mesmo' :
+                     tempo < 3600000 ? Math.floor(tempo/60000) + ' min atrás' :
+                     Math.floor(tempo/3600000) + 'h atrás';
+      return '<div class="notif-item">' +
+        '<div class="notif-icon">🆕</div>' +
+        '<div class="notif-text">' +
+        '<div class="notif-name">' + n.playerName + '</div>' +
+        '<div class="notif-desc">desbloqueou +' + n.count + ' novo' + (n.count > 1 ? 's' : '') + ' brawler' + (n.count > 1 ? 's' : '') + '! 🎉</div>' +
+        '<div class="notif-time">' + tempoStr + '</div>' +
+        '</div></div>';
+    }).join('');
+  } else {
+    badge.style.display = 'none';
+    list.innerHTML = '<div class="notif-empty">NENHUMA NOVIDADE AINDA</div>';
+  }
+});
 
 window.register = async function() {
   var btn = document.getElementById('btnRegister');
@@ -604,8 +664,7 @@ function buildCards(players, containerId) {
       '<div class="player-score">' +
       '<div class="trophy-num">🏆 ' + p.trophies.toLocaleString('pt-BR') + '</div><div class="trophy-label">TROFÉUS</div>' +
       '<div class="horas-num">⏱ ' + (p.horas||'?') + 'h</div><div class="horas-label">DE JOGO</div>' +
-      '</div>' +
-      (p.newBrawlers > 0 ? '<div style="width:100%;text-align:center;margin-top:6px;padding:4px 10px;background:rgba(46,204,113,0.15);border:1px solid #2ecc71;border-radius:6px;font-family:JetBrains Mono,monospace;font-size:0.7rem;color:#2ecc71;letter-spacing:1px;">🆕 +' + p.newBrawlers + ' NOVO' + (p.newBrawlers > 1 ? 'S' : '') + ' BRAWLER' + (p.newBrawlers > 1 ? 'S' : '') + '!</div>' : '');
+      '</div>';
     list.appendChild(card);
   });
 }
