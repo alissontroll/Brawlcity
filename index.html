@@ -538,6 +538,12 @@ async function atualizarDados() {
       var updates = {};
       if (data.trophies && data.trophies !== player.trophies) updates.trophies = data.trophies;
       if (data.horas && data.horas !== player.horas) updates.horas = data.horas;
+      if (data.brawlerCount && player.brawlerCount && data.brawlerCount > player.brawlerCount) {
+        updates.newBrawlers = data.brawlerCount - player.brawlerCount;
+        updates.brawlerCount = data.brawlerCount;
+      } else if (data.brawlerCount && !player.brawlerCount) {
+        updates.brawlerCount = data.brawlerCount;
+      }
       if (Object.keys(updates).length > 0) await updateDoc(doc(db, 'players', player.id), updates);
     } catch(e) {}
   }
@@ -559,7 +565,7 @@ window.register = async function() {
     if (!data.trophies || !data.name) throw new Error('Jogador não encontrado');
     var emoji = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
     var color = COLORS[Math.floor(Math.random()*COLORS.length)];
-    await addDoc(collection(db, 'players'), {name: data.name, tag: data.tag, city: city, trophies: data.trophies, horas: data.horas || 0, emoji: emoji, color: color, joined: Date.now()});
+    await addDoc(collection(db, 'players'), {name: data.name, tag: data.tag, city: city, trophies: data.trophies, horas: data.horas || 0, emoji: emoji, color: color, joined: Date.now(), brawlerCount: data.brawlerCount || 0, newBrawlers: 0});
     document.getElementById('inputTag').value = '';
     showToast('✓ ' + data.name + ' entrou com ' + data.trophies.toLocaleString('pt-BR') + ' troféus!', 'success');
     setCity(city);
@@ -598,7 +604,8 @@ function buildCards(players, containerId) {
       '<div class="player-score">' +
       '<div class="trophy-num">🏆 ' + p.trophies.toLocaleString('pt-BR') + '</div><div class="trophy-label">TROFÉUS</div>' +
       '<div class="horas-num">⏱ ' + (p.horas||'?') + 'h</div><div class="horas-label">DE JOGO</div>' +
-      '</div>';
+      '</div>' +
+      (p.newBrawlers > 0 ? '<div style="width:100%;text-align:center;margin-top:6px;padding:4px 10px;background:rgba(46,204,113,0.15);border:1px solid #2ecc71;border-radius:6px;font-family:JetBrains Mono,monospace;font-size:0.7rem;color:#2ecc71;letter-spacing:1px;">🆕 +' + p.newBrawlers + ' NOVO' + (p.newBrawlers > 1 ? 'S' : '') + ' BRAWLER' + (p.newBrawlers > 1 ? 'S' : '') + '!</div>' : '');
     list.appendChild(card);
   });
 }
