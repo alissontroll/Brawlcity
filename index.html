@@ -419,22 +419,39 @@ async function carregarMapas() {
       };
     });
 
-    // Proximos: eventos com startTime no futuro (ainda nao começaram)
-    var proximos = (dataOficial.active || []).filter(function(ev) {
-      var m = ev.mode && ev.mode.name ? ev.mode.name.toUpperCase() : '';
-      var start = ev.startTime ? new Date(ev.startTime).getTime() : 0;
-      return m.includes('SHOWDOWN') && start > Date.now();
-    }).sort(function(a,b) {
-      return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
-    }).map(function(ev) {
-      var mapId = ev.map && ev.map.id ? ev.map.id : 0;
-      return {
-        gameMode: {name: ev.mode ? ev.mode.name : 'Showdown'},
-        map: {name: ev.map ? ev.map.name : '', imageUrl: mapId ? 'https://cdn.brawlify.com/maps/regular/' + mapId + '.png' : ''},
-        startTime: ev.startTime,
-        endTime: ev.endTime
-      };
-    });
+    // Busca proximos mapas pelo rotation cycle do Brawlify
+    var proximos = [];
+    try {
+      for (var si = 0; si < resultado.length; si++) {
+        var currentMapId = showdowns[si] && showdowns[si].map ? showdowns[si].map.id : 0;
+        if (!currentMapId) continue;
+        var resRotation = await fetch('https://api.brawlify.com/v1/maps/' + currentMapId);
+        if (!resRotation.ok) continue;
+        var rotData = await resRotation.json();
+        // Pega o próximo mapa no rotation cycle
+        var cycle = (rotData.rotationCycle && rotData.rotationCycle.maps) ? rotData.rotationCycle.maps : [];
+        var nextMap = null;
+        for (var ci = 0; ci < cycle.length; ci++) {
+          if (cycle[ci].isCurrent) {
+            nextMap = cycle[ci + 1] || cycle[0] || null;
+            break;
+          }
+        }
+        if (nextMap) {
+          var nextId = nextMap.id || nextMap.mapId || 0;
+          proximos.push({
+            gameMode: {name: showdowns[si].mode ? showdowns[si].mode.name : 'Showdown'},
+            map: {
+              name: nextMap.name || '',
+              imageUrl: nextId ? 'https://cdn.brawlify.com/maps/regular/' + nextId + '.png' : ''
+            },
+            startTime: nextMap.startTime || ''
+          });
+        } else {
+          proximos.push(null);
+        }
+      }
+    } catch(e) { proximos = []; }
 
     renderMapas(resultado, proximos);
   } catch(e) {
