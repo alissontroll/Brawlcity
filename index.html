@@ -726,7 +726,7 @@ function buildCards(players, containerId) {
 function renderRanking() { buildCards(allPlayers.filter(function(p){ return p.city === activeCity; }).sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingList'); }
 function renderRankingPE() { buildCards(allPlayers.slice().sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingListPE'); }
 
-function fecharModal() { document.getElementById('modalPerfil').classList.remove('open'); }
+window.fecharModal = function() { document.getElementById('modalPerfil').classList.remove('open'); }
 
 async function abrirModal(p, pos) {
   // Preenche dados básicos
