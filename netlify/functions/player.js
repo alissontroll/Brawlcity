@@ -115,7 +115,7 @@ exports.handler = async (event) => {
     if (!res.ok) {
       return { statusCode: res.status, headers: HEADERS, body: JSON.stringify({ error: data.message || "Erro da API" }) };
     }
-    return { statusCode: 200, headers: HEADERS, body: JSON.stringify({ trophies: data.trophies, name: data.name, tag: data.tag }) };
+    return { statusCode: 200, headers: HEADERS, body: JSON.stringify({ trophies: data.trophies, name: data.name, tag: data.tag, brawlerCount: (data.brawlers || []).length }) };
   } catch(e) {
     return { statusCode: 500, headers: HEADERS, body: JSON.stringify({ error: e.message }) };
   }
