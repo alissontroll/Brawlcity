@@ -61,7 +61,8 @@ exports.handler = async (event) => {
         headers: { Authorization: `Bearer ${API_KEY}` }
       });
       const data = await res.json();
-      const todos = data.items || data || [];
+      // API pode retornar {items:[]} ou array direto
+      const todos = Array.isArray(data) ? data : (data.items || data.active || []);
 
       // Filtra Solo Showdown
       const soloShowdown = todos.filter(ev => {
