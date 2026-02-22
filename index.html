@@ -472,8 +472,9 @@ async function carregarMapas() {
 
     renderMapas(resultado, proximos);
   } catch(e) {
-    document.getElementById('mapGrid').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>ERRO AO CARREGAR</p></div>';
+    document.getElementById('mapGrid').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>ERRO: ' + e.message + '</p></div>';
     document.getElementById('updateInfoMapas').textContent = '🔴 ERRO';
+    console.error('carregarMapas erro:', e);
   }
 }
 
