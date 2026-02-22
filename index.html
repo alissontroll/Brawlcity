@@ -245,19 +245,15 @@ function renderMapas(ativos, proximos) {
     var endTime = ev.endTime ? new Date(ev.endTime).getTime() : 0;
     var timerId = 'timer_' + idx;
 
-    // Melhores e piores por winrate real
+    // Melhores e piores por winrate real - converte ID para nome
+    var bmap = window._brawlerMap || {};
     var stats = (ev.map && ev.map.stats) ? ev.map.stats : [];
     var sorted = stats.filter(function(s){ return s.winRate > 0; }).sort(function(a,b){ return b.winRate - a.winRate; });
     var melhores = sorted.slice(0,5);
     var piores = sorted.slice(-5).reverse();
 
-    // Próximo mapa
-    var proximo = null;
-    for (var j = 0; j < proximos.length; j++) {
-      var p = proximos[j];
-      var pMode = (p.gameMode && p.gameMode.name) ? p.gameMode.name.toUpperCase() : '';
-      if (pMode.includes('SHOWDOWN')) { proximo = p; break; }
-    }
+    // Próximo mapa - pega o do mesmo índice ou o primeiro disponível
+    var proximo = proximos[idx] || proximos[0] || null;
     var proximoNome = (proximo && proximo.map) ? proximo.map.name : '';
     var proximoImg = (proximo && proximo.map && proximo.map.imageUrl) ? proximo.map.imageUrl : '';
     var proximoModoNome = proximo && proximo.gameMode ? getModo(proximo.gameMode.name).nome : '';
@@ -265,7 +261,8 @@ function renderMapas(ativos, proximos) {
     var melhorHTML = '';
     if (melhores.length) {
       for (var k = 0; k < melhores.length; k++) {
-        var nome = melhores[k].brawler || '?';
+        var bid = melhores[k].brawler || melhores[k].id || '';
+        var nome = bmap[bid] || bmap[parseInt(bid)] || bid || '?';
         melhorHTML += '<span class="brawler-tag best">' + nome + '</span>';
       }
     } else {
@@ -275,8 +272,9 @@ function renderMapas(ativos, proximos) {
     var piorHTML = '';
     if (piores.length) {
       for (var k = 0; k < piores.length; k++) {
-        var nome = piores[k].brawler || '?';
-        piorHTML += '<span class="brawler-tag worst">' + nome + '</span>';
+        var bid2 = piores[k].brawler || piores[k].id || '';
+        var nome2 = bmap[bid2] || bmap[parseInt(bid2)] || bid2 || '?';
+        piorHTML += '<span class="brawler-tag worst">' + nome2 + '</span>';
       }
     } else {
       piorHTML = '<span style="color:var(--text-muted);font-size:0.7rem;">Sem dados</span>';
@@ -337,17 +335,34 @@ function renderMapas(ativos, proximos) {
 
 async function carregarMapas() {
   try {
-    var res = await fetch('https://api.brawlify.com/v1/events');
-    if (!res.ok) throw new Error('Erro ' + res.status);
-    var data = await res.json();
+    // Busca eventos ativos E lista de brawlers (para converter IDs em nomes)
+    var resEv = await fetch('https://api.brawlify.com/v1/events');
+    var resBr = await fetch('https://api.brawlify.com/v1/brawlers');
+    if (!resEv.ok) throw new Error('Erro ' + resEv.status);
+    var data = await resEv.json();
+    var brawlerData = resBr.ok ? await resBr.json() : {list:[]};
+
+    // Mapa de ID -> nome do brawler
+    var brawlerMap = {};
+    var blist = brawlerData.list || [];
+    for (var i = 0; i < blist.length; i++) {
+      brawlerMap[blist[i].id] = blist[i].name;
+    }
+    window._brawlerMap = brawlerMap;
+
     var ativos = data.active || [];
     var upcoming = data.upcoming || [];
-    var showdownAtivos = ativos.filter(function(ev) {
+
+    var isShowdown = function(ev) {
       var m = (ev.gameMode && ev.gameMode.name) ? ev.gameMode.name.toUpperCase() : '';
       var m2 = (ev.map && ev.map.gameMode && ev.map.gameMode.name) ? ev.map.gameMode.name.toUpperCase() : '';
       return m.includes('SHOWDOWN') || m2.includes('SHOWDOWN');
-    });
-    renderMapas(showdownAtivos, upcoming);
+    };
+
+    var showdownAtivos = ativos.filter(isShowdown);
+    var showdownProximos = upcoming.filter(isShowdown);
+
+    renderMapas(showdownAtivos, showdownProximos);
   } catch(e) {
     document.getElementById('mapGrid').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>ERRO AO CARREGAR</p></div>';
     document.getElementById('updateInfoMapas').textContent = '🔴 ERRO';
