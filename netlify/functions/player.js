@@ -1,4 +1,4 @@
-const API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImVjZTgwNWFkLTIxZTAtNDhlMy05MzZkLWQxNGE5NzA5OWJhMyIsImlhdCI6MTc3MTYyNDUyNSwic3ViIjoiZGV2ZWxvcGVyL2U4MjM0ZjYyLWFkZjgtN2UzZC0yYjI5LTk5OGI0YThlN2Q0YSIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiMzQuMjI2LjIxMS43MSJdLCJ0eXBlIjoiY2xpZW50In1dfQ.ftWy-AxMIs-ahc76LwE7Ffbb_A7lMajZFKfaQEU-wtvfNlHRUJQeT4rHQ";
+const API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImVjZTgwNWFkLTIxZTAtNDhlMy05MzZkLWQxNGE5NzA5OWJhMyIsImlhdCI6MTc3MTYyNDUyNSwic3ViIjoiZGV2ZWxvcGVyL2U4MjM0ZjYyLWFkZjgtN2UzZC0yYjI5LTk5OGI0YThlN2Q0YSIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiMzQuMjI2LjIxMS43MSJdLCJ0eXBlIjoiY2xpZW50In1dfQ.ftWy-AxMIs-ahc76LwE7Ffbb_A7lMajZFKfaQEK6IqFurtynIFtB8H0ywJhFQFEhqTEu-wtvfNlHRUJQeT4rHQ";
 
 // Ciclo completo de rotação do Solo Showdown (14 mapas)
 const ROTATION_CYCLE = [
@@ -18,19 +18,8 @@ const ROTATION_CYCLE = [
   { mapName: 'Makeshift Scaffolding', mapId: 15001141 },
 ];
 
-function predictNextMap(currentMapId) {
-  for (let i = 0; i < ROTATION_CYCLE.length; i++) {
-    if (ROTATION_CYCLE[i].mapId === currentMapId) {
-      // Retorna o próximo, ou volta para o inicio do ciclo
-      return ROTATION_CYCLE[(i + 1) % ROTATION_CYCLE.length];
-    }
-  }
-  // Se não achou pelo ID, tenta achar pelo nome usando o mapa atual da API
-  return null;
-}
-
-function predictNextMapByName(currentMapName) {
-  const name = currentMapName.toLowerCase().replace(/-/g, ' ').trim();
+function predictNext(currentMapName) {
+  const name = (currentMapName || '').toLowerCase().replace(/-/g, ' ').trim();
   for (let i = 0; i < ROTATION_CYCLE.length; i++) {
     if (ROTATION_CYCLE[i].mapName.toLowerCase() === name) {
       return ROTATION_CYCLE[(i + 1) % ROTATION_CYCLE.length];
@@ -39,73 +28,80 @@ function predictNextMapByName(currentMapName) {
   return null;
 }
 
+const HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Content-Type": "application/json"
+};
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type"
-      },
-      body: ""
-    };
+    return { statusCode: 204, headers: HEADERS, body: "" };
   }
 
   const params = event.queryStringParameters || {};
 
-  // Rota: buscar eventos + aprender rotacao
+  // ---- EVENTOS ----
   if (params.type === 'events') {
     try {
       const res = await fetch('https://bsproxy.royaleapi.dev/v1/events/rotation', {
         headers: { Authorization: `Bearer ${API_KEY}` }
       });
-      const data = await res.json();
-      // API pode retornar {items:[]} ou array direto
-      const todos = Array.isArray(data) ? data : (data.items || data.active || []);
 
-      // Filtra Solo Showdown
-      const soloShowdown = todos.filter(ev => {
-        const m = ev.event && ev.event.mode ? ev.event.mode.toUpperCase() : '';
-        return m === 'SOLO_SHOWDOWN' || m === 'SOLO SHOWDOWN' || m === 'SOLOSHOWDOWN';
+      if (!res.ok) {
+        const err = await res.text();
+        return { statusCode: res.status, headers: HEADERS, body: JSON.stringify({ error: err }) };
+      }
+
+      const raw = await res.json();
+
+      // A API retorna array de eventos diretamente
+      const todos = Array.isArray(raw) ? raw : (raw.items || raw.active || []);
+
+      // Log para debug - mostra todos os modos
+      const modos = todos.map(ev => {
+        const m = ev.event ? ev.event.mode : (ev.mode ? ev.mode.name || ev.mode : 'null');
+        const n = ev.event ? ev.event.map : (ev.map ? ev.map.name : 'null');
+        return m + '|' + n;
       });
 
-      // Prever próximo mapa usando o ciclo fixo
-      let nextMap = null;
-      if (soloShowdown.length > 0) {
-        const ev = soloShowdown[0];
-        const mapId = ev.event && ev.event.id ? ev.event.id : 0;
-        const mapName = ev.event && ev.event.map ? ev.event.map : '';
-        // Tenta pelo ID primeiro, depois pelo nome
-        nextMap = predictNextMap(mapId) || predictNextMapByName(mapName);
+      // Filtra Solo Showdown - testa vários formatos possíveis
+      const solo = todos.filter(ev => {
+        const mode = ev.event && ev.event.mode ? ev.event.mode :
+                     ev.mode && ev.mode.name ? ev.mode.name :
+                     ev.mode ? String(ev.mode) : '';
+        return mode.toUpperCase().includes('SOLO') || mode === 'soloShowdown';
+      });
+
+      // Pega o nome do mapa atual
+      let currentMapName = '';
+      if (solo.length > 0) {
+        const ev = solo[0];
+        currentMapName = ev.event ? ev.event.map : (ev.map ? ev.map.name : '');
       }
+
+      const nextMap = predictNext(currentMapName);
 
       return {
         statusCode: 200,
-        headers: { "Access-Control-Allow-Origin": "*" },
+        headers: HEADERS,
         body: JSON.stringify({
           active: todos,
           nextSoloShowdown: nextMap,
-          rotationSize: ROTATION_CYCLE.length
+          rotationSize: ROTATION_CYCLE.length,
+          debug: { totalEvents: todos.length, modos: modos, soloFound: solo.length, currentMap: currentMapName }
         })
       };
     } catch(e) {
-      return {
-        statusCode: 500,
-        headers: { "Access-Control-Allow-Origin": "*" },
-        body: JSON.stringify({ error: e.message })
-      };
+      return { statusCode: 500, headers: HEADERS, body: JSON.stringify({ error: e.message }) };
     }
   }
 
-  // Rota: buscar jogador por TAG
+  // ---- JOGADOR ----
   const tag = params.tag;
   if (!tag) {
-    return {
-      statusCode: 400,
-      headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ error: "TAG obrigatória" })
-    };
+    return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: "TAG obrigatória" }) };
   }
 
   const cleanTag = tag.startsWith('#') ? tag : '#' + tag;
@@ -116,25 +112,11 @@ exports.handler = async (event) => {
       headers: { Authorization: `Bearer ${API_KEY}` }
     });
     const data = await res.json();
-
     if (!res.ok) {
-      return {
-        statusCode: res.status,
-        headers: { "Access-Control-Allow-Origin": "*" },
-        body: JSON.stringify({ error: data.message || "Erro da API Brawl Stars" })
-      };
+      return { statusCode: res.status, headers: HEADERS, body: JSON.stringify({ error: data.message || "Erro da API" }) };
     }
-
-    return {
-      statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ trophies: data.trophies, name: data.name, tag: data.tag })
-    };
+    return { statusCode: 200, headers: HEADERS, body: JSON.stringify({ trophies: data.trophies, name: data.name, tag: data.tag }) };
   } catch(e) {
-    return {
-      statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ error: "Erro interno", detail: e.message })
-    };
+    return { statusCode: 500, headers: HEADERS, body: JSON.stringify({ error: e.message }) };
   }
 };
