@@ -353,77 +353,71 @@ function renderMapas(ativos, proximos) {
 
 async function carregarMapas() {
   try {
-    // 1. API oficial (tempo real) -> quais mapas estao ativos agora
+    // API oficial via Netlify - formato: {active:[{slot,map:{id,name},mode:{id,name},startTime,endTime}]}
     var resOficial = await fetch('/.netlify/functions/player?type=events');
     if (!resOficial.ok) throw new Error('Erro API oficial');
     var dataOficial = await resOficial.json();
-    var ativosOficial = Array.isArray(dataOficial) ? dataOficial : (dataOficial.active || []);
+    var todos = dataOficial.active || [];
 
-    // 2. Brawlify -> imagens, stats de brawlers e proximos mapas
-    var resBrawlify = await fetch('https://api.brawlify.com/v1/events');
-    var dataBrawlify = resBrawlify.ok ? await resBrawlify.json() : {active:[], upcoming:[]};
-    var ativosBrawlify = dataBrawlify.active || [];
-    var proximosBrawlify = dataBrawlify.upcoming || [];
-
-    // 3. Brawlers para converter IDs em nomes
+    // Brawlify brawlers para stats
     var resBrawlers = await fetch('https://api.brawlify.com/v1/brawlers');
     var dataBrawlers = resBrawlers.ok ? await resBrawlers.json() : {list:[]};
     var brawlerMap = {};
-    var blist = dataBrawlers.list || [];
-    for (var i = 0; i < blist.length; i++) { brawlerMap[blist[i].id] = blist[i].name; }
+    (dataBrawlers.list || []).forEach(function(b){ brawlerMap[b.id] = b.name; });
     window._brawlerMap = brawlerMap;
 
-    // 4. Pega os nomes dos showdowns ativos da API oficial (tempo real)
-    var nomesAtivos = [];
-    for (var i = 0; i < ativosOficial.length; i++) {
-      var ev = ativosOficial[i];
-      var mode = ev.event ? ev.event.mode : (ev.mode && ev.mode.name ? ev.mode.name : '');
-      var mapName = ev.event ? ev.event.map : (ev.map ? ev.map.name : '');
-      if (mode && mode.toUpperCase().includes('SHOWDOWN') && mapName) {
-        nomesAtivos.push({name: mapName, mode: mode, endTime: ev.endTime});
-      }
-    }
+    // Brawlify events para stats dos mapas
+    var resBrawlify = await fetch('https://api.brawlify.com/v1/events');
+    var dataBrawlify = resBrawlify.ok ? await resBrawlify.json() : {active:[]};
+    var brawlifyAtivos = dataBrawlify.active || [];
 
-    // 5. Cruza com Brawlify para pegar imagens e stats
-    var showdownAtivos = [];
-    for (var i = 0; i < nomesAtivos.length; i++) {
-      var oficial = nomesAtivos[i];
-      // Busca o mapa correspondente na Brawlify pelo nome
-      var brawlifyEv = null;
-      for (var j = 0; j < ativosBrawlify.length; j++) {
-        var bev = ativosBrawlify[j];
-        var bevName = bev.map && bev.map.name ? bev.map.name : '';
-        if (bevName.toLowerCase() === oficial.name.toLowerCase()) { brawlifyEv = bev; break; }
-      }
-      if (brawlifyEv) {
-        // Usa dados da Brawlify mas endTime da API oficial
-        brawlifyEv.endTime = oficial.endTime || brawlifyEv.endTime;
-        showdownAtivos.push(brawlifyEv);
-      } else {
-        // Fallback: monta com dados da API oficial sem imagem
-        showdownAtivos.push({
-          gameMode: {name: oficial.mode},
-          map: {name: oficial.name, imageUrl: '', stats: []},
-          endTime: oficial.endTime
-        });
-      }
-    }
-
-    // 6. Proximos showdowns da Brawlify
-    var showdownProximos = proximosBrawlify.filter(function(ev) {
-      var m = ev.gameMode && ev.gameMode.name ? ev.gameMode.name.toUpperCase() : '';
+    // Filtra só showdowns da API oficial
+    var showdowns = todos.filter(function(ev) {
+      var m = ev.mode && ev.mode.name ? ev.mode.name.toUpperCase() : '';
       return m.includes('SHOWDOWN');
     });
 
-    if (!showdownAtivos.length) {
-      // Fallback: usa Brawlify direto se API oficial nao retornou showdowns
-      showdownAtivos = ativosBrawlify.filter(function(ev) {
-        var m = ev.gameMode && ev.gameMode.name ? ev.gameMode.name.toUpperCase() : '';
-        return m.includes('SHOWDOWN');
-      });
-    }
+    // Monta cards cruzando com Brawlify para stats
+    var resultado = showdowns.map(function(ev) {
+      var mapId = ev.map && ev.map.id ? ev.map.id : 0;
+      var mapName = ev.map && ev.map.name ? ev.map.name : '';
+      var modeName = ev.mode && ev.mode.name ? ev.mode.name : 'Showdown';
+      var imgUrl = mapId ? 'https://cdn.brawlify.com/maps/regular/' + mapId + '.png' : '';
+      var endTime = ev.endTime || '';
 
-    renderMapas(showdownAtivos, showdownProximos);
+      // Busca stats na Brawlify pelo nome do mapa
+      var stats = [];
+      for (var j = 0; j < brawlifyAtivos.length; j++) {
+        var bev = brawlifyAtivos[j];
+        var bname = bev.map && bev.map.name ? bev.map.name : '';
+        if (bname.toLowerCase() === mapName.toLowerCase() && bev.map && bev.map.stats) {
+          stats = bev.map.stats;
+          break;
+        }
+      }
+
+      return {
+        gameMode: {name: modeName},
+        map: {name: mapName, imageUrl: imgUrl, stats: stats},
+        endTime: endTime
+      };
+    });
+
+    // Proximos: showdowns que ainda nao começaram
+    var proximos = (dataOficial.active || []).filter(function(ev) {
+      var m = ev.mode && ev.mode.name ? ev.mode.name.toUpperCase() : '';
+      var start = ev.startTime ? new Date(ev.startTime).getTime() : 0;
+      return m.includes('SHOWDOWN') && start > Date.now();
+    }).map(function(ev) {
+      var mapId = ev.map && ev.map.id ? ev.map.id : 0;
+      return {
+        gameMode: {name: ev.mode ? ev.mode.name : 'Showdown'},
+        map: {name: ev.map ? ev.map.name : '', imageUrl: mapId ? 'https://cdn.brawlify.com/maps/regular/' + mapId + '.png' : ''},
+        endTime: ev.endTime
+      };
+    });
+
+    renderMapas(resultado, proximos);
   } catch(e) {
     document.getElementById('mapGrid').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>ERRO AO CARREGAR</p></div>';
     document.getElementById('updateInfoMapas').textContent = '🔴 ERRO';
