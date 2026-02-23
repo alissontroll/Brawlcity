@@ -33,6 +33,19 @@ header{position:relative;z-index:10;padding:36px 20px 18px;text-align:center;bor
 .notif-desc{font-size:0.8rem;color:var(--text-muted);margin-top:2px;}
 .notif-time{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--text-dim);margin-top:4px;}
 .notif-empty{text-align:center;padding:40px;color:var(--text-dim);font-family:'Teko',sans-serif;font-size:1.2rem;letter-spacing:2px;}
+/* ADMIN */
+.admin-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:3000;align-items:center;justify-content:center;padding:16px;}
+.admin-overlay.open{display:flex;}
+.admin-box{background:#0d1117;border:1px solid #e74c3c;border-radius:12px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;padding:24px;}
+.admin-title{font-family:'Teko',sans-serif;font-size:1.5rem;color:#e74c3c;letter-spacing:2px;margin-bottom:20px;text-align:center;}
+.admin-input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:6px;font-family:monospace;font-size:0.9rem;margin-bottom:10px;box-sizing:border-box;}
+.admin-btn{width:100%;padding:10px;border-radius:6px;font-family:'Teko',sans-serif;font-size:1rem;letter-spacing:1px;cursor:pointer;border:none;margin-bottom:8px;}
+.admin-btn-primary{background:#e74c3c;color:#fff;}
+.admin-btn-secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text);}
+.admin-section{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.admin-section-title{font-family:'Teko',sans-serif;font-size:1rem;color:#e74c3c;letter-spacing:1px;margin-bottom:10px;}
+.admin-player-item{display:flex;align-items:center;justify-content:space-between;padding:8px;background:var(--surface2);border-radius:6px;margin-bottom:6px;}
+.admin-remove-btn{background:#e74c3c22;border:1px solid #e74c3c;color:#e74c3c;padding:4px 10px;border-radius:4px;font-size:0.75rem;cursor:pointer;font-family:monospace;}
 /* CELEBRAÇÃO MVP */
 .celebracao-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:2000;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;}
 .celebracao-overlay.ativa{display:flex;}
@@ -315,7 +328,37 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
   </div>
 </div>
 
-<footer>BRAWLCITY RANK • PERNAMBUCO • VERIFIQUE EM BRAWLIFY.COM</footer>
+<audio id="bgMusic" src="song.mp3" loop preload="auto"></audio>
+
+
+<!-- ADMIN -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-box">
+    <div class="admin-title">🔐 ADMIN</div>
+    <div id="adminLogin">
+      <input class="admin-input" id="adminUser" type="text" placeholder="Usuário">
+      <input class="admin-input" id="adminPass" type="password" placeholder="Senha">
+      <div id="adminErr" style="color:#e74c3c;font-size:0.75rem;margin-bottom:8px;display:none;">Usuário ou senha incorretos!</div>
+      <button class="admin-btn admin-btn-primary" id="btnAdminLogin">ENTRAR</button>
+      <button class="admin-btn admin-btn-secondary" onclick="fecharAdmin()">CANCELAR</button>
+    </div>
+    <div id="adminPainel" style="display:none;">
+      <div class="admin-section">
+        <div class="admin-section-title">🗑️ REMOVER JOGADOR</div>
+        <div id="adminPlayerList"></div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">🏙️ ADICIONAR CIDADE</div>
+        <input class="admin-input" id="adminNovaCidade" type="text" placeholder="Nome da cidade (ex: Caruaru-PE)">
+        <button class="admin-btn admin-btn-primary" id="btnAdicionarCidade">ADICIONAR CIDADE</button>
+        <div id="adminCidadeMsg" style="font-size:0.75rem;margin-top:6px;"></div>
+      </div>
+      <button class="admin-btn admin-btn-secondary" onclick="fecharAdmin()">FECHAR PAINEL</button>
+    </div>
+  </div>
+</div>
+
+<footer id="adminTrigger" style="cursor:default;">BRAWLCITY RANK • PERNAMBUCO • VERIFIQUE EM BRAWLIFY.COM</footer>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -673,11 +716,8 @@ async function buscarJogador(tag) {
 async function atualizarDados() {
   // Verifica se é domingo e reseta semanaBase para todos
   var agora = new Date();
-  var isDomingo = agora.getDay() === 0; // 0 = domingo
-  // Calcula o timestamp do início do domingo atual (meia-noite)
-  var inicioDomingo = new Date(agora);
-  inicioDomingo.setHours(0, 0, 0, 0);
-  var inicioDomingoTs = inicioDomingo.getTime();
+  var isDomingo = agora.getDay() === 0;
+  var horaAtual = agora.getHours();
 
   for (var i = 0; i < allPlayers.length; i++) {
     var player = allPlayers[i];
@@ -688,9 +728,8 @@ async function atualizarDados() {
       if (data.horas && data.horas !== player.horas) updates.horas = data.horas;
       if (data.iconId && data.iconId !== player.iconId) updates.iconId = data.iconId;
       
-      // Reset semanal: todo domingo a partir de 00:00 (baseado em data, não hora exata)
-      // Reseta se for domingo E o semanaInicio for de antes deste domingo
-      if (isDomingo && player.semanaBase && (!player.semanaInicio || player.semanaInicio < inicioDomingoTs)) {
+      // Reset semanal: todo domingo entre meia-noite e 1h da manhã
+      if (isDomingo && horaAtual === 0 && player.semanaBase) {
         updates.semanaBase = data.trophies;
         updates.semanaInicio = Date.now();
       }
@@ -704,17 +743,17 @@ async function atualizarDados() {
       } else if (data.brawlerCount && !player.brawlerCount) {
         updates.brawlerCount = data.brawlerCount;
       }
-      // Salva semanaBase apenas se o jogador ainda não tem
-      // Nunca sobrescreve durante a semana para manter o ganho correto
-      if (!player.semanaBase) {
-        updates.semanaBase = data.trophies;
-        updates.semanaInicio = Date.now();
-      }
       if (Object.keys(updates).length > 0) await updateDoc(doc(db, 'players', player.id), updates);
       // Salva histórico de troféus
       if (data.trophies) {
         var histRef = collection(db, 'players', player.id, 'history');
         addDoc(histRef, {trophies: data.trophies, timestamp: Date.now()}).catch(function(){});
+      }
+      // Salva semanaBase apenas se o jogador ainda não tem
+      // Nunca sobrescreve durante a semana para manter o ganho correto
+      if (!player.semanaBase) {
+        updates.semanaBase = data.trophies;
+        updates.semanaInicio = Date.now();
       }
     } catch(e) {}
   }
@@ -1004,9 +1043,92 @@ document.addEventListener('DOMContentLoaded', function() {
   if (btn) btn.addEventListener('click', function() { window.compartilharRanking('cidade'); });
   var btnS = document.getElementById('btnAtualizarSemana');
   if (btnS) btnS.addEventListener('click', function() { window.atualizarManual(); });
+  var footer = document.getElementById('adminTrigger');
+  if (footer) footer.addEventListener('dblclick', function() { window.abrirAdmin(); });
 });
 
 window.fecharModal = function() { document.getElementById('modalPerfil').classList.remove('open'); }
+
+var ADMIN_USER_HASH = '417dc1719a18d5120f962f4d120c23d51da607e12f31a0874130397b85a945d9';
+var ADMIN_PASS_HASH = 'b24e602adf558c20edbd2d49e5ac6fa69c02f335219240472954b91b95032444';
+
+async function sha256(str) {
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+}
+
+window.abrirAdmin = function() {
+  document.getElementById('adminOverlay').classList.add('open');
+  document.getElementById('adminLogin').style.display = 'block';
+  document.getElementById('adminPainel').style.display = 'none';
+  document.getElementById('adminErr').style.display = 'none';
+  document.getElementById('adminUser').value = '';
+  document.getElementById('adminPass').value = '';
+};
+
+window.fecharAdmin = function() {
+  document.getElementById('adminOverlay').classList.remove('open');
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Login admin
+  document.getElementById('btnAdminLogin').addEventListener('click', async function() {
+    var user = document.getElementById('adminUser').value;
+    var pass = document.getElementById('adminPass').value;
+    var hashU = await sha256(user);
+    var hashP = await sha256(pass);
+    if (hashU === ADMIN_USER_HASH && hashP === ADMIN_PASS_HASH) {
+      document.getElementById('adminLogin').style.display = 'none';
+      document.getElementById('adminPainel').style.display = 'block';
+      carregarAdminPlayers();
+    } else {
+      document.getElementById('adminErr').style.display = 'block';
+    }
+  });
+
+  // Adicionar cidade
+  document.getElementById('btnAdicionarCidade').addEventListener('click', async function() {
+    var novaCidade = document.getElementById('adminNovaCidade').value.trim();
+    var msg = document.getElementById('adminCidadeMsg');
+    if (!novaCidade) { msg.style.color='#e74c3c'; msg.textContent='Digite o nome da cidade!'; return; }
+    try {
+      await addDoc(collection(db, 'cidades'), {name: novaCidade, createdAt: Date.now()});
+      msg.style.color='#2ecc71';
+      msg.textContent='✅ Cidade adicionada!';
+      document.getElementById('adminNovaCidade').value = '';
+      // Adicionar à lista de cidades do select
+      var sel = document.getElementById('citySelect');
+      if (sel) {
+        var opt = document.createElement('option');
+        opt.value = novaCidade;
+        opt.textContent = novaCidade;
+        sel.appendChild(opt);
+      }
+    } catch(e) { msg.style.color='#e74c3c'; msg.textContent='Erro ao adicionar!'; }
+  });
+});
+
+function carregarAdminPlayers() {
+  var lista = document.getElementById('adminPlayerList');
+  lista.innerHTML = '';
+  var sorted = allPlayers.slice().sort(function(a,b){ return a.name.localeCompare(b.name); });
+  sorted.forEach(function(p) {
+    var item = document.createElement('div');
+    item.className = 'admin-player-item';
+    item.innerHTML = '<div><span style="font-size:1rem;">'+(p.emoji||'🎮')+'</span> <span style="font-family:Teko,sans-serif;font-size:0.95rem;">'+p.name+'</span><br><span style="font-size:0.65rem;color:var(--text-dim);">'+p.city+' • 🏆'+p.trophies.toLocaleString('pt-BR')+'</span></div>' +
+      '<button class="admin-remove-btn" data-id="'+p.id+'" data-name="'+p.name+'">🗑️ REMOVER</button>';
+    item.querySelector('.admin-remove-btn').addEventListener('click', async function() {
+      var id = this.dataset.id;
+      var name = this.dataset.name;
+      if (!confirm('Remover ' + name + ' do ranking?')) return;
+      try {
+        await deleteDoc(doc(db, 'players', id));
+        item.remove();
+      } catch(e) { alert('Erro ao remover!'); }
+    });
+    lista.appendChild(item);
+  });
+}
 
 window.fecharCelebracao = function() {
   document.getElementById('celebracaoMVP').classList.remove('ativa');
@@ -1204,8 +1326,30 @@ async function abrirModal(p, pos) {
 }
 </script>
 
-<audio id="bgMusic" src="song.mp3" loop preload="auto"></audio>
+
 <script>
+
+window.togglePlayerRadio = function() {
+  var modal = document.getElementById('radioModal');
+  var frame = document.getElementById('radioFrame');
+  if (modal.style.display === 'none') {
+    modal.style.display = 'block';
+    // Radio Garden embed - estação de clássicos 80/90
+    frame.src = 'https://radio.garden/embed/radio-classicos-rock/YpZUAKJP';
+    document.getElementById('musicBtn').style.color = '#f5a623';
+  } else {
+    fecharRadio();
+  }
+};
+
+window.fecharRadio = function() {
+  var modal = document.getElementById('radioModal');
+  var frame = document.getElementById('radioFrame');
+  modal.style.display = 'none';
+  frame.src = '';
+  document.getElementById('musicBtn').style.color = '';
+};
+
 function toggleMusic() {
   var music = document.getElementById('bgMusic');
   var btn = document.getElementById('musicBtn');
