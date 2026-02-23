@@ -673,8 +673,11 @@ async function buscarJogador(tag) {
 async function atualizarDados() {
   // Verifica se é domingo e reseta semanaBase para todos
   var agora = new Date();
-  var isDomingo = agora.getDay() === 0;
-  var horaAtual = agora.getHours();
+  var isDomingo = agora.getDay() === 0; // 0 = domingo
+  // Calcula o timestamp do início do domingo atual (meia-noite)
+  var inicioDomingo = new Date(agora);
+  inicioDomingo.setHours(0, 0, 0, 0);
+  var inicioDomingoTs = inicioDomingo.getTime();
 
   for (var i = 0; i < allPlayers.length; i++) {
     var player = allPlayers[i];
@@ -685,8 +688,9 @@ async function atualizarDados() {
       if (data.horas && data.horas !== player.horas) updates.horas = data.horas;
       if (data.iconId && data.iconId !== player.iconId) updates.iconId = data.iconId;
       
-      // Reset semanal: todo domingo entre meia-noite e 1h da manhã
-      if (isDomingo && horaAtual === 0 && player.semanaBase) {
+      // Reset semanal: todo domingo a partir de 00:00 (baseado em data, não hora exata)
+      // Reseta se for domingo E o semanaInicio for de antes deste domingo
+      if (isDomingo && player.semanaBase && (!player.semanaInicio || player.semanaInicio < inicioDomingoTs)) {
         updates.semanaBase = data.trophies;
         updates.semanaInicio = Date.now();
       }
