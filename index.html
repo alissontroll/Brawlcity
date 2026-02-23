@@ -207,7 +207,7 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
 <div id="avisoGeral" style="display:none;background:#e67e22;color:#fff;padding:10px 16px;text-align:center;font-family:'Teko',sans-serif;letter-spacing:1px;position:relative;z-index:100;">
   <div id="avisoTitulo" style="font-size:1rem;"></div>
   <div id="avisoTexto" style="font-size:0.8rem;font-family:monospace;"></div>
-  <button onclick="document.getElementById('avisoGeral').style.display='none'" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#fff;cursor:pointer;font-size:1rem;">✕</button>
+  <button id="btnFecharAviso" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#fff;cursor:pointer;font-size:1rem;">✕</button>
 </div>
 <header>
   <div class="logo">BrawlCity</div>
@@ -363,6 +363,7 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
         <input class="admin-input" id="adminAvisoTitulo" type="text" placeholder="Título do aviso (ex: Manutenção)">
         <textarea class="admin-input" id="adminAvisoMsg" placeholder="Mensagem do aviso..." style="height:80px;resize:none;"></textarea>
         <button class="admin-btn admin-btn-primary" id="btnEnviarAviso">📢 ENVIAR AVISO</button>
+        <button class="admin-btn" style="background:#e74c3c22;border:1px solid #e74c3c;color:#e74c3c;" id="btnApagarAviso">🗑️ APAGAR AVISO ATUAL</button>
         <div id="adminAvisoMsg2" style="font-size:0.75rem;margin-top:6px;"></div>
       </div>
       <div class="admin-section">
@@ -1116,6 +1117,15 @@ document.addEventListener('DOMContentLoaded', function() {
   if (btn) btn.addEventListener('click', function() { window.compartilharRanking('cidade'); });
   var btnS = document.getElementById('btnAtualizarSemana');
   if (btnS) btnS.addEventListener('click', function() { window.atualizarManual(); });
+  var btnFecharAviso = document.getElementById('btnFecharAviso');
+  if (btnFecharAviso) btnFecharAviso.addEventListener('click', async function() {
+    document.getElementById('avisoGeral').style.display = 'none';
+    try {
+      var oldAvisos = await getDocs(collection(db, 'avisos'));
+      for (var d of oldAvisos.docs) await deleteDoc(doc(db, 'avisos', d.id));
+    } catch(e) {}
+  });
+
   var footer = document.getElementById('adminTrigger');
   if (footer) footer.addEventListener('dblclick', function() { window.abrirAdmin(); });
 
