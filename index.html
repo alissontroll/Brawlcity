@@ -33,6 +33,16 @@ header{position:relative;z-index:10;padding:36px 20px 18px;text-align:center;bor
 .notif-desc{font-size:0.8rem;color:var(--text-muted);margin-top:2px;}
 .notif-time{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--text-dim);margin-top:4px;}
 .notif-empty{text-align:center;padding:40px;color:var(--text-dim);font-family:'Teko',sans-serif;font-size:1.2rem;letter-spacing:2px;}
+/* EDITOR PERFIL */
+.perfil-edit{margin-bottom:16px;background:var(--surface2);border-radius:8px;padding:14px;}
+.perfil-edit-title{font-family:'Teko',sans-serif;font-size:0.95rem;letter-spacing:1px;color:var(--text-dim);margin-bottom:10px;}
+.color-picker{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+.color-opt{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 0.1s;}
+.color-opt.selected,.color-opt:hover{transform:scale(1.2);border-color:#fff;}
+.emoji-picker{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.emoji-opt{font-size:1.4rem;cursor:pointer;padding:4px;border-radius:6px;border:2px solid transparent;transition:transform 0.1s;}
+.emoji-opt.selected,.emoji-opt:hover{transform:scale(1.2);background:var(--surface);border-color:var(--accent);}
+.save-perfil-btn{background:var(--accent);color:#000;border:none;padding:8px 20px;border-radius:6px;font-family:'Teko',sans-serif;font-size:1rem;letter-spacing:1px;cursor:pointer;width:100%;}
 /* COMPARTILHAR */
 .share-btn{background:linear-gradient(135deg,#25d366,#128c7e);border:none;color:#fff;padding:10px 20px;border-radius:8px;font-family:'Teko',sans-serif;font-size:1rem;letter-spacing:2px;cursor:pointer;display:flex;align-items:center;gap:8px;margin:12px auto;width:100%;justify-content:center;}
 .share-btn:hover{opacity:0.9;}
@@ -251,7 +261,18 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
       <div class="chart-title">📈 EVOLUÇÃO DE TROFÉUS</div>
       <div class="chart-canvas" id="chartArea"><div class="chart-empty">Coletando dados...<br>Volte amanhã!</div></div>
     </div>
-    <a id="modalBrawlify" href="#" target="_blank" style="display:block;text-align:center;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--accent);font-family:'Teko',sans-serif;letter-spacing:2px;text-decoration:none;">↗ VER NO BRAWLIFY</a>
+    <div class="perfil-edit" id="perfilEditor" style="display:none;">
+      <div class="perfil-edit-title">🎨 PERSONALIZAR PERFIL</div>
+      <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:8px;font-family:monospace;">COR DO CARD</div>
+      <div class="color-picker" id="colorPicker"></div>
+      <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:8px;font-family:monospace;">AVATAR</div>
+      <div class="emoji-picker" id="emojiPicker"></div>
+      <button class="save-perfil-btn" id="btnSalvarPerfil">💾 SALVAR</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button onclick="toggleEditPerfil()" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-family:'Teko',sans-serif;font-size:0.95rem;letter-spacing:1px;cursor:pointer;">✏️ EDITAR PERFIL</button>
+      <a id="modalBrawlify" href="#" target="_blank" style="flex:1;display:block;text-align:center;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--accent);font-family:'Teko',sans-serif;letter-spacing:2px;text-decoration:none;">↗ BRAWLIFY</a>
+    </div>
   </div>
 </div>
 
@@ -618,6 +639,7 @@ async function atualizarDados() {
       var updates = {};
       if (data.trophies && data.trophies !== player.trophies) updates.trophies = data.trophies;
       if (data.horas && data.horas !== player.horas) updates.horas = data.horas;
+      if (data.iconId && data.iconId !== player.iconId) updates.iconId = data.iconId;
       if (data.brawlerCount && player.brawlerCount && data.brawlerCount > player.brawlerCount) {
         var diff = data.brawlerCount - player.brawlerCount;
         updates.newBrawlers = diff;
@@ -703,7 +725,8 @@ window.register = async function() {
     if (!data.trophies || !data.name) throw new Error('Jogador não encontrado');
     var emoji = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
     var color = COLORS[Math.floor(Math.random()*COLORS.length)];
-    await addDoc(collection(db, 'players'), {name: data.name, tag: data.tag, city: city, trophies: data.trophies, horas: data.horas || 0, emoji: emoji, color: color, joined: Date.now(), brawlerCount: data.brawlerCount || 0, newBrawlers: 0});
+    var iconId = data.iconId || null;
+    await addDoc(collection(db, 'players'), {name: data.name, tag: data.tag, city: city, trophies: data.trophies, horas: data.horas || 0, emoji: emoji, color: color, joined: Date.now(), brawlerCount: data.brawlerCount || 0, newBrawlers: 0, iconId: iconId});
     document.getElementById('inputTag').value = '';
     showToast('✓ ' + data.name + ' entrou com ' + data.trophies.toLocaleString('pt-BR') + ' troféus!', 'success');
     setCity(city);
@@ -736,7 +759,9 @@ function buildCards(players, containerId) {
     card.onclick = (function(player, posicao) { return function() { abrirModal(player, posicao); }; })(p, pos);
     card.innerHTML = (pos===1?'<div class="crown-icon">👑</div><div class="shimmer"></div>':'') +
       '<div class="rank-num ' + rankClass + '">' + rankLabel + '</div>' +
-      '<div class="player-avatar" style="background:' + p.color + '15;border:1px solid ' + p.color + '28;">' + p.emoji + '</div>' +
+      '<div class="player-avatar" style="background:' + p.color + '15;border:1px solid ' + p.color + '28;overflow:hidden;padding:0;">' +
+        (p.iconId ? '<img src="https://cdn.brawlify.com/profile-icons/regular/' + p.iconId + '.png" style="width:100%;height:100%;object-fit:cover;" onerror="this.textContent=this.dataset.fb" data-fb="' + (p.emoji||'🎮') + '">' : (p.emoji || '🎮')) +
+      '</div>' +
       '<div class="player-info"><div class="player-name">' + p.name + '</div>' +
       '<div class="player-meta"><span class="player-tag">' + p.tag + '</span>' +
       '<span class="player-city">📍 ' + p.city + '</span>' +
@@ -888,9 +913,57 @@ document.addEventListener('DOMContentLoaded', function() {
 
 window.fecharModal = function() { document.getElementById('modalPerfil').classList.remove('open'); }
 
+var CORES_DISPONIVEIS = ["#e74c3c", "#e67e22", "#f1c40f", "#2ecc71", "#1abc9c", "#3498db", "#9b59b6", "#e91e63", "#00bcd4", "#ff5722", "#ffffff", "#00c8ff"];
+var EMOJIS_DISPONIVEIS = ["🔥", "⚡", "💀", "🦈", "👾", "🐺", "🤖", "👑", "💎", "🎯", "🦁", "🐉", "🌙", "⭐", "🎮", "🏆", "💥", "🌊", "🦊", "🐻", "🎭", "🦋"];
+var _playerEditando = null;
+var _corSelecionada = null;
+var _emojiSelecionado = null;
+
+window.toggleEditPerfil = function() {
+  var editor = document.getElementById('perfilEditor');
+  if (!editor) return;
+  if (editor.style.display === 'none') {
+    editor.style.display = 'block';
+    // Monta paleta de cores
+    var cp = document.getElementById('colorPicker');
+    cp.innerHTML = CORES_DISPONIVEIS.map(function(c) {
+      var sel = _playerEditando && c === _playerEditando.color ? ' selected' : '';
+      return '<div class="color-opt'+sel+'" style="background:'+c+'" data-color="'+c+'" onclick="selecionarCor(this)"></div>';
+    }).join('');
+    // Monta paleta de emojis
+    var ep = document.getElementById('emojiPicker');
+    ep.innerHTML = EMOJIS_DISPONIVEIS.map(function(e) {
+      var sel = _playerEditando && e === _playerEditando.emoji ? ' selected' : '';
+      return '<span class="emoji-opt'+sel+'" data-emoji="'+e+'" onclick="selecionarEmoji(this)">'+e+'</span>';
+    }).join('');
+    _corSelecionada = _playerEditando ? _playerEditando.color : null;
+    _emojiSelecionado = _playerEditando ? _playerEditando.emoji : null;
+  } else {
+    editor.style.display = 'none';
+  }
+};
+
+window.selecionarCor = function(el) {
+  document.querySelectorAll('.color-opt').forEach(function(e){ e.classList.remove('selected'); });
+  el.classList.add('selected');
+  _corSelecionada = el.dataset.color;
+};
+
+window.selecionarEmoji = function(el) {
+  document.querySelectorAll('.emoji-opt').forEach(function(e){ e.classList.remove('selected'); });
+  el.classList.add('selected');
+  _emojiSelecionado = el.dataset.emoji;
+};
+
 async function abrirModal(p, pos) {
   // Preenche dados básicos
-  document.getElementById('modalAvatar').textContent = p.emoji || '🎮';
+  var avatarEl = document.getElementById('modalAvatar');
+  if (p.iconId) {
+    var fbEmoji = p.emoji || '🎮';
+    avatarEl.innerHTML = '<img src="https://cdn.brawlify.com/profile-icons/regular/' + p.iconId + '.png" style="width:48px;height:48px;border-radius:50%;object-fit:cover;" data-fb="' + fbEmoji + '" onerror="this.parentNode.textContent=this.dataset.fb">';
+  } else {
+    avatarEl.textContent = p.emoji || '🎮';
+  }
   document.getElementById('modalNome').textContent = p.name;
   document.getElementById('modalTag').textContent = p.tag;
   document.getElementById('modalCidade').textContent = '📍 ' + p.city;
@@ -899,6 +972,32 @@ async function abrirModal(p, pos) {
   document.getElementById('modalPosicao').textContent = '#' + pos;
   document.getElementById('modalBrawlify').href = 'https://brawlify.com/stats/profile/' + p.tag.replace('#','');
   document.getElementById('modalPerfil').classList.add('open');
+  document.getElementById('perfilEditor').style.display = 'none';
+  _playerEditando = p;
+  _corSelecionada = p.color;
+  _emojiSelecionado = p.emoji;
+
+  // Botão salvar perfil
+  var btnSalvar = document.getElementById('btnSalvarPerfil');
+  if (btnSalvar) {
+    btnSalvar.onclick = async function() {
+      if (!_playerEditando || !_playerEditando.id) return;
+      var updates = {};
+      if (_corSelecionada) updates.color = _corSelecionada;
+      if (_emojiSelecionado) updates.emoji = _emojiSelecionado;
+      if (Object.keys(updates).length === 0) return;
+      try {
+        btnSalvar.textContent = 'SALVANDO...';
+        await updateDoc(doc(db, 'players', _playerEditando.id), updates);
+        btnSalvar.textContent = '✅ SALVO!';
+        document.getElementById('modalAvatar').textContent = _emojiSelecionado || _playerEditando.emoji;
+        setTimeout(function(){ btnSalvar.textContent = '💾 SALVAR'; }, 2000);
+      } catch(e) {
+        btnSalvar.textContent = '❌ ERRO';
+        setTimeout(function(){ btnSalvar.textContent = '💾 SALVAR'; }, 2000);
+      }
+    };
+  }
 
   // Busca histórico de troféus do Firebase
   var chartArea = document.getElementById('chartArea');
