@@ -782,13 +782,12 @@ function renderRankingSemana() {
   
   // Calcula ganho da semana para cada jogador
   var comGanho = allPlayers.map(function(p) {
-    var ganho = (p.semanaBase && p.trophies > p.semanaBase) ? p.trophies - p.semanaBase : 0;
+    var ganho = (p.semanaBase != null && p.trophies > p.semanaBase) ? p.trophies - p.semanaBase : 0;
     return Object.assign({}, p, {ganhoSemana: ganho});
-  }).filter(function(p){ return p.ganhoSemana > 0; })
-    .sort(function(a,b){ return b.ganhoSemana - a.ganhoSemana; });
+  }).sort(function(a,b){ return b.ganhoSemana - a.ganhoSemana || b.trophies - a.trophies; });
 
   if (!comGanho.length) {
-    lista.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-dim);font-family:Teko,sans-serif;font-size:1.1rem;letter-spacing:1px;">NENHUM DADO AINDA<br><span style="font-size:0.7rem;font-family:monospace">Os dados aparecem após a primeira atualização</span></div>';
+    lista.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-dim);font-family:Teko,sans-serif;font-size:1.1rem;letter-spacing:1px;">NENHUM JOGADOR AINDA</div>';
     return;
   }
 
@@ -804,7 +803,7 @@ function renderRankingSemana() {
         '<div style="font-size:0.7rem;color:var(--text-muted);">📍 '+p.city+'</div>' +
       '</div>' +
       '<div style="text-align:right;">' +
-        '<div style="font-family:Teko,sans-serif;font-size:1.2rem;color:#2ecc71;">+'+p.ganhoSemana.toLocaleString('pt-BR')+'</div>' +
+        '<div style="font-family:Teko,sans-serif;font-size:1.2rem;color:' + (p.ganhoSemana > 0 ? '#2ecc71' : '#666') + ';">' + (p.ganhoSemana > 0 ? '+' : '') + p.ganhoSemana.toLocaleString('pt-BR') + '</div>' +
         '<div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;">TROFÉUS</div>' +
         '<div style="font-size:0.65rem;color:var(--text-dim);">🏆 '+p.trophies.toLocaleString('pt-BR')+' total</div>' +
       '</div>' +
