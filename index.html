@@ -659,15 +659,11 @@ async function atualizarDados() {
         var histRef = collection(db, 'players', player.id, 'history');
         addDoc(histRef, {trophies: data.trophies, timestamp: Date.now()}).catch(function(){});
       }
-      // Salva troféus no início da semana se ainda não salvou
-      var agora2 = new Date();
-      var diaSemana = agora2.getDay();
-      var inicioSemana = new Date(agora2);
-      inicioSemana.setDate(agora2.getDate() - diaSemana);
-      inicioSemana.setHours(0,0,0,0);
-      if (!player.semanaInicio || player.semanaInicio < inicioSemana.getTime()) {
-        updates.semanaInicio = inicioSemana.getTime();
+      // Salva semanaBase apenas se o jogador ainda não tem
+      // Nunca sobrescreve durante a semana para manter o ganho correto
+      if (!player.semanaBase) {
         updates.semanaBase = data.trophies;
+        updates.semanaInicio = Date.now();
       }
     } catch(e) {}
   }
@@ -780,11 +776,14 @@ function renderRanking() { buildCards(allPlayers.filter(function(p){ return p.ci
 function renderRankingPE() { buildCards(allPlayers.slice().sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingListPE'); }
 
 window.atualizarManual = async function() {
-  var btn = document.querySelector('[onclick="atualizarManual()"]');
+  var btn = document.getElementById('btnAtualizarSemana');
   if (btn) { btn.textContent = '⏳ ATUALIZANDO...'; btn.disabled = true; }
   await atualizarDados();
-  renderRankingSemana();
-  if (btn) { btn.textContent = '🔄 ATUALIZAR'; btn.disabled = false; }
+  // Espera 2s para o onSnapshot atualizar o allPlayers
+  setTimeout(function() {
+    renderRankingSemana();
+    if (btn) { btn.textContent = '🔄 ATUALIZAR'; btn.disabled = false; }
+  }, 2000);
 };
 
 function renderRankingSemana() {
