@@ -804,14 +804,24 @@ window.compartilharRanking = function(tipo) {
   ctx.textAlign = 'center';
   ctx.fillText('brawlstarscity.netlify.app', W/2, H-20);
 
-  // Compartilha
+  // Compartilha via Web Share API (abre WhatsApp, Instagram, etc)
   canvas.toBlob(function(blob) {
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'brawlcity-ranking.png';
-    a.click();
-    URL.revokeObjectURL(url);
+    var file = new File([blob], 'brawlcity-ranking.png', {type: 'image/png'});
+    if (navigator.share && navigator.canShare && navigator.canShare({files: [file]})) {
+      navigator.share({
+        title: 'BrawlCity Rank',
+        text: 'Confira o ranking de Brawl Stars de Pernambuco!',
+        files: [file]
+      }).catch(function(){});
+    } else {
+      // Fallback: baixa a imagem
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'brawlcity-ranking.png';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
   }, 'image/png');
 };
 
