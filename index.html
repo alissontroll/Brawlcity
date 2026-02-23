@@ -204,6 +204,11 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
 </style>
 </head>
 <body>
+<div id="avisoGeral" style="display:none;background:#e67e22;color:#fff;padding:10px 16px;text-align:center;font-family:'Teko',sans-serif;letter-spacing:1px;position:relative;z-index:100;">
+  <div id="avisoTitulo" style="font-size:1rem;"></div>
+  <div id="avisoTexto" style="font-size:0.8rem;font-family:monospace;"></div>
+  <button onclick="document.getElementById('avisoGeral').style.display='none'" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#fff;cursor:pointer;font-size:1rem;">✕</button>
+</div>
 <header>
   <div class="logo">BrawlCity</div>
   <div class="logo-sub">Ranking Competitivo • Pernambuco</div>
@@ -353,6 +358,27 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
         <button class="admin-btn admin-btn-primary" id="btnAdicionarCidade">ADICIONAR CIDADE</button>
         <div id="adminCidadeMsg" style="font-size:0.75rem;margin-top:6px;"></div>
       </div>
+      <div class="admin-section">
+        <div class="admin-section-title">📢 ENVIAR AVISO GERAL</div>
+        <input class="admin-input" id="adminAvisoTitulo" type="text" placeholder="Título do aviso (ex: Manutenção)">
+        <textarea class="admin-input" id="adminAvisoMsg" placeholder="Mensagem do aviso..." style="height:80px;resize:none;"></textarea>
+        <button class="admin-btn admin-btn-primary" id="btnEnviarAviso">📢 ENVIAR AVISO</button>
+        <div id="adminAvisoMsg2" style="font-size:0.75rem;margin-top:6px;"></div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">🏆 RESETAR RANKING SEMANAL</div>
+        <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:10px;font-family:monospace;">Reseta os troféus base de todos os jogadores para iniciar uma nova semana.</div>
+        <button class="admin-btn" style="background:#e67e2222;border:1px solid #e67e22;color:#e67e22;" id="btnResetSemana">⚠️ RESETAR SEMANA AGORA</button>
+        <div id="adminResetMsg" style="font-size:0.75rem;margin-top:6px;"></div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">🔒 BLOQUEAR JOGADOR</div>
+        <div id="adminBlockList"></div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">📊 VISITAS DO SITE</div>
+        <div id="adminVisitas"><div style="color:var(--text-dim);font-size:0.8rem;">Carregando...</div></div>
+      </div>
       <button class="admin-btn admin-btn-secondary" onclick="fecharAdmin()">FECHAR PAINEL</button>
     </div>
   </div>
@@ -362,7 +388,7 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyAi05OMG44jmNm_HUEtv9LS_wa-tBvErd8",
   authDomain: "brawlcity-rank.firebaseapp.com",
@@ -759,6 +785,53 @@ async function atualizarDados() {
   }
 }
 setTimeout(atualizarDados, 5000);
+
+// Registrar visita
+(function() {
+  var ua = navigator.userAgent;
+  
+  // Sistema operacional e versão
+  var so = 'Outro';
+  var androidMatch = ua.match(/Android ([\d.]+)/);
+  var iosMatch = ua.match(/OS ([\d_]+) like Mac/);
+  if (androidMatch) so = '🤖 Android ' + androidMatch[1];
+  else if (iosMatch) so = '🍎 iOS ' + iosMatch[1].replace(/_/g,'.');
+  else if (/Windows NT 10/i.test(ua)) so = '💻 Windows 10/11';
+  else if (/Windows/i.test(ua)) so = '💻 Windows';
+  else if (/Mac OS X/i.test(ua) && !/iPhone|iPad/i.test(ua)) so = '🖥️ macOS';
+
+  // Marca do aparelho
+  var marca = '';
+  if (/Samsung/i.test(ua)) marca = 'Samsung';
+  else if (/Xiaomi|MI |Redmi|POCO/i.test(ua)) {
+    var pocMatch = ua.match(/POCO ([A-Z0-9 ]+)/i);
+    var redmiMatch = ua.match(/Redmi ([A-Z0-9 ]+)/i);
+    if (pocMatch) marca = 'POCO ' + pocMatch[1].trim();
+    else if (redmiMatch) marca = 'Redmi ' + redmiMatch[1].trim();
+    else marca = 'Xiaomi';
+  }
+  else if (/Motorola|moto/i.test(ua)) marca = 'Motorola';
+  else if (/LG/i.test(ua)) marca = 'LG';
+  else if (/Huawei/i.test(ua)) marca = 'Huawei';
+  else if (/iPhone/i.test(ua)) marca = 'iPhone';
+  else if (/iPad/i.test(ua)) marca = 'iPad';
+
+  // Navegador
+  var browser = '';
+  if (/SamsungBrowser/i.test(ua)) browser = 'Samsung Browser';
+  else if (/OPR|Opera/i.test(ua)) browser = 'Opera';
+  else if (/Edg/i.test(ua)) browser = 'Edge';
+  else if (/Chrome/i.test(ua)) browser = 'Chrome';
+  else if (/Firefox/i.test(ua)) browser = 'Firefox';
+  else if (/Safari/i.test(ua)) browser = 'Safari';
+
+  var dispositivo = [marca, so, browser].filter(Boolean).join(' • ');
+  addDoc(collection(db, 'visitas'), {
+    timestamp: Date.now(),
+    dispositivo: dispositivo,
+    data: new Date().toLocaleDateString('pt-BR')
+  }).catch(function(){});
+})();
 setInterval(atualizarDados, 30 * 60 * 1000);
 
 // Listener de notificações - mostra novos brawlers
@@ -1045,6 +1118,40 @@ document.addEventListener('DOMContentLoaded', function() {
   if (btnS) btnS.addEventListener('click', function() { window.atualizarManual(); });
   var footer = document.getElementById('adminTrigger');
   if (footer) footer.addEventListener('dblclick', function() { window.abrirAdmin(); });
+
+  // Enviar aviso
+  document.getElementById('btnEnviarAviso').addEventListener('click', async function() {
+    var titulo = document.getElementById('adminAvisoTitulo').value.trim();
+    var msg = document.getElementById('adminAvisoMsg').value.trim();
+    var feedEl = document.getElementById('adminAvisoMsg2');
+    if (!titulo || !msg) { feedEl.style.color='#e74c3c'; feedEl.textContent='Preencha título e mensagem!'; return; }
+    try {
+      // Apaga avisos antigos
+      var oldAvisos = await getDocs(collection(db, 'avisos'));
+      for (var d of oldAvisos.docs) await deleteDoc(doc(db, 'avisos', d.id));
+      await addDoc(collection(db, 'avisos'), {titulo: titulo, mensagem: msg, timestamp: Date.now()});
+      feedEl.style.color='#2ecc71'; feedEl.textContent='✅ Aviso enviado para todos!';
+      document.getElementById('adminAvisoTitulo').value='';
+      document.getElementById('adminAvisoMsg').value='';
+    } catch(e) { feedEl.style.color='#e74c3c'; feedEl.textContent='Erro ao enviar!'; }
+  });
+
+  // Resetar semana
+  document.getElementById('btnResetSemana').addEventListener('click', async function() {
+    var msgEl = document.getElementById('adminResetMsg');
+    if (!confirm('Resetar o ranking semanal de TODOS os jogadores?')) return;
+    try {
+      this.textContent = '⏳ RESETANDO...'; this.disabled = true;
+      for (var p of allPlayers) {
+        var data = await buscarJogador(p.tag);
+        if (data && data.trophies) {
+          await updateDoc(doc(db, 'players', p.id), {semanaBase: data.trophies, semanaInicio: Date.now()});
+        }
+      }
+      msgEl.style.color='#2ecc71'; msgEl.textContent='✅ Semana resetada para todos!';
+      this.textContent='⚠️ RESETAR SEMANA AGORA'; this.disabled=false;
+    } catch(e) { msgEl.style.color='#e74c3c'; msgEl.textContent='Erro ao resetar!'; this.disabled=false; }
+  });
 });
 
 window.fecharModal = function() { document.getElementById('modalPerfil').classList.remove('open'); }
@@ -1081,6 +1188,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('adminLogin').style.display = 'none';
       document.getElementById('adminPainel').style.display = 'block';
       carregarAdminPlayers();
+      carregarVisitas();
     } else {
       document.getElementById('adminErr').style.display = 'block';
     }
@@ -1108,6 +1216,51 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
+// Listener de avisos
+var qAvisos = query(collection(db, 'avisos'), orderBy('timestamp', 'desc'));
+onSnapshot(qAvisos, function(snap) {
+  if (!snap.empty) {
+    var aviso = snap.docs[0].data();
+    var agora = Date.now();
+    if (agora - aviso.timestamp < 24 * 60 * 60 * 1000) {
+      document.getElementById('avisoTitulo').textContent = '📢 ' + aviso.titulo;
+      document.getElementById('avisoTexto').textContent = aviso.mensagem;
+      document.getElementById('avisoGeral').style.display = 'block';
+    }
+  }
+});
+
+async function carregarVisitas() {
+  var el = document.getElementById('adminVisitas');
+  if (!el) return;
+  try {
+    var snap = await getDocs(collection(db, 'visitas'));
+    var total = snap.size;
+    var por_dispositivo = {};
+    var por_dia = {};
+    snap.forEach(function(d) {
+      var v = d.data();
+      por_dispositivo[v.dispositivo] = (por_dispositivo[v.dispositivo] || 0) + 1;
+      por_dia[v.data] = (por_dia[v.data] || 0) + 1;
+    });
+
+    // Últimos 7 dias
+    var diasOrdenados = Object.keys(por_dia).sort(function(a,b){
+      return new Date(a.split('/').reverse().join('-')) - new Date(b.split('/').reverse().join('-'));
+    }).slice(-7);
+
+    el.innerHTML = '<div style="font-family:Teko,sans-serif;font-size:1.8rem;color:#f5a623;margin-bottom:8px;">'+total+' <span style="font-size:0.9rem;color:var(--text-dim);">visitas totais</span></div>' +
+      '<div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:6px;font-family:monospace;">POR DISPOSITIVO</div>' +
+      Object.entries(por_dispositivo).sort(function(a,b){return b[1]-a[1];}).map(function(e){
+        return '<div style="display:flex;justify-content:space-between;padding:4px 8px;background:var(--surface);border-radius:4px;margin-bottom:4px;font-family:monospace;font-size:0.8rem;"><span>'+e[0]+'</span><span style="color:#f5a623;">'+e[1]+'</span></div>';
+      }).join('') +
+      '<div style="font-size:0.75rem;color:var(--text-dim);margin:8px 0 6px;font-family:monospace;">ÚLTIMOS 7 DIAS</div>' +
+      diasOrdenados.map(function(dia){
+        return '<div style="display:flex;justify-content:space-between;padding:4px 8px;background:var(--surface);border-radius:4px;margin-bottom:4px;font-family:monospace;font-size:0.8rem;"><span>'+dia+'</span><span style="color:#2ecc71;">'+por_dia[dia]+'</span></div>';
+      }).join('');
+  } catch(e) { el.innerHTML = '<div style="color:#e74c3c;font-size:0.8rem;">Erro ao carregar visitas</div>'; }
+}
+
 function carregarAdminPlayers() {
   var lista = document.getElementById('adminPlayerList');
   lista.innerHTML = '';
@@ -1128,6 +1281,29 @@ function carregarAdminPlayers() {
     });
     lista.appendChild(item);
   });
+
+  // Lista de bloqueio
+  var blockList = document.getElementById('adminBlockList');
+  if (blockList) {
+    blockList.innerHTML = '';
+    sorted.forEach(function(p) {
+      var item2 = document.createElement('div');
+      item2.className = 'admin-player-item';
+      var bloqueado = p.bloqueado || false;
+      item2.innerHTML = '<div><span style="font-family:Teko,sans-serif;font-size:0.95rem;">'+(bloqueado?'🔒 ':'')+ p.name+'</span><br><span style="font-size:0.65rem;color:var(--text-dim);">'+p.city+'</span></div>' +
+        '<button class="admin-remove-btn" style="'+(bloqueado?'background:#2ecc7122;border-color:#2ecc71;color:#2ecc71':'')+'">'+( bloqueado?'🔓 DESBLOQUEAR':'🔒 BLOQUEAR')+'</button>';
+      item2.querySelector('button').addEventListener('click', async function() {
+        var novo = !bloqueado;
+        await updateDoc(doc(db, 'players', p.id), {bloqueado: novo});
+        bloqueado = novo;
+        this.textContent = novo ? '🔓 DESBLOQUEAR' : '🔒 BLOQUEAR';
+        this.style.background = novo ? '#2ecc7122' : '';
+        this.style.borderColor = novo ? '#2ecc71' : '#e74c3c';
+        this.style.color = novo ? '#2ecc71' : '#e74c3c';
+      });
+      blockList.appendChild(item2);
+    });
+  }
 }
 
 window.fecharCelebracao = function() {
