@@ -704,17 +704,17 @@ async function atualizarDados() {
       } else if (data.brawlerCount && !player.brawlerCount) {
         updates.brawlerCount = data.brawlerCount;
       }
-      if (Object.keys(updates).length > 0) await updateDoc(doc(db, 'players', player.id), updates);
-      // Salva histórico de troféus
-      if (data.trophies) {
-        var histRef = collection(db, 'players', player.id, 'history');
-        addDoc(histRef, {trophies: data.trophies, timestamp: Date.now()}).catch(function(){});
-      }
       // Salva semanaBase apenas se o jogador ainda não tem
       // Nunca sobrescreve durante a semana para manter o ganho correto
       if (!player.semanaBase) {
         updates.semanaBase = data.trophies;
         updates.semanaInicio = Date.now();
+      }
+      if (Object.keys(updates).length > 0) await updateDoc(doc(db, 'players', player.id), updates);
+      // Salva histórico de troféus
+      if (data.trophies) {
+        var histRef = collection(db, 'players', player.id, 'history');
+        addDoc(histRef, {trophies: data.trophies, timestamp: Date.now()}).catch(function(){});
       }
     } catch(e) {}
   }
