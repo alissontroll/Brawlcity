@@ -33,6 +33,29 @@ header{position:relative;z-index:10;padding:36px 20px 18px;text-align:center;bor
 .notif-desc{font-size:0.8rem;color:var(--text-muted);margin-top:2px;}
 .notif-time{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--text-dim);margin-top:4px;}
 .notif-empty{text-align:center;padding:40px;color:var(--text-dim);font-family:'Teko',sans-serif;font-size:1.2rem;letter-spacing:2px;}
+/* CELEBRAÇÃO MVP */
+.celebracao-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:2000;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;}
+.celebracao-overlay.ativa{display:flex;}
+.celebracao-titulo{font-family:'Teko',sans-serif;font-size:3.5rem;color:#f5a623;letter-spacing:4px;animation:pulse2 1s ease-in-out infinite;}
+.celebracao-sub{font-family:'Teko',sans-serif;font-size:1.2rem;color:#fff;letter-spacing:3px;margin-bottom:20px;}
+.celebracao-nome{font-family:'Teko',sans-serif;font-size:2.8rem;color:#fff;letter-spacing:2px;margin:10px 0;}
+.celebracao-trofeus{font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:#2ecc71;margin:10px 0;}
+.celebracao-foto{width:80px;height:80px;border-radius:50%;border:3px solid #f5a623;margin:10px auto;}
+.celebracao-fechar{margin-top:24px;background:none;border:1px solid #f5a623;color:#f5a623;padding:10px 30px;border-radius:8px;font-family:'Teko',sans-serif;font-size:1rem;letter-spacing:2px;cursor:pointer;}
+.fogo-celebracao{position:fixed;width:8px;height:8px;border-radius:50%;pointer-events:none;z-index:2001;}
+@keyframes pulse2{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+@keyframes fogo-anim{0%{transform:translate(0,0) scale(1);opacity:1;}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0;}}
+/* MVP DA SEMANA */
+.mvp-banner{background:linear-gradient(135deg,#1a1200,#2d1f00);border:2px solid #f5a623;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;position:relative;overflow:hidden;}
+.mvp-banner::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(245,166,35,0.15) 0%,transparent 70%);pointer-events:none;}
+.mvp-crown{font-size:2.5rem;animation:float 2s ease-in-out infinite;}
+.mvp-title{font-family:'Teko',sans-serif;font-size:0.85rem;letter-spacing:3px;color:#f5a623;margin:4px 0;}
+.mvp-name{font-family:'Teko',sans-serif;font-size:2rem;color:#fff;letter-spacing:2px;margin:4px 0;}
+.mvp-gain{font-family:'JetBrains Mono',monospace;font-size:1rem;color:#2ecc71;margin:4px 0;}
+.mvp-emoji{font-size:2rem;}
+.firework{position:absolute;width:6px;height:6px;border-radius:50%;animation:firework 1.5s ease-out infinite;}
+@keyframes firework{0%{transform:translate(0,0) scale(1);opacity:1;}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0;}}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
 /* EDITOR PERFIL */
 .perfil-edit{margin-bottom:16px;background:var(--surface2);border-radius:8px;padding:14px;}
 .perfil-edit-title{font-family:'Teko',sans-serif;font-size:0.95rem;letter-spacing:1px;color:var(--text-dim);margin-bottom:10px;}
@@ -228,6 +251,7 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
         <div style="font-size:0.7rem;color:var(--text-dim);font-family:'JetBrains Mono',monospace;">QUEM MAIS GANHOU TROFÉUS ESSA SEMANA</div>
         <button id="btnAtualizarSemana" style="background:var(--surface2);border:1px solid var(--border);color:var(--accent);padding:6px 12px;border-radius:6px;font-family:'Teko',sans-serif;font-size:0.85rem;cursor:pointer;">🔄 ATUALIZAR</button>
       </div>
+      <div id="mvpBanner"></div>
       <div id="rankingSemanaList"><div class="loading-state"><div class="empty-icon">⏳</div><p>CARREGANDO...</p></div></div>
     </div>
   </div>
@@ -238,6 +262,18 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
       <div id="notifList"><div class="notif-empty">NENHUMA NOVIDADE AINDA</div></div>
     </div>
   </div>
+
+<!-- CELEBRAÇÃO MVP -->
+<div class="celebracao-overlay" id="celebracaoMVP">
+  <div style="font-size:3rem;animation:float 1s ease-in-out infinite;">👑</div>
+  <div class="celebracao-titulo">PARABÉNS!</div>
+  <div class="celebracao-sub">🏆 MVP DA SEMANA 🏆</div>
+  <img id="celebracaoFoto" class="celebracao-foto" src="" style="display:none">
+  <div class="celebracao-nome" id="celebracaoNome"></div>
+  <div class="celebracao-trofeus" id="celebracaoTrofeus"></div>
+  <div style="color:#ffffff88;font-size:0.75rem;font-family:monospace;margin-top:8px;">pela conquista desta semana!</div>
+  <button class="celebracao-fechar" onclick="fecharCelebracao()">✕ FECHAR</button>
+</div>
 
 <!-- MODAL PERFIL -->
 <div class="modal-overlay" id="modalPerfil" onclick="if(event.target===this)fecharModal()">
@@ -635,6 +671,11 @@ async function buscarJogador(tag) {
 }
 
 async function atualizarDados() {
+  // Verifica se é domingo e reseta semanaBase para todos
+  var agora = new Date();
+  var isDomingo = agora.getDay() === 0;
+  var horaAtual = agora.getHours();
+
   for (var i = 0; i < allPlayers.length; i++) {
     var player = allPlayers[i];
     try {
@@ -643,6 +684,12 @@ async function atualizarDados() {
       if (data.trophies && data.trophies !== player.trophies) updates.trophies = data.trophies;
       if (data.horas && data.horas !== player.horas) updates.horas = data.horas;
       if (data.iconId && data.iconId !== player.iconId) updates.iconId = data.iconId;
+      
+      // Reset semanal: todo domingo entre meia-noite e 1h da manhã
+      if (isDomingo && horaAtual === 0 && player.semanaBase) {
+        updates.semanaBase = data.trophies;
+        updates.semanaInicio = Date.now();
+      }
       if (data.brawlerCount && player.brawlerCount && data.brawlerCount > player.brawlerCount) {
         var diff = data.brawlerCount - player.brawlerCount;
         updates.newBrawlers = diff;
@@ -786,6 +833,37 @@ window.atualizarManual = async function() {
   }, 2000);
 };
 
+function renderMVP(comGanho) {
+  var banner = document.getElementById('mvpBanner');
+  if (!banner) return;
+  if (!comGanho.length || comGanho[0].ganhoSemana === 0) { banner.innerHTML = ''; return; }
+  
+  var mvp = comGanho[0];
+  var cores = ['#f5a623','#ff6b6b','#a78bfa','#2ecc71','#00c8ff'];
+  var fogos = '';
+  for (var f = 0; f < 12; f++) {
+    var tx = (Math.random() * 120 - 60).toFixed(0);
+    var ty = (Math.random() * 80 - 80).toFixed(0);
+    var cor = cores[Math.floor(Math.random() * cores.length)];
+    var delay = (Math.random() * 1.5).toFixed(2);
+    var size = (4 + Math.random() * 6).toFixed(0);
+    fogos += '<div class="firework" style="background:'+cor+';width:'+size+'px;height:'+size+'px;left:'+(20+Math.random()*60).toFixed(0)+'%;top:'+(10+Math.random()*60).toFixed(0)+'%;--tx:'+tx+'px;--ty:'+ty+'px;animation-delay:'+delay+'s;animation-duration:'+(1+Math.random()*0.8).toFixed(2)+'s;"></div>';
+  }
+
+  banner.innerHTML = '<div class="mvp-banner">' + fogos +
+    '<div class="mvp-crown">👑</div>' +
+    '<div class="mvp-title">⭐ MVP DA SEMANA ⭐</div>' +
+    '<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0;">' +
+      (mvp.iconId ? '<img src="https://cdn.brawlify.com/profile-icons/regular/'+mvp.iconId+'.png" style="width:48px;height:48px;border-radius:50%;border:2px solid #f5a623;">' : '<div style="font-size:2rem;">'+mvp.emoji+'</div>') +
+      '<div>' +
+        '<div class="mvp-name">'+mvp.name+'</div>' +
+        '<div style="font-size:0.7rem;color:#f5a62399;font-family:monospace;">📍 '+mvp.city+'</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="mvp-gain">🏆 +'+mvp.ganhoSemana.toLocaleString('pt-BR')+' troféus essa semana!</div>' +
+    '</div>';
+}
+
 function renderRankingSemana() {
   var lista = document.getElementById('rankingSemanaList');
   if (!lista) return;
@@ -802,6 +880,8 @@ function renderRankingSemana() {
   }
 
   var medals = ['🥇','🥈','🥉'];
+  renderMVP(comGanho);
+  verificarMVP(comGanho);
   lista.innerHTML = comGanho.map(function(p, i) {
     var medal = i < 3 ? medals[i] : '#'+(i+1);
     var cor = i===0?'#f5a623':i===1?'#aaa':i===2?'#cd7f32':'var(--text-dim)';
@@ -923,6 +1003,59 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 window.fecharModal = function() { document.getElementById('modalPerfil').classList.remove('open'); }
+
+window.fecharCelebracao = function() {
+  document.getElementById('celebracaoMVP').classList.remove('ativa');
+  // Para os fogos
+  document.querySelectorAll('.fogo-celebracao').forEach(function(f){ f.remove(); });
+};
+
+function lancarFogosCelebracao() {
+  var cores = ['#f5a623','#ff6b6b','#a78bfa','#2ecc71','#00c8ff','#fff','#ff69b4'];
+  var container = document.getElementById('celebracaoMVP');
+  for (var f = 0; f < 30; f++) {
+    (function() {
+      var fogo = document.createElement('div');
+      fogo.className = 'fogo-celebracao';
+      var tx = (Math.random() * 300 - 150).toFixed(0);
+      var ty = (Math.random() * 400 - 300).toFixed(0);
+      var cor = cores[Math.floor(Math.random() * cores.length)];
+      var delay = (Math.random() * 2).toFixed(2);
+      var dur = (0.8 + Math.random() * 1.2).toFixed(2);
+      var size = (5 + Math.random() * 8).toFixed(0);
+      fogo.style.cssText = 'background:'+cor+';width:'+size+'px;height:'+size+'px;left:'+(10+Math.random()*80).toFixed(0)+'%;top:'+(10+Math.random()*80).toFixed(0)+'%;--tx:'+tx+'px;--ty:'+ty+'px;animation:fogo-anim '+dur+'s '+delay+'s ease-out infinite;';
+      document.body.appendChild(fogo);
+    })();
+  }
+}
+
+function verificarMVP(comGanho) {
+  // Só celebra sábado após 17h
+  var agora = new Date();
+  var isSabado = agora.getDay() === 6;
+  var isApos17h = agora.getHours() >= 17;
+  if (!isSabado || !isApos17h) return;
+  if (!comGanho.length || comGanho[0].ganhoSemana === 0) return;
+
+  // Evita mostrar mais de uma vez por sessão
+  if (sessionStorage.getItem('mvpCelebrado')) return;
+  sessionStorage.setItem('mvpCelebrado', '1');
+
+  var mvp = comGanho[0];
+  document.getElementById('celebracaoNome').textContent = mvp.name;
+  document.getElementById('celebracaoTrofeus').textContent = '🏆 +' + mvp.ganhoSemana.toLocaleString('pt-BR') + ' troféus essa semana!';
+  
+  var foto = document.getElementById('celebracaoFoto');
+  if (mvp.iconId) {
+    foto.src = 'https://cdn.brawlify.com/profile-icons/regular/' + mvp.iconId + '.png';
+    foto.style.display = 'block';
+  } else {
+    foto.style.display = 'none';
+  }
+
+  document.getElementById('celebracaoMVP').classList.add('ativa');
+  lancarFogosCelebracao();
+}
 
 var CORES_DISPONIVEIS = ["#e74c3c", "#e67e22", "#f1c40f", "#2ecc71", "#1abc9c", "#3498db", "#9b59b6", "#e91e63", "#00bcd4", "#ff5722", "#ffffff", "#00c8ff"];
 var EMOJIS_DISPONIVEIS = ["🔥", "⚡", "💀", "🦈", "👾", "🐺", "🤖", "👑", "💎", "🎯", "🦁", "🐉", "🌙", "⭐", "🎮", "🏆", "💥", "🌊", "🦊", "🐻", "🎭", "🦋"];
