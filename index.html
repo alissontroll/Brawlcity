@@ -33,6 +33,10 @@ header{position:relative;z-index:10;padding:36px 20px 18px;text-align:center;bor
 .notif-desc{font-size:0.8rem;color:var(--text-muted);margin-top:2px;}
 .notif-time{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--text-dim);margin-top:4px;}
 .notif-empty{text-align:center;padding:40px;color:var(--text-dim);font-family:'Teko',sans-serif;font-size:1.2rem;letter-spacing:2px;}
+/* COMPARTILHAR */
+.share-btn{background:linear-gradient(135deg,#25d366,#128c7e);border:none;color:#fff;padding:10px 20px;border-radius:8px;font-family:'Teko',sans-serif;font-size:1rem;letter-spacing:2px;cursor:pointer;display:flex;align-items:center;gap:8px;margin:12px auto;width:100%;justify-content:center;}
+.share-btn:hover{opacity:0.9;}
+#shareCanvas{display:none;}
 /* MODAL */
 .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;padding:16px;}
 .modal-overlay.open{display:flex;}
@@ -184,6 +188,8 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
       <div class="update-info" id="updateInfo">CONECTANDO...</div>
     </div>
     <div id="rankingList"><div class="loading-state"><div class="empty-icon">⏳</div><p>CARREGANDO...</p></div></div>
+    <button class="share-btn" id="btnCompartilhar">📤 COMPARTILHAR RANKING</button>
+    <canvas id="shareCanvas"></canvas>
   </div>
   <div class="tab-content" id="tab-pe">
     <div class="pe-banner">
@@ -725,6 +731,95 @@ function buildCards(players, containerId) {
 }
 function renderRanking() { buildCards(allPlayers.filter(function(p){ return p.city === activeCity; }).sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingList'); }
 function renderRankingPE() { buildCards(allPlayers.slice().sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingListPE'); }
+
+window.compartilharRanking = function(tipo) {
+  var lista = tipo === 'cidade'
+    ? allPlayers.filter(function(p){ return p.city === activeCity; }).sort(function(a,b){ return b.trophies-a.trophies; })
+    : allPlayers.slice().sort(function(a,b){ return b.trophies-a.trophies; });
+  var top = lista.slice(0,5);
+  if (!top.length) { alert('Nenhum jogador no ranking ainda!'); return; }
+
+  var canvas = document.getElementById('shareCanvas');
+  var ctx = canvas.getContext('2d');
+  var W = 600, H = 120 + top.length * 80 + 60;
+  canvas.width = W; canvas.height = H;
+
+  // Fundo
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0, 0, W, H);
+
+  // Header
+  ctx.fillStyle = '#f5a623';
+  ctx.font = 'bold 36px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('BrawlCity Rank', W/2, 50);
+  ctx.fillStyle = '#00c8ff';
+  ctx.font = '16px Arial';
+  ctx.fillText(tipo === 'cidade' ? activeCity.toUpperCase() : 'PERNAMBUCO', W/2, 75);
+  ctx.fillStyle = '#ffffff33';
+  ctx.fillRect(40, 90, W-80, 1);
+
+  // Jogadores
+  var medalhas = ['🥇','🥈','🥉','#4','#5'];
+  top.forEach(function(p, i) {
+    var y = 120 + i * 80;
+    // Bg card
+    ctx.fillStyle = i === 0 ? '#f5a62322' : '#ffffff08';
+    ctx.beginPath();
+    ctx.roundRect(20, y, W-40, 68, 8);
+    ctx.fill();
+
+    // Posição
+    ctx.fillStyle = i === 0 ? '#f5a623' : '#ffffff88';
+    ctx.font = 'bold 22px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(i < 3 ? ['1°','2°','3°'][i] : '#'+(i+1), 36, y+42);
+
+    // Emoji
+    ctx.font = '28px Arial';
+    ctx.fillText(p.emoji || '🎮', 80, y+44);
+
+    // Nome
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 18px Arial';
+    ctx.fillText(p.name, 120, y+32);
+
+    // Cidade
+    ctx.fillStyle = '#ffffff66';
+    ctx.font = '13px Arial';
+    ctx.fillText('📍 ' + p.city, 120, y+52);
+
+    // Troféus
+    ctx.fillStyle = '#f5a623';
+    ctx.font = 'bold 20px Arial';
+    ctx.textAlign = 'right';
+    ctx.fillText('🏆 ' + p.trophies.toLocaleString('pt-BR'), W-36, y+42);
+  });
+
+  // Footer
+  ctx.fillStyle = '#ffffff33';
+  ctx.fillRect(40, H-50, W-80, 1);
+  ctx.fillStyle = '#ffffff44';
+  ctx.font = '13px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('brawlstarscity.netlify.app', W/2, H-20);
+
+  // Compartilha
+  canvas.toBlob(function(blob) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'brawlcity-ranking.png';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+};
+
+// Bind botão compartilhar
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('btnCompartilhar');
+  if (btn) btn.addEventListener('click', function() { window.compartilharRanking('cidade'); });
+});
 
 window.fecharModal = function() { document.getElementById('modalPerfil').classList.remove('open'); }
 
