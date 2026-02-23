@@ -19,7 +19,7 @@ header{position:relative;z-index:10;padding:36px 20px 18px;text-align:center;bor
 .live-dot{width:5px;height:5px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green);animation:blink 1.2s infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
 .tab-bar{position:relative;z-index:10;display:flex;max-width:780px;margin:0 auto;padding:16px 16px 0;gap:4px;}
-.tab-btn{flex:1;background:var(--surface);border:1px solid var(--border);border-bottom:none;color:var(--text-dim);padding:10px 8px;font-family:'Teko',sans-serif;font-size:1rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;border-radius:4px 4px 0 0;}
+.tab-btn{flex:1;background:var(--surface);border:1px solid var(--border);border-bottom:none;color:var(--text-dim);padding:8px 4px;font-family:'Teko',sans-serif;font-size:0.85rem;letter-spacing:0px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;border-radius:4px 4px 0 0;}
 .tab-btn:hover{color:var(--text);background:var(--surface2);}
 .tab-btn.active{background:var(--surface2);border-color:rgba(0,200,255,0.2);color:var(--accent);border-bottom:2px solid var(--accent);}
 .tab-btn.pe-tab.active{color:var(--pe);border-bottom-color:var(--pe);border-color:rgba(255,68,0,0.2);}
@@ -166,9 +166,10 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
 </header>
 <div class="tab-bar">
   <button class="tab-btn active" onclick="switchTab('cidade',this)">🏙 Cidade</button>
-  <button class="tab-btn pe-tab" onclick="switchTab('pe',this)">🏆 Pernambuco</button>
+  <button class="tab-btn pe-tab" onclick="switchTab('pe',this)">🏆 PE</button>
   <button class="tab-btn map-tab" onclick="switchTab('mapas',this)">🗺️ Mapas</button>
-  <button class="tab-btn notif-tab" id="btnNotif" onclick="switchTab('notif',this)">🔔 <span id="notifBadge" style="display:none" class="notif-badge">0</span></button>
+  <button class="tab-btn notif-tab" id="btnNotif" onclick="switchTab('notif',this)">🔔<span id="notifBadge" style="display:none" class="notif-badge">0</span></button>
+  <button class="tab-btn" style="color:#a78bfa;" onclick="switchTab('semana',this)">📅 Semana</button>
 </div>
 <div class="city-bar" id="cityBar"></div>
 <main>
@@ -210,6 +211,14 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
     <div id="mapGrid"><div class="loading-state"><div class="empty-icon">🗺️</div><p>CARREGANDO MAPAS...</p></div></div>
   </div>
 </main>
+  <div class="tab-content" id="tab-semana">
+    <div style="padding:16px;">
+      <div style="font-family:'Teko',sans-serif;font-size:1.3rem;color:#a78bfa;letter-spacing:2px;margin-bottom:4px;">📅 RANKING SEMANAL</div>
+      <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:16px;font-family:'JetBrains Mono',monospace;">QUEM MAIS GANHOU TROFÉUS ESSA SEMANA</div>
+      <div id="rankingSemanaList"><div class="loading-state"><div class="empty-icon">⏳</div><p>CARREGANDO...</p></div></div>
+    </div>
+  </div>
+
   <div class="tab-content" id="tab-notif">
     <div style="padding:16px;">
       <div style="font-family:'Teko',sans-serif;font-size:1.3rem;color:#f39c12;letter-spacing:2px;margin-bottom:16px;">🔔 NOVIDADES</div>
@@ -585,7 +594,7 @@ var q = query(collection(db, 'players'), orderBy('trophies', 'desc'));
 onSnapshot(q, function(snapshot) {
   allPlayers = [];
   snapshot.forEach(function(d){ allPlayers.push(Object.assign({id: d.id}, d.data())); });
-  renderRanking(); renderRankingPE();
+  renderRanking(); renderRankingPE(); renderRankingSemana();
   var t = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   document.getElementById('updateInfo').textContent = '🟢 ' + t;
   document.getElementById('updateInfoPE').textContent = '🟢 ' + t;
@@ -624,6 +633,16 @@ async function atualizarDados() {
       if (data.trophies) {
         var histRef = collection(db, 'players', player.id, 'history');
         addDoc(histRef, {trophies: data.trophies, timestamp: Date.now()}).catch(function(){});
+      }
+      // Salva troféus no início da semana se ainda não salvou
+      var agora2 = new Date();
+      var diaSemana = agora2.getDay();
+      var inicioSemana = new Date(agora2);
+      inicioSemana.setDate(agora2.getDate() - diaSemana);
+      inicioSemana.setHours(0,0,0,0);
+      if (!player.semanaInicio || player.semanaInicio < inicioSemana.getTime()) {
+        updates.semanaInicio = inicioSemana.getTime();
+        updates.semanaBase = data.trophies;
       }
     } catch(e) {}
   }
@@ -731,6 +750,42 @@ function buildCards(players, containerId) {
 }
 function renderRanking() { buildCards(allPlayers.filter(function(p){ return p.city === activeCity; }).sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingList'); }
 function renderRankingPE() { buildCards(allPlayers.slice().sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingListPE'); }
+
+function renderRankingSemana() {
+  var lista = document.getElementById('rankingSemanaList');
+  if (!lista) return;
+  
+  // Calcula ganho da semana para cada jogador
+  var comGanho = allPlayers.map(function(p) {
+    var ganho = (p.semanaBase && p.trophies > p.semanaBase) ? p.trophies - p.semanaBase : 0;
+    return Object.assign({}, p, {ganhoSemana: ganho});
+  }).filter(function(p){ return p.ganhoSemana > 0; })
+    .sort(function(a,b){ return b.ganhoSemana - a.ganhoSemana; });
+
+  if (!comGanho.length) {
+    lista.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-dim);font-family:Teko,sans-serif;font-size:1.1rem;letter-spacing:1px;">NENHUM DADO AINDA<br><span style="font-size:0.7rem;font-family:monospace">Os dados aparecem após a primeira atualização</span></div>';
+    return;
+  }
+
+  var medals = ['🥇','🥈','🥉'];
+  lista.innerHTML = comGanho.map(function(p, i) {
+    var medal = i < 3 ? medals[i] : '#'+(i+1);
+    var cor = i===0?'#f5a623':i===1?'#aaa':i===2?'#cd7f32':'var(--text-dim)';
+    return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">' +
+      '<div style="font-family:Teko,sans-serif;font-size:1.3rem;color:'+cor+';min-width:32px;">'+medal+'</div>' +
+      '<div style="font-size:1.6rem;">'+p.emoji+'</div>' +
+      '<div style="flex:1;">' +
+        '<div style="font-family:Teko,sans-serif;font-size:1.1rem;color:var(--text);">'+p.name+'</div>' +
+        '<div style="font-size:0.7rem;color:var(--text-muted);">📍 '+p.city+'</div>' +
+      '</div>' +
+      '<div style="text-align:right;">' +
+        '<div style="font-family:Teko,sans-serif;font-size:1.2rem;color:#2ecc71;">+'+p.ganhoSemana.toLocaleString('pt-BR')+'</div>' +
+        '<div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;">TROFÉUS</div>' +
+        '<div style="font-size:0.65rem;color:var(--text-dim);">🏆 '+p.trophies.toLocaleString('pt-BR')+' total</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
 
 window.compartilharRanking = function(tipo) {
   var lista = tipo === 'cidade'
