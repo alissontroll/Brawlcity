@@ -116,13 +116,27 @@ exports.handler = async (event) => {
       return { statusCode: res.status, headers: HEADERS, body: JSON.stringify({ error: data.message || "Erro da API" }) };
     }
     const iconId = data.icon && data.icon.id ? data.icon.id : null;
+
+    // Busca mapa de imagens da Brawlify para os brawlers
+    let brawlerImgMap = {};
+    try {
+      const bwRes = await fetch('https://api.brawlify.com/v1/brawlers');
+      if (bwRes.ok) {
+        const bwData = await bwRes.json();
+        (bwData.list || []).forEach(bw => {
+          if (bw.id) brawlerImgMap[bw.id] = 'https://cdn.brawlify.com/brawlers/regular/' + bw.id + '.png';
+        });
+      }
+    } catch(e) {}
+
     const brawlers = (data.brawlers || []).map(b => ({
       id: b.id,
       name: b.name,
       power: b.power,
       rank: b.rank,
       trophies: b.trophies,
-      highestTrophies: b.highestTrophies
+      highestTrophies: b.highestTrophies,
+      imageUrl: brawlerImgMap[b.id] || ('https://cdn.brawlify.com/brawlers/regular/' + b.id + '.png')
     }));
     return { statusCode: 200, headers: HEADERS, body: JSON.stringify({
       trophies: data.trophies,
