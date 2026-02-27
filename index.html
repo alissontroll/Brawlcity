@@ -1530,36 +1530,39 @@ async function abrirPerfilTab(p, pos) {
     }
   } catch(e) {}
 
-  // Se não veio dados completos, tenta Brawlify direto
-  if (!apiData || !apiData.brawlers) {
-    try {
-      var resBw = await fetch('https://api.brawlify.com/v1/players/' + encodeURIComponent('#' + cleanTag));
-      if (resBw.ok) {
-        var dBw = await resBw.json();
-        if (dBw && dBw.brawlers) {
-          // Brawlify tem formato diferente - normaliza
-          apiData = apiData || {};
+  // Busca Brawlify para imagens dos brawlers (sempre, pois tem imageUrl correto)
+  try {
+    var resBw = await fetch('https://api.brawlify.com/v1/players/' + encodeURIComponent('#' + cleanTag));
+    if (resBw.ok) {
+      var dBw = await resBw.json();
+      if (dBw) {
+        apiData = apiData || {};
+        // Brawlify retorna brawlers com imageUrl correto - sempre usar
+        if (dBw.brawlers && dBw.brawlers.length) {
           apiData.brawlers = (dBw.brawlers || []).map(function(b) {
+            var brawlerInfo = b.brawler || {};
             return {
-              id: (b.brawler && b.brawler.id) || b.id,
-              name: (b.brawler && b.brawler.name) || b.name,
+              id: brawlerInfo.id || b.id,
+              name: brawlerInfo.name || b.name,
+              imageUrl: brawlerInfo.imageUrl || brawlerInfo.iconUrl || '',
               power: b.power,
               rank: b.rank,
               trophies: b.trophies,
               highestTrophies: b.highestTrophies
             };
           });
-          if (!apiData.trophies && dBw.trophies) apiData.trophies = dBw.trophies;
-          if (!apiData.highestTrophies && dBw.highestTrophies) apiData.highestTrophies = dBw.highestTrophies;
-          if (!apiData.expLevel && dBw.expLevel) apiData.expLevel = dBw.expLevel;
-          if (!apiData.soloVictories && dBw.soloVictories) apiData.soloVictories = dBw.soloVictories;
-          if (!apiData.duoVictories && dBw.duoVictories) apiData.duoVictories = dBw.duoVictories;
-          if (!apiData['3vs3Victories'] && dBw['3vs3Victories']) apiData['3vs3Victories'] = dBw['3vs3Victories'];
-          if (!apiData.club && dBw.club) apiData.club = dBw.club;
         }
+        // Preenche campos que vieram vazios da API oficial
+        if (!apiData.trophies && dBw.trophies) apiData.trophies = dBw.trophies;
+        if (!apiData.highestTrophies && dBw.highestTrophies) apiData.highestTrophies = dBw.highestTrophies;
+        if (!apiData.expLevel && dBw.expLevel) apiData.expLevel = dBw.expLevel;
+        if (!apiData.soloVictories && dBw.soloVictories) apiData.soloVictories = dBw.soloVictories;
+        if (!apiData.duoVictories && dBw.duoVictories) apiData.duoVictories = dBw.duoVictories;
+        if (!apiData['3vs3Victories'] && dBw['3vs3Victories']) apiData['3vs3Victories'] = dBw['3vs3Victories'];
+        if (!apiData.club && dBw.club) apiData.club = dBw.club;
       }
-    } catch(e2) {}
-  }
+    }
+  } catch(e2) {}
 
   var trofeus = (apiData && apiData.trophies) || p.trophies || 0;
   var highTrofeus = (apiData && apiData.highestTrophies) || trofeus;
