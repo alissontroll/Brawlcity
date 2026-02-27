@@ -102,6 +102,36 @@ header{position:relative;z-index:10;padding:36px 20px 18px;text-align:center;bor
 .stat-box{background:var(--surface2);border-radius:8px;padding:12px;text-align:center;}
 .stat-val{font-family:'Teko',sans-serif;font-size:1.4rem;color:var(--gold);}
 .stat-lbl{font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;}
+/* IA BRAWL STARS */
+.ia-section{background:var(--surface2);border-radius:10px;padding:14px;margin-bottom:16px;border:1px solid rgba(0,200,255,0.15);}
+.ia-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.ia-title{font-family:'Teko',sans-serif;font-size:1.05rem;letter-spacing:2px;color:var(--accent);}
+.ia-status{display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:0.55rem;color:#00ff88;letter-spacing:2px;}
+.ia-dot{width:6px;height:6px;background:#00ff88;border-radius:50%;box-shadow:0 0 6px #00ff88;animation:blink 1.4s infinite;}
+.ia-messages{max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:10px;padding-right:2px;scrollbar-width:thin;scrollbar-color:rgba(0,200,255,0.2) transparent;}
+.ia-messages::-webkit-scrollbar{width:4px;}
+.ia-messages::-webkit-scrollbar-thumb{background:rgba(0,200,255,0.2);border-radius:4px;}
+.ia-msg{display:flex;gap:8px;align-items:flex-end;}
+.ia-msg-bot{flex-direction:row;}
+.ia-msg-user{flex-direction:row-reverse;}
+.ia-msg-avatar{font-size:1.2rem;flex-shrink:0;margin-bottom:2px;}
+.ia-msg-bubble{padding:9px 12px;border-radius:12px;font-size:0.82rem;line-height:1.55;max-width:85%;word-break:break-word;}
+.ia-msg-bot .ia-msg-bubble{background:var(--surface);border:1px solid rgba(0,200,255,0.12);color:var(--text);border-bottom-left-radius:3px;}
+.ia-msg-user .ia-msg-bubble{background:linear-gradient(135deg,rgba(0,200,255,0.18),rgba(0,120,255,0.18));border:1px solid rgba(0,200,255,0.25);color:var(--text);border-bottom-right-radius:3px;}
+.ia-typing{display:flex;gap:4px;align-items:center;padding:10px 14px;}
+.ia-typing-dot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:typing-bounce 1.2s infinite;}
+.ia-typing-dot:nth-child(2){animation-delay:0.2s;}
+.ia-typing-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes typing-bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.ia-suggestions{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.ia-chip{background:rgba(0,200,255,0.07);border:1px solid rgba(0,200,255,0.2);color:var(--accent);font-family:'Barlow',sans-serif;font-size:0.72rem;font-weight:600;padding:5px 10px;border-radius:20px;cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+.ia-chip:hover{background:rgba(0,200,255,0.15);border-color:var(--accent);}
+.ia-input-row{display:flex;gap:8px;}
+.ia-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Barlow',sans-serif;font-size:0.88rem;padding:9px 12px;outline:none;transition:border 0.2s;}
+.ia-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,200,255,0.06);}
+.ia-send-btn{background:linear-gradient(135deg,var(--accent),#0088cc);border:none;border-radius:8px;color:#000;font-size:1.1rem;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity 0.2s;font-weight:bold;}
+.ia-send-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.ia-send-btn:hover:not(:disabled){opacity:0.85;}
 .city-bar{position:relative;z-index:10;display:flex;gap:6px;padding:14px 16px 0;overflow-x:auto;scrollbar-width:none;max-width:780px;margin:0 auto;}
 .city-bar::-webkit-scrollbar{display:none;}
 .city-btn{flex-shrink:0;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;border-radius:3px;font-family:'Barlow',sans-serif;font-weight:700;font-size:0.78rem;cursor:pointer;transition:all 0.2s;text-transform:uppercase;white-space:nowrap;}
@@ -318,6 +348,32 @@ footer{position:relative;z-index:10;text-align:center;padding:18px;font-family:'
       <div class="chart-title">📈 EVOLUÇÃO DE TROFÉUS</div>
       <div class="chart-canvas" id="chartArea"><div class="chart-empty">Coletando dados...<br>Volte amanhã!</div></div>
     </div>
+
+
+    <!-- IA BRAWL STARS -->
+    <div class="ia-section" id="iaSection">
+      <div class="ia-header">
+        <div class="ia-title">🤖 ASSISTENTE IA</div>
+        <div class="ia-status"><span class="ia-dot"></span>ONLINE</div>
+      </div>
+      <div class="ia-messages" id="iaMessages">
+        <div class="ia-msg ia-msg-bot">
+          <div class="ia-msg-avatar">🤖</div>
+          <div class="ia-msg-bubble">Oi! Seus dados já estão carregados. Me pergunte qualquer coisa sobre o jogo ou sobre seu perfil! 🎮</div>
+        </div>
+      </div>
+      <div class="ia-suggestions" id="iaSuggestions">
+        <button class="ia-chip" onclick="iaEnviarSugestao(this)">Analise meu perfil</button>
+        <button class="ia-chip" onclick="iaEnviarSugestao(this)">Como ganhar mais troféus?</button>
+        <button class="ia-chip" onclick="iaEnviarSugestao(this)">Qual brawler usar no Showdown?</button>
+        <button class="ia-chip" onclick="iaEnviarSugestao(this)">Dicas para subir no ranking</button>
+      </div>
+      <div class="ia-input-row">
+        <input class="ia-input" id="iaInput" type="text" placeholder="Pergunte sobre Brawl Stars..." maxlength="400" onkeydown="if(event.key==='Enter')iaEnviar()">
+        <button class="ia-send-btn" id="iaSendBtn" onclick="iaEnviar()">➤</button>
+      </div>
+    </div>
+
     <div class="perfil-edit" id="perfilEditor" style="display:none;">
       <div class="perfil-edit-title">🎨 PERSONALIZAR PERFIL</div>
       <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:8px;font-family:monospace;">COR DO CARD</div>
@@ -1430,6 +1486,11 @@ async function abrirModal(p, pos) {
   document.getElementById('modalPerfil').classList.add('open');
   document.getElementById('perfilEditor').style.display = 'none';
   _playerEditando = p;
+  // Inicializa IA com dados do jogador
+  iaIniciar(p);
+  // Mostra sugestões novamente ao abrir novo perfil
+  var sugs = document.getElementById('iaSuggestions');
+  if (sugs) sugs.style.display = 'flex';
   _corSelecionada = p.color;
   _emojiSelecionado = p.emoji;
 
@@ -1542,6 +1603,309 @@ function toggleMusic() {
   if (music.paused) { music.volume = 0.4; music.play(); btn.textContent = '🔊 MÚSICA'; }
   else { music.pause(); btn.textContent = '🔇 MÚSICA'; }
 }
+// ========== PRESTÍGIOS ==========
+var PRESTIGIO_TIERS = [
+  { label:'Lenda',  classe:'lenda',  emoji:'🔮', minTrofeus:15000 },
+  { label:'Ouro',   classe:'ouro',   emoji:'🥇', minTrofeus:7000  },
+  { label:'Prata',  classe:'prata',  emoji:'🥈', minTrofeus:3000  },
+  { label:'Bronze', classe:'bronze', emoji:'🥉', minTrofeus:1000  },
+];
+
+// ========== PRESTÍGIOS REAIS VIA API ==========
+// Cores dos hexágonos por tier (igual ao jogo)
+var HEX_TIERS = [
+  { min: 75000, tier: 'Lenda Máxima',  cor1: '#e040fb', cor2: '#7b1fa2', glow: 'rgba(224,64,251,0.6)' },
+  { min: 50000, tier: 'Lenda III',     cor1: '#ce93d8', cor2: '#6a0dad', glow: 'rgba(155,89,182,0.5)' },
+  { min: 35000, tier: 'Lenda II',      cor1: '#ba68c8', cor2: '#6a0dad', glow: 'rgba(155,89,182,0.5)' },
+  { min: 20000, tier: 'Lenda I',       cor1: '#9c27b0', cor2: '#4a0080', glow: 'rgba(155,89,182,0.5)' },
+  { min: 10000, tier: 'Ouro III',      cor1: '#ffe57f', cor2: '#f5a623', glow: 'rgba(245,166,35,0.5)' },
+  { min:  7000, tier: 'Ouro II',       cor1: '#ffd740', cor2: '#c8960c', glow: 'rgba(245,166,35,0.4)' },
+  { min:  5000, tier: 'Ouro I',        cor1: '#ffab00', cor2: '#b8860b', glow: 'rgba(245,166,35,0.4)' },
+  { min:  3000, tier: 'Prata III',     cor1: '#cfd8dc', cor2: '#78909c', glow: 'rgba(168,184,200,0.4)' },
+  { min:  2000, tier: 'Prata II',      cor1: '#b0bec5', cor2: '#546e7a', glow: 'rgba(168,184,200,0.3)' },
+  { min:  1000, tier: 'Prata I',       cor1: '#90a4ae', cor2: '#455a64', glow: 'rgba(168,184,200,0.3)' },
+  { min:   500, tier: 'Bronze III',    cor1: '#e0ac69', cor2: '#c87840', glow: 'rgba(200,120,64,0.3)' },
+  { min:   200, tier: 'Bronze II',     cor1: '#cd7f32', cor2: '#7a4a28', glow: 'rgba(200,120,64,0.3)' },
+  { min:     0, tier: 'Bronze I',      cor1: '#a0714f', cor2: '#5d3a1a', glow: 'rgba(160,100,60,0.2)' },
+];
+
+function getTier(trofeus) {
+  for (var i = 0; i < HEX_TIERS.length; i++) {
+    if (trofeus >= HEX_TIERS[i].min) return HEX_TIERS[i];
+  }
+  return HEX_TIERS[HEX_TIERS.length - 1];
+}
+
+function hexSVG(cor1, cor2, glow, uid) {
+  // Hexágono estilo Brawl Stars com gradiente
+  return '<svg viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg" class="hex-bg">' +
+    '<defs>' +
+      '<linearGradient id="hg' + uid + '" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0%" stop-color="' + cor1 + '"/>' +
+        '<stop offset="100%" stop-color="' + cor2 + '"/>' +
+      '</linearGradient>' +
+      '<filter id="glow' + uid + '">' +
+        '<feGaussianBlur stdDeviation="2" result="blur"/>' +
+        '<feComposite in="SourceGraphic" in2="blur" operator="over"/>' +
+      '</filter>' +
+    '</defs>' +
+    '<polygon points="27,3 50,15 50,39 27,51 4,39 4,15" fill="url(#hg' + uid + ')" stroke="rgba(255,255,255,0.35)" stroke-width="1.5" filter="url(#glow' + uid + ')"/>' +
+    '<polygon points="27,7 47,18 47,36 27,47 7,36 7,18" fill="rgba(255,255,255,0.07)"/>' +
+  '</svg>';
+}
+
+async function renderPrestigios(p) {
+  var grid = document.getElementById('prestigioGrid');
+  var totalEl = document.getElementById('prestigioTotal');
+  if (!grid) return;
+
+  grid.innerHTML = '<div class="prestigio-loading">⏳ CARREGANDO BRAWLERS...</div>';
+  totalEl.innerHTML = '';
+
+  try {
+    // Busca brawlers do jogador via Netlify function (que usa API oficial Brawl Stars)
+    var cleanTag = (p.tag || '').replace('#', '');
+    var res = await fetch('/.netlify/functions/player?tag=' + encodeURIComponent('#' + cleanTag) + '&brawlers=1');
+    var data = res.ok ? await res.json() : null;
+
+    var brawlers = (data && data.brawlers) ? data.brawlers : null;
+
+    // Se não veio brawlers, tenta via Brawlify direto
+    if (!brawlers) {
+      var res2 = await fetch('https://api.brawlify.com/v1/players/' + encodeURIComponent('#' + cleanTag));
+      if (res2.ok) {
+        var d2 = await res2.json();
+        brawlers = d2.brawlers || null;
+      }
+    }
+
+    if (!brawlers || brawlers.length === 0) {
+      grid.innerHTML = '<div class="prestigio-loading">Nenhum brawler encontrado</div>';
+      return;
+    }
+
+    // Filtra brawlers com troféus >= 500 (que têm prestígio) e ordena do maior pro menor
+    var comPrestigio = brawlers
+      .filter(function(b){ return (b.trophies || b.highestTrophies || 0) >= 500; })
+      .sort(function(a,b){
+        var ta = b.trophies || b.highestTrophies || 0;
+        var tb = a.trophies || a.highestTrophies || 0;
+        return ta - tb;
+      });
+
+    if (comPrestigio.length === 0) {
+      grid.innerHTML = '<div class="prestigio-loading">Nenhum brawler com prestígio ainda</div>';
+      return;
+    }
+
+    var html = '';
+    var totalPrestigio = 0;
+
+    comPrestigio.forEach(function(b, idx) {
+      var trofeus = b.trophies || b.highestTrophies || 0;
+      var tier = getTier(trofeus);
+      totalPrestigio++;
+
+      // Suporte aos dois formatos: API oficial BS e Brawlify
+      var brawlerId = b.id || (b.brawler && b.brawler.id) || '';
+      var brawlerNome = b.name || (b.brawler && b.brawler.name) || 'Brawler';
+      // Brawlify CDN: https://cdn.brawlify.com/brawlers/regular/{id}.png
+      // API BS retorna id numérico, Brawlify também usa id numérico
+      var imgUrl = brawlerId ? 'https://cdn.brawlify.com/brawlers/regular/' + brawlerId + '.png' : '';
+
+      var uid = 'b' + idx;
+
+      html += '<div class="prestigio-badge" title="' + brawlerNome + ' — ' + trofeus.toLocaleString('pt-BR') + ' troféus — ' + tier.tier + '">' +
+        '<div class="prestigio-hex-wrap">' +
+          hexSVG(tier.cor1, tier.cor2, tier.glow, uid) +
+          (imgUrl ? '<img src="' + imgUrl + '" alt="' + brawlerNome + '" onerror="this.style.display=\'none\'">' : '') +
+          '<div class="prestigio-num-badge">' + trofeus.toLocaleString('pt-BR') + '</div>' +
+        '</div>' +
+        '<div class="prestigio-label">' + brawlerNome + '</div>' +
+      '</div>';
+    });
+
+    grid.innerHTML = html;
+    totalEl.innerHTML = 'Total Prestígio: <span>' + totalPrestigio + '</span> brawlers com 500+ troféus';
+
+  } catch(e) {
+    grid.innerHTML = '<div class="prestigio-loading">Erro ao carregar prestígios</div>';
+    console.error('Prestige error:', e);
+  }
+}
+
+// ========== IA ASSISTENTE BRAWL STARS ==========
+window._iaJogador = null;
+window._iaHistorico = []; // histórico da conversa
+
+function iaIniciar(p) {
+  window._iaJogador = p;
+  window._iaHistorico = [];
+  // Limpa e mostra mensagem inicial personalizada
+  var msgs = document.getElementById('iaMessages');
+  if (!msgs) return;
+  msgs.innerHTML =
+    '<div class="ia-msg ia-msg-bot">' +
+      '<div class="ia-msg-avatar">🤖</div>' +
+      '<div class="ia-msg-bubble">Oi, <strong>' + (p.name || 'jogador') + '</strong>! Vi que você tem <strong>' + (p.trophies||0).toLocaleString('pt-BR') + ' troféus</strong> e ' + (p.horas||'?') + 'h de jogo. Me pergunte qualquer coisa sobre Brawl Stars ou sobre seu perfil! 🎮</div>' +
+    '</div>';
+}
+
+function iaAdicionarMsg(texto, tipo) {
+  var msgs = document.getElementById('iaMessages');
+  if (!msgs) return;
+  var div = document.createElement('div');
+  div.className = 'ia-msg ia-msg-' + tipo;
+  div.innerHTML = tipo === 'bot'
+    ? '<div class="ia-msg-avatar">🤖</div><div class="ia-msg-bubble">' + texto + '</div>'
+    : '<div class="ia-msg-avatar">👤</div><div class="ia-msg-bubble">' + texto + '</div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function iaShowTyping() {
+  var msgs = document.getElementById('iaMessages');
+  if (!msgs) return null;
+  var div = document.createElement('div');
+  div.className = 'ia-msg ia-msg-bot';
+  div.id = 'iaTyping';
+  div.innerHTML = '<div class="ia-msg-avatar">🤖</div><div class="ia-msg-bubble"><div class="ia-typing"><div class="ia-typing-dot"></div><div class="ia-typing-dot"></div><div class="ia-typing-dot"></div></div></div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+window.iaEnviarSugestao = function(btn) {
+  var input = document.getElementById('iaInput');
+  if (input) input.value = btn.textContent;
+  // Esconde sugestões após usar uma
+  var sugs = document.getElementById('iaSuggestions');
+  if (sugs) sugs.style.display = 'none';
+  iaEnviar();
+};
+
+window.iaEnviar = async function() {
+  var input = document.getElementById('iaInput');
+  var sendBtn = document.getElementById('iaSendBtn');
+  if (!input) return;
+  var pergunta = input.value.trim();
+  if (!pergunta) return;
+
+  input.value = '';
+  input.disabled = true;
+  sendBtn.disabled = true;
+
+  iaAdicionarMsg(pergunta, 'user');
+  var typing = iaShowTyping();
+
+  // Monta contexto do jogador
+  var p = window._iaJogador || {};
+  var contexto = 'Nome: ' + (p.name || 'Desconhecido') + ', ' +
+    'TAG: ' + (p.tag || '?') + ', ' +
+    'Troféus totais: ' + (p.trophies || 0).toLocaleString('pt-BR') + ', ' +
+    'Horas jogadas: ' + (p.horas || '?') + 'h, ' +
+    'Cidade: ' + (p.city || '?') + ', ' +
+    'Brawlers desbloqueados: ' + (p.brawlerCount || '?');
+
+  // Busca dados completos da API do Brawl Stars se tiver TAG
+  if (p.tag) {
+    try {
+      var cleanTag = p.tag.startsWith('#') ? p.tag : '#' + p.tag;
+      var apiRes = await fetch('/.netlify/functions/player?tag=' + encodeURIComponent(cleanTag));
+      if (apiRes.ok) {
+        var apiData = await apiRes.json();
+        if (apiData.trophies) contexto += ', Troféus atuais: ' + apiData.trophies.toLocaleString('pt-BR');
+        if (apiData.highestTrophies) contexto += ', Máximo histórico de troféus: ' + apiData.highestTrophies.toLocaleString('pt-BR');
+        if (apiData.expLevel) contexto += ', Nível de experiência: ' + apiData.expLevel;
+        if (apiData.soloVictories) contexto += ', Vitórias Solo Showdown: ' + apiData.soloVictories;
+        if (apiData.duoVictories) contexto += ', Vitórias Duo Showdown: ' + apiData.duoVictories;
+        if (apiData['3vs3Victories']) contexto += ', Vitórias 3v3: ' + apiData['3vs3Victories'];
+        if (apiData.club && apiData.club.name) contexto += ', Clube: ' + apiData.club.name;
+        if (apiData.brawlers && apiData.brawlers.length > 0) {
+          var bsSorted = apiData.brawlers.slice().sort(function(a,b){ return (b.trophies||0)-(a.trophies||0); });
+          var top10 = bsSorted.slice(0, 10);
+          contexto += ', Top 10 brawlers: ' + top10.map(function(b){ return b.name + ' (' + (b.trophies||0) + ' trofeus, rank ' + (b.rank||'?') + ', power ' + (b.power||'?') + ')'; }).join(' | ');
+          var pw11 = apiData.brawlers.filter(function(b){ return b.power >= 11; });
+          if (pw11.length) contexto += ', Brawlers power 11: ' + pw11.map(function(b){ return b.name; }).join(', ');
+          var mil = apiData.brawlers.filter(function(b){ return (b.trophies||0) >= 1000; });
+          if (mil.length) contexto += ', Brawlers com 1000+ trofeus: ' + mil.map(function(b){ return b.name + '(' + b.trophies + ')'; }).join(', ');
+        }
+      }
+    } catch(eApi) { /* usa dados basicos se API falhar */ }
+  }
+
+  // Adiciona historico ao messages
+  window._iaHistorico.push({ role: 'user', content: pergunta });
+
+  // Groq API (gratuita) - https://console.groq.com para pegar sua chave
+  var GROQ_KEY = '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'; // Substitua pela sua chave do Groq
+  var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
+  var systemPrompt = 'Você é BrawlBot, assistente especialista em Brawl Stars do site BrawlCity Rank de Pernambuco. ' +
+    'Responda SEMPRE em português do Brasil, de forma animada e com emojis. ' +
+    'Seja conciso (máximo 3 parágrafos). Não use asteriscos, use texto limpo. ' +
+    'Dados do jogador: ' + contexto + '.';
+
+  // Monta histórico no formato OpenAI/Groq
+  var groqMessages = [{ role: 'system', content: systemPrompt }];
+  for (var hi = 0; hi < window._iaHistorico.length - 1; hi++) {
+    var h = window._iaHistorico[hi];
+    groqMessages.push({ role: h.role === 'assistant' ? 'assistant' : 'user', content: h.content });
+  }
+  groqMessages.push({ role: 'user', content: pergunta });
+
+  try {
+    var res = await fetch(GROQ_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: groqMessages,
+        max_tokens: 600,
+        temperature: 0.9
+      })
+    });
+
+    var data = await res.json();
+    console.log('Groq status:', res.status);
+    console.log('Groq response:', JSON.stringify(data));
+
+    // Pega o texto da resposta com fallback seguro
+    var resposta = '';
+    if (data.error) {
+      resposta = '❌ Erro da API: ' + (data.error.message || JSON.stringify(data.error));
+    } else if (data.choices && data.choices.length > 0) {
+      resposta = data.choices[0].message && data.choices[0].message.content ? data.choices[0].message.content : '';
+    }
+    if (!resposta) {
+      resposta = '⚠️ Retorno vazio. Debug: ' + JSON.stringify(data).slice(0, 200);
+    }
+
+    // Salva no histórico
+    window._iaHistorico.push({ role: 'assistant', content: resposta });
+    if (window._iaHistorico.length > 16) {
+      window._iaHistorico = window._iaHistorico.slice(-16);
+    }
+
+    if (typing) typing.remove();
+    var respostaHtml = resposta
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/\n/g, '<br>');
+    iaAdicionarMsg(respostaHtml, 'bot');
+
+  } catch(e) {
+    if (typing) typing.remove();
+    iaAdicionarMsg('❌ Erro de conexão. Verifique sua internet e tente novamente.', 'bot');
+    console.error('Groq error:', e);
+  }
+
+  input.disabled = false;
+  sendBtn.disabled = false;
+  input.focus();
+};
+
 function switchTab(tab, el) {
   document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
   document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
