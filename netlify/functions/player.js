@@ -118,13 +118,18 @@ exports.handler = async (event) => {
     const iconId = data.icon && data.icon.id ? data.icon.id : null;
 
     // Busca mapa de imagens da Brawlify para os brawlers
+    // A API retorna a imageUrl correta com o hash/nome do brawler
+    // ex: https://cdn.brawlify.com/brawler/Shelly.png (NÃO usa ID numérico)
     let brawlerImgMap = {};
     try {
       const bwRes = await fetch('https://api.brawlify.com/v1/brawlers');
       if (bwRes.ok) {
         const bwData = await bwRes.json();
         (bwData.list || []).forEach(bw => {
-          if (bw.id) brawlerImgMap[bw.id] = 'https://cdn.brawlify.com/brawlers/regular/' + bw.id + '.png';
+          if (bw.id && bw.imageUrl) {
+            // Usa a imageUrl exata que a Brawlify fornece (pelo nome, não pelo ID numérico)
+            brawlerImgMap[bw.id] = bw.imageUrl;
+          }
         });
       }
     } catch(e) {}
@@ -136,8 +141,9 @@ exports.handler = async (event) => {
       rank: b.rank,
       trophies: b.trophies,
       highestTrophies: b.highestTrophies,
-      imageUrl: brawlerImgMap[b.id] || ('https://cdn.brawlify.com/brawlers/regular/' + b.id + '.png')
+      imageUrl: brawlerImgMap[b.id] || ''
     }));
+
     return { statusCode: 200, headers: HEADERS, body: JSON.stringify({
       trophies: data.trophies,
       highestTrophies: data.highestTrophies,
