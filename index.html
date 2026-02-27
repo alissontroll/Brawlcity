@@ -1540,11 +1540,19 @@ async function abrirPerfilTab(p, pos) {
         // Brawlify retorna brawlers com imageUrl correto - sempre usar
         if (dBw.brawlers && dBw.brawlers.length) {
           apiData.brawlers = (dBw.brawlers || []).map(function(b) {
+            // A API do Brawlify retorna imageUrl diretamente no objeto b
+            // b.brawler existe em algumas versões mas imageUrl fica no root
             var brawlerInfo = b.brawler || {};
+            var imgUrl = b.imageUrl || b.iconUrl || brawlerInfo.imageUrl || brawlerInfo.iconUrl || '';
+            // Fallback: monta URL pelo ID se não veio imageUrl
+            var bid = b.id || brawlerInfo.id;
+            if (!imgUrl && bid) {
+              imgUrl = 'https://cdn.brawlify.com/brawlers/regular/' + bid + '.png';
+            }
             return {
-              id: brawlerInfo.id || b.id,
-              name: brawlerInfo.name || b.name,
-              imageUrl: brawlerInfo.imageUrl || brawlerInfo.iconUrl || '',
+              id: bid,
+              name: b.name || brawlerInfo.name,
+              imageUrl: imgUrl,
               power: b.power,
               rank: b.rank,
               trophies: b.trophies,
