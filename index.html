@@ -1575,30 +1575,19 @@ async function abrirPerfilTab(p, pos) {
     ? ('<img src="https://cdn.brawlify.com/profile-icons/regular/' + p.iconId + '.png" style="width:100%;height:100%;object-fit:cover;">')
     : (p.emoji || '🎮');
 
-  // Busca mapa de IDs/imagens dos brawlers via Brawlify
-  var brawlerImgMap = {};
-  try {
-    var resBwList = await fetch('https://api.brawlify.com/v1/brawlers');
-    if (resBwList.ok) {
-      var bwList = await resBwList.json();
-      (bwList.list || []).forEach(function(bw) {
-        // Mapeia por ID e por nome normalizado
-        if (bw.id) brawlerImgMap[bw.id] = 'https://cdn.brawlify.com/brawlers/regular/' + bw.id + '.png';
-        if (bw.name) brawlerImgMap[bw.name.toLowerCase()] = 'https://cdn.brawlify.com/brawlers/regular/' + bw.id + '.png';
-      });
-    }
-  } catch(eBwList) {}
-
-  // Top 6 brawlers
+  // Top 6 brawlers - usa imageUrl se disponível (Brawlify), senão monta pelo ID
   var brawlerHtml = '';
   var top6 = brawlers.slice(0, 6);
   top6.forEach(function(b) {
-    var bName = (b.name || '').toLowerCase();
-    // Tenta pelo ID primeiro, depois pelo nome
-    var imgUrl = brawlerImgMap[b.id] || brawlerImgMap[bName] || '';
+    // Brawlify player API retorna imageUrl direto, API oficial retorna id numérico
+    var imgUrl = b.imageUrl || b.iconUrl || '';
+    if (!imgUrl && b.id) {
+      // ID da API oficial do BS: 16000000+ -> Brawlify CDN aceita esses IDs
+      imgUrl = 'https://cdn.brawlify.com/brawlers/regular/' + b.id + '.png';
+    }
     brawlerHtml += '<div class="brawler-card">' +
       '<div class="brawler-card-power">P' + (b.power||'?') + '</div>' +
-      (imgUrl ? '<img class="brawler-card-img" src="' + imgUrl + '" onerror="this.style.opacity=0">' : '') +
+      (imgUrl ? '<img class="brawler-card-img" src="' + imgUrl + '" style="width:52px;height:52px;object-fit:contain;" onerror="this.style.opacity=0">' : '<div style="width:52px;height:52px;margin:0 auto 4px;background:var(--surface);border-radius:8px;"></div>') +
       '<div class="brawler-card-name">' + (b.name||'?') + '</div>' +
       '<div class="brawler-card-trofeus">🏆 ' + (b.trophies||0).toLocaleString('pt-BR') + '</div>' +
     '</div>';
