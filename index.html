@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BrawlCity Rank</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#c940ff">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BrawlCity">
+  <link rel="apple-touch-icon" href="/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Barlow:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 /* ===== BRAWLCITY v4 — SUPERCELL NEON ===== */
@@ -2846,6 +2855,15 @@ function renderSkeletons(containerId, count) {
 }
 renderSkeletons('rankingList', 7);
 renderSkeletons('rankingListPE', 7);
+
+// ===== PWA — Registra Service Worker =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js')
+      .then(function(reg) { console.log('✅ PWA ativa:', reg.scope); })
+      .catch(function(err) { console.log('SW erro:', err); });
+  });
+}
 
 function switchTab(tab, el) {
   document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
