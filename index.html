@@ -1835,7 +1835,7 @@ document.addEventListener('DOMContentLoaded', function() {
 window.fecharModal = function() { document.getElementById('modalPerfil').classList.remove('open'); }
 
 var ADMIN_USER_HASH = '417dc1719a18d5120f962f4d120c23d51da607e12f31a0874130397b85a945d9';
-var ADMIN_PASS_HASH = 'b24e602adf558c20edbd2d49e5ac6fa69c02f335219240472954b91b95032444';
+var ADMIN_PASS_HASH = '64f381b35d00739096d88966ec507a0f4853354691fdd2cb7193bc369e0895ae';
 
 async function sha256(str) {
   var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
