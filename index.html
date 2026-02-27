@@ -2433,6 +2433,27 @@ function toggleMusic() {
   if (music.paused) { music.volume = 0.4; music.play(); btn.textContent = '🔊 MÚSICA'; }
   else { music.pause(); btn.textContent = '🔇 MÚSICA'; }
 }
+
+// Toca automaticamente no primeiro toque/clique do usuário
+(function() {
+  var played = false;
+  function autoPlay() {
+    if (played) return;
+    played = true;
+    var music = document.getElementById('bgMusic');
+    var btn = document.getElementById('musicBtn');
+    if (music && music.paused) {
+      music.volume = 0.4;
+      music.play().then(function() {
+        if (btn) btn.textContent = '🔊 MÚSICA';
+      }).catch(function() {});
+    }
+    document.removeEventListener('click', autoPlay);
+    document.removeEventListener('touchstart', autoPlay);
+  }
+  document.addEventListener('click', autoPlay);
+  document.addEventListener('touchstart', autoPlay);
+})();
 // ========== PRESTÍGIOS ==========
 var PRESTIGIO_TIERS = [
   { label:'Lenda',  classe:'lenda',  emoji:'🔮', minTrofeus:15000 },
