@@ -989,6 +989,15 @@ footer { position:relative; z-index:10; text-align:center; padding:18px; font-we
         <div class="admin-section-title">📊 VISITAS DO SITE</div>
         <div id="adminVisitas"><div style="color:var(--text-dim);font-size:0.8rem;">Carregando...</div></div>
       </div>
+      <div class="admin-section">
+        <div class="admin-section-title">🎵 MÚSICA DO SITE</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:8px;font-weight:700;">Cole o link direto do Google Drive (MP3 público)</div>
+        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:10px;font-family:monospace;">Drive: Arquivo → Compartilhar → Qualquer pessoa com o link → copie o ID da URL e cole aqui como:<br>https://drive.google.com/uc?export=download&id=SEU_ID</div>
+        <input class="admin-input" id="adminMusicaUrl" type="text" placeholder="https://drive.google.com/uc?export=download&id=...">
+        <button class="admin-btn admin-btn-primary" id="btnSalvarMusica">🎵 SALVAR MÚSICA</button>
+        <button class="admin-btn" style="background:rgba(244,67,54,0.1);border:1px solid rgba(244,67,54,0.3);color:#ff8a80;" id="btnRemoverMusica">🔇 REMOVER MÚSICA</button>
+        <div id="adminMusicaMsg" style="font-size:0.75rem;margin-top:6px;font-weight:800;"></div>
+      </div>
       <button class="admin-btn admin-btn-secondary" onclick="fecharAdmin()">FECHAR PAINEL</button>
     </div>
   </div>
@@ -1779,6 +1788,32 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch(e) { feedEl.style.color='#e74c3c'; feedEl.textContent='Erro ao enviar!'; }
   });
 
+  // Salvar música
+  document.getElementById('btnSalvarMusica').addEventListener('click', async function() {
+    var url = document.getElementById('adminMusicaUrl').value.trim();
+    var feedEl = document.getElementById('adminMusicaMsg');
+    if (!url) { feedEl.style.color='#ff8a80'; feedEl.textContent='Cole o link da música!'; return; }
+    try {
+      var { setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      await setDoc(doc(db, 'config', 'musica'), { url: url, updatedAt: Date.now() });
+      feedEl.style.color='#00e676'; feedEl.textContent='✅ Música atualizada para todos!';
+    } catch(e) { feedEl.style.color='#ff8a80'; feedEl.textContent='Erro ao salvar! ' + e.message; }
+  });
+
+  // Remover música
+  document.getElementById('btnRemoverMusica').addEventListener('click', async function() {
+    var feedEl = document.getElementById('adminMusicaMsg');
+    try {
+      var { deleteDoc: dd } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      await dd(doc(db, 'config', 'musica'));
+      var music = document.getElementById('bgMusic');
+      if (music) { music.pause(); music.src = ''; }
+      document.getElementById('musicBtn').textContent = '🔇 MÚSICA';
+      document.getElementById('adminMusicaUrl').value = '';
+      feedEl.style.color='#00e676'; feedEl.textContent='✅ Música removida!';
+    } catch(e) { feedEl.style.color='#ff8a80'; feedEl.textContent='Erro ao remover!'; }
+  });
+
   // Resetar semana
   document.getElementById('btnResetSemana').addEventListener('click', async function() {
     var msgEl = document.getElementById('adminResetMsg');
@@ -1856,6 +1891,24 @@ document.addEventListener('DOMContentLoaded', function() {
         sel.appendChild(opt);
       }
     } catch(e) { msg.style.color='#e74c3c'; msg.textContent='Erro ao adicionar!'; }
+  });
+});
+
+// Listener de música do Firebase
+onSnapshot(collection(db, 'config'), function(snap) {
+  snap.forEach(function(d) {
+    if (d.id === 'musica' && d.data().url) {
+      var music = document.getElementById('bgMusic');
+      var novaUrl = d.data().url;
+      if (music && music.getAttribute('src') !== novaUrl) {
+        var tocando = !music.paused;
+        music.src = novaUrl;
+        music.load();
+        if (tocando) music.play().catch(function(){});
+      }
+      var inp = document.getElementById('adminMusicaUrl');
+      if (inp && !inp.value) inp.value = novaUrl;
+    }
   });
 });
 
