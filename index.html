@@ -1895,16 +1895,29 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Listener de música do Firebase
+var _musicaCarregada = false;
 onSnapshot(collection(db, 'config'), function(snap) {
   snap.forEach(function(d) {
     if (d.id === 'musica' && d.data().url) {
       var music = document.getElementById('bgMusic');
+      var btn = document.getElementById('musicBtn');
       var novaUrl = d.data().url;
       if (music && music.getAttribute('src') !== novaUrl) {
         var tocando = !music.paused;
         music.src = novaUrl;
         music.load();
         if (tocando) music.play().catch(function(){});
+      }
+      // Se ainda não tocou e usuário já interagiu, toca agora
+      if (!_musicaCarregada && music) {
+        _musicaCarregada = true;
+        // Tenta tocar (funciona se o usuário já clicou antes)
+        music.volume = 0.4;
+        music.play().then(function() {
+          if (btn) btn.textContent = '🔊 MÚSICA';
+        }).catch(function() {
+          // Usuário ainda não interagiu - autoPlay vai pegar quando clicar
+        });
       }
       var inp = document.getElementById('adminMusicaUrl');
       if (inp && !inp.value) inp.value = novaUrl;
@@ -2492,15 +2505,15 @@ function toggleMusic() {
   var played = false;
   function autoPlay() {
     if (played) return;
-    played = true;
     var music = document.getElementById('bgMusic');
     var btn = document.getElementById('musicBtn');
-    if (music && music.paused) {
-      music.volume = 0.4;
-      music.play().then(function() {
-        if (btn) btn.textContent = '🔊 MÚSICA';
-      }).catch(function() {});
-    }
+    // Só toca se já tiver URL carregada
+    if (!music || !music.src || music.src === window.location.href) return;
+    played = true;
+    music.volume = 0.4;
+    music.play().then(function() {
+      if (btn) btn.textContent = '🔊 MÚSICA';
+    }).catch(function() {});
     document.removeEventListener('click', autoPlay);
     document.removeEventListener('touchstart', autoPlay);
   }
