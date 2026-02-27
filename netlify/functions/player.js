@@ -116,7 +116,28 @@ exports.handler = async (event) => {
       return { statusCode: res.status, headers: HEADERS, body: JSON.stringify({ error: data.message || "Erro da API" }) };
     }
     const iconId = data.icon && data.icon.id ? data.icon.id : null;
-    return { statusCode: 200, headers: HEADERS, body: JSON.stringify({ trophies: data.trophies, name: data.name, tag: data.tag, brawlerCount: (data.brawlers || []).length, iconId: iconId }) };
+    const brawlers = (data.brawlers || []).map(b => ({
+      id: b.id,
+      name: b.name,
+      power: b.power,
+      rank: b.rank,
+      trophies: b.trophies,
+      highestTrophies: b.highestTrophies
+    }));
+    return { statusCode: 200, headers: HEADERS, body: JSON.stringify({
+      trophies: data.trophies,
+      highestTrophies: data.highestTrophies,
+      name: data.name,
+      tag: data.tag,
+      expLevel: data.expLevel,
+      brawlerCount: brawlers.length,
+      iconId: iconId,
+      soloVictories: data.soloVictories,
+      duoVictories: data.duoVictories,
+      '3vs3Victories': data['3vs3Victories'],
+      club: data.club ? { name: data.club.name } : null,
+      brawlers: brawlers
+    }) };
   } catch(e) {
     return { statusCode: 500, headers: HEADERS, body: JSON.stringify({ error: e.message }) };
   }
