@@ -98,6 +98,27 @@ exports.handler = async (event) => {
     }
   }
 
+  // ---- BATTLELOG ----
+  if (params.type === 'battlelog') {
+    const btag = params.tag;
+    if (!btag) {
+      return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: 'TAG obrigatorio' }) };
+    }
+    const cleanBtag = btag.startsWith('#') ? btag : '#' + btag;
+    try {
+      const res = await fetch('https://bsproxy.royaleapi.dev/v1/players/' + encodeURIComponent(cleanBtag) + '/battlelog', {
+        headers: { Authorization: 'Bearer ' + API_KEY }
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { statusCode: res.status, headers: HEADERS, body: JSON.stringify({ error: data.message || 'Erro da API' }) };
+      }
+      return { statusCode: 200, headers: HEADERS, body: JSON.stringify(data) };
+    } catch(e) {
+      return { statusCode: 500, headers: HEADERS, body: JSON.stringify({ error: e.message }) };
+    }
+  }
+
   // ---- JOGADOR ----
   const tag = params.tag;
   if (!tag) {
