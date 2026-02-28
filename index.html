@@ -2275,6 +2275,7 @@ async function abrirPerfilTab(p, pos) {
   } catch(e2) {}
 
   var trofeus = (apiData && apiData.trophies) || p.trophies || 0;
+  window._perfilTrofeus = trofeus; // usado pela meta de troféus
   var highTrofeus = (apiData && apiData.highestTrophies) || trofeus;
   var expLevel = (apiData && apiData.expLevel) ? apiData.expLevel : '?';
   var soloV = (apiData && apiData.soloVictories != null) ? apiData.soloVictories.toLocaleString('pt-BR') : '?';
@@ -3002,7 +3003,12 @@ async function chatEntrar() {
     // Mostra interface do chat
     document.getElementById('chatLoginBox').style.display = 'none';
     document.getElementById('chatUserBar').style.display = 'flex';
-    document.getElementById('chatMessages').style.display = 'flex';
+    var cm = document.getElementById('chatMessages');
+    cm.style.display = 'flex';
+    cm.style.flexDirection = 'column';
+    cm.style.minHeight = '200px';
+    cm.style.maxHeight = '400px';
+    cm.style.overflowY = 'auto';
     document.getElementById('chatInputRow').style.display = 'flex';
     document.getElementById('chatUserName').textContent = _chatUser.name;
     document.getElementById('chatUserTag').textContent = _chatUser.tag;
@@ -3121,9 +3127,7 @@ async function carregarBattleStats(tag, trofeus) {
   var el = document.getElementById('perfilBattleStats');
   if (!el) return;
   try {
-    var res = await fetch('https://bsproxy.royaleapi.dev/v1/players/' + encodeURIComponent('#'+tag) + '/battlelog', {
-      headers: { 'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjljZTRjNDI3LTQ0MzMtNDFjZi04MzhkLWZlZTZlYzk4NTJiOSIsImlhdCI6MTc3MTc3MTQzNywic3ViIjoiZGV2ZWxvcGVyL2U4MjM0ZjYyLWFkZjgtN2UzZC0yYjI5LTk5OGI0YThlN2Q0YSIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiNDUuNzkuMjE4Ljc5Il0sInR5cGUiOiJjbGllbnQifV19.0an3H-7dBNfLxC01JZB3ZehQ3zw23w6oo3TKLblKXDEtxDbLny3C5xkqVLgPwyzuvD02KQstReqEx7k5MtmPGw' }
-    });
+    var res = await fetch('/.netlify/functions/battlelog?tag=' + encodeURIComponent('#'+tag));
     if (!res.ok) throw new Error('battlelog falhou');
     var data = await res.json();
     var battles = data.items || [];
@@ -3212,11 +3216,22 @@ function carregarMeta(tag, trofeus) {
   var area = document.getElementById('metaProgressArea');
   if (!metaInput || !area) return;
 
-  // Carrega meta salva no localStorage
+  // Mostra troféus atuais sempre, mesmo sem meta definida
   var metaSalva = localStorage.getItem('meta_' + tag);
   if (metaSalva) {
     metaInput.value = metaSalva;
     renderMeta(parseInt(metaSalva), trofeus);
+  } else {
+    // Sem meta: mostra troféus atuais com barra vazia e aviso
+    area.innerHTML =
+      '<div style="display:flex;justify-content:space-between;font-size:0.72rem;font-weight:900;margin-bottom:6px;">' +
+        '<span style="color:var(--text-dim);">🏆 ' + trofeus.toLocaleString('pt-BR') + ' troféus atuais</span>' +
+        '<span style="color:var(--text-muted);">Sem meta</span>' +
+      '</div>' +
+      '<div style="background:var(--surface);border-radius:20px;height:14px;overflow:hidden;border:1px solid var(--border);">' +
+        '<div style="height:100%;width:0%;background:linear-gradient(90deg,var(--purple3),var(--neon));border-radius:20px;"></div>' +
+      '</div>' +
+      '<div style="text-align:center;color:var(--text-muted);font-size:0.68rem;margin-top:6px;">👆 Digite uma meta acima e clique em SALVAR</div>';
   }
 }
 
@@ -3226,9 +3241,9 @@ function salvarMeta(tag) {
   var meta = parseInt(metaInput.value);
   if (!meta || meta <= 0) { alert('Digite um número válido!'); return; }
   localStorage.setItem('meta_' + tag, meta);
-  // Busca troféus atuais do jogador
-  var trofeus = 0;
-  if (window.allPlayers) {
+  // Busca troféus atuais do jogador — primeiro tenta o perfil aberto, depois allPlayers
+  var trofeus = window._perfilTrofeus || 0;
+  if (!trofeus && window.allPlayers) {
     var jogador = window.allPlayers.find(function(p){ return (p.tag||'').replace('#','') === tag; });
     if (jogador) trofeus = jogador.trophies || 0;
   }
