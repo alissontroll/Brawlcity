@@ -54,8 +54,7 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  overflow-x: hidden;
-}
+  overflow-x: clip;
 
 /* Fundo neon com nebulosa */
 body::before {
@@ -642,7 +641,7 @@ main {
 #shareCanvas { display:none; }
 
 /* ===== FOOTER ===== */
-footer { position:relative; z-index:10; text-align:center; padding:18px; font-weight:900; font-size:0.6rem; color:var(--text-muted); letter-spacing:2px; border-top:1px solid var(--border); max-width:780px; margin:0 auto; text-transform:uppercase; }
+footer { position:relative; z-index:10; text-align:center; padding:18px; padding-bottom:80px; font-weight:900; font-size:0.6rem; color:var(--text-muted); letter-spacing:2px; border-top:1px solid var(--border); max-width:780px; margin:0 auto; text-transform:uppercase; }
 
 /* ===== NOTIF ===== */
 .notif-item { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; display:flex; align-items:flex-start; gap:12px; }
@@ -752,7 +751,7 @@ footer { position:relative; z-index:10; text-align:center; padding:18px; font-we
   position: fixed;
   bottom: 24px;
   right: 18px;
-  z-index: 500;
+  z-index: 9999;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -809,6 +808,7 @@ footer { position:relative; z-index:10; text-align:center; padding:18px; font-we
 .cfp-title { font-family:'Lilita One',cursive; font-size:1rem; color:#fff; letter-spacing:1px; }
 .cfp-close { background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:8px; padding:4px 10px; cursor:pointer; font-size:0.9rem; }
 .cfp-minimize { background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:8px; padding:4px 10px; cursor:pointer; font-size:0.9rem; margin-right:4px; }
+.cfp-body { display:flex; flex-direction:column; flex:1; overflow:hidden; }
 #chatFloatPanel.minimized .cfp-body { display:none; }
 #chatFloatPanel.minimized { max-height: unset; }
 .cfp-userbar { padding:8px 12px; background:var(--surface2); display:flex; align-items:center; justify-content:space-between; font-size:0.7rem; flex-shrink:0; border-bottom:1px solid var(--border); }
@@ -2012,7 +2012,15 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   var footer = document.getElementById('adminTrigger');
-  if (footer) footer.addEventListener('dblclick', function() { window.abrirAdmin(); });
+  if (footer) {
+    var _adminClicks = 0, _adminTimer = null;
+    footer.addEventListener('click', function() {
+      _adminClicks++;
+      clearTimeout(_adminTimer);
+      if (_adminClicks >= 3) { _adminClicks = 0; window.abrirAdmin(); return; }
+      _adminTimer = setTimeout(function(){ _adminClicks = 0; }, 600);
+    });
+  }
 
   // Enviar aviso
   document.getElementById('btnEnviarAviso').addEventListener('click', async function() {
