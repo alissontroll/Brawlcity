@@ -1112,6 +1112,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// Expõe Firebase para scripts não-module
+window.db = db;
+window._firestore = {
+  doc, getDoc, setDoc, updateDoc, deleteDoc,
+  addDoc, collection, onSnapshot, query,
+  orderBy, getDocs, limit
+};
+
 const CITIES = ['Agrestina-PE','Altinho-PE','Cupira-PE','Caruaru-PE','Petrolina-PE','Recife-PE','Garanhuns-PE','Vitória de Santo Antão-PE'];
 const EMOJIS = ['🦁','🐯','🦊','🐺','🦅','🐉','🦈','🐻','🦝','🦉','🔥','⚡','💎'];
 const COLORS = ['#FF6B00','#7B2FBE','#00BFFF','#FF3D5A','#00E676','#FFD000','#FF69B4'];
@@ -2960,8 +2968,9 @@ async function chatEntrar() {
     if (!apiData.name) throw new Error('TAG inválida!');
 
     // Verifica/cria usuário no Firestore
-    var userRef = doc(db, 'chatUsers', tag.replace('#',''));
-    var userSnap = await getDoc(userRef);
+    var _fs = window._firestore;
+    var userRef = _fs.doc(window.db, 'chatUsers', tag.replace('#',''));
+    var userSnap = await _fs.getDoc(userRef);
 
     if (userSnap.exists()) {
       // Usuário já existe - verifica senha
@@ -2978,12 +2987,12 @@ async function chatEntrar() {
         return;
       }
       // Atualiza dados da API
-      await updateDoc(userRef, { name: apiData.name, trophies: apiData.trophies || 0, lastLogin: Date.now() });
+      await _fs.updateDoc(userRef, { name: apiData.name, trophies: apiData.trophies || 0, lastLogin: Date.now() });
       _chatUser = { tag: tag, name: apiData.name, emoji: userData.emoji || '🎮', banned: false };
     } else {
       // Novo usuário - cria conta
       var emoji = ['🎮','⚡','🏆','💥','🦁','👑','🔥','💎','🌟','🎯'][Math.floor(Math.random()*10)];
-      await setDoc(userRef, {
+      await _fs.setDoc(userRef, {
         tag: tag, name: apiData.name, trophies: apiData.trophies || 0,
         senha: btoa(senha), emoji: emoji, banned: false, created: Date.now(), lastLogin: Date.now()
       });
@@ -3011,9 +3020,10 @@ async function chatEntrar() {
 
 function chatEscutar() {
   if (_chatUnsub) _chatUnsub();
-  var messagesRef = collection(db, 'chatMessages');
-  var q = query(messagesRef, orderBy('timestamp', 'desc'), limit(50));
-  _chatUnsub = onSnapshot(q, function(snap) {
+  var _fs = window._firestore;
+  var messagesRef = _fs.collection(window.db, 'chatMessages');
+  var q = _fs.query(messagesRef, _fs.orderBy('timestamp', 'desc'), _fs.limit(50));
+  _chatUnsub = _fs.onSnapshot(q, function(snap) {
     var msgs = [];
     snap.forEach(function(d) { msgs.push({id: d.id, ...d.data()}); });
     msgs.reverse();
@@ -3063,7 +3073,8 @@ async function chatEnviar() {
   input.value = '';
 
   try {
-    await addDoc(collection(db, 'chatMessages'), {
+    var _fs = window._firestore;
+    await _fs.addDoc(_fs.collection(window.db, 'chatMessages'), {
       tag: _chatUser.tag,
       name: _chatUser.name,
       emoji: _chatUser.emoji,
@@ -3079,8 +3090,9 @@ async function chatEnviar() {
 async function chatBanir(tag) {
   if (!confirm('Banir ' + tag + ' do chat?')) return;
   try {
-    var userRef = doc(db, 'chatUsers', tag.replace('#',''));
-    await updateDoc(userRef, { banned: true });
+    var _fs = window._firestore;
+    var userRef = _fs.doc(window.db, 'chatUsers', tag.replace('#',''));
+    await _fs.updateDoc(userRef, { banned: true });
     alert('Usuário banido!');
   } catch(e) { alert('Erro ao banir'); }
 }
