@@ -808,6 +808,9 @@ footer { position:relative; z-index:10; text-align:center; padding:18px; font-we
 }
 .cfp-title { font-family:'Lilita One',cursive; font-size:1rem; color:#fff; letter-spacing:1px; }
 .cfp-close { background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:8px; padding:4px 10px; cursor:pointer; font-size:0.9rem; }
+.cfp-minimize { background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:8px; padding:4px 10px; cursor:pointer; font-size:0.9rem; margin-right:4px; }
+#chatFloatPanel.minimized .cfp-body { display:none; }
+#chatFloatPanel.minimized { max-height: unset; }
 .cfp-userbar { padding:8px 12px; background:var(--surface2); display:flex; align-items:center; justify-content:space-between; font-size:0.7rem; flex-shrink:0; border-bottom:1px solid var(--border); }
 .cfp-msgs { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding:10px 10px 4px; min-height:200px; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
 .cfp-typing { font-size:0.7rem; color:var(--text-muted); padding:2px 10px 6px; min-height:18px; font-style:italic; flex-shrink:0; }
@@ -1176,8 +1179,12 @@ footer { position:relative; z-index:10; text-align:center; padding:18px; font-we
   <div id="chatFloatPanel">
     <div class="cfp-header">
       <span class="cfp-title">💬 CHAT AO VIVO</span>
-      <button class="cfp-close" onclick="toggleChatFloat()">✕</button>
+      <div style="display:flex;gap:4px;">
+        <button class="cfp-minimize" onclick="minimizarChatFloat()" id="cfpMinimizeBtn" title="Minimizar">─</button>
+        <button class="cfp-close" onclick="toggleChatFloat()">✕</button>
+      </div>
     </div>
+    <div class="cfp-body">
     <!-- Login -->
     <div id="cfpLogin" style="padding:16px;">
       <div style="text-align:center;font-size:0.75rem;color:var(--text-dim);font-weight:800;margin-bottom:12px;">Entre com sua TAG do Brawl Stars</div>
@@ -1202,7 +1209,7 @@ footer { position:relative; z-index:10; text-align:center; padding:18px; font-we
         <button class="cfp-send" onclick="chatEnviar()">➤</button>
       </div>
     </div>
-  </div>
+    </div><!-- /cfp-body -->
   <button id="chatFloatBtn" onclick="toggleChatFloat()">
     💬
     <span id="chatFloatBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.6rem;font-weight:900;display:none;align-items:center;justify-content:center;">!</span>
@@ -1971,6 +1978,28 @@ window.compartilharRanking = function(tipo) {
 document.addEventListener('DOMContentLoaded', function() {
   var btn = document.getElementById('btnCompartilhar');
   if (btn) btn.addEventListener('click', function() { window.compartilharRanking('cidade'); });
+
+  // Auto-login do chat se sessão salva
+  setTimeout(function() {
+    try {
+      var sess = sessionStorage.getItem('_chatSession');
+      if (sess) {
+        var s = JSON.parse(sess);
+        if (s && s.tag && s.senha && s.name) {
+          // Restaura usuário sem precisar fazer login novamente
+          _chatUser = { tag: s.tag, name: s.name, emoji: s.emoji || '🎮', banned: false };
+          document.getElementById('cfpLogin').style.display = 'none';
+          var cfpChat = document.getElementById('cfpChat');
+          cfpChat.style.display = 'flex';
+          document.getElementById('cfpUserName').textContent = _chatUser.name;
+          document.getElementById('cfpUserTag').textContent = _chatUser.tag;
+          document.getElementById('cfpUserEmoji').textContent = _chatUser.emoji;
+          chatEscutar();
+          chatPresenca();
+        }
+      }
+    } catch(e) {}
+  }, 1500); // aguarda Firebase inicializar
   var btnS = document.getElementById('btnAtualizarSemana');
   if (btnS) btnS.addEventListener('click', function() { window.atualizarManual(); });
   var btnFecharAviso = document.getElementById('btnFecharAviso');
@@ -3063,6 +3092,18 @@ var _chatUnsub = null;
 function toggleChatFloat() {
   var panel = document.getElementById('chatFloatPanel');
   panel.classList.toggle('open');
+  // Se abrir, remove minimizado
+  if (panel.classList.contains('open')) {
+    panel.classList.remove('minimized');
+    document.getElementById('cfpMinimizeBtn').textContent = '─';
+  }
+}
+
+function minimizarChatFloat() {
+  var panel = document.getElementById('chatFloatPanel');
+  var btn = document.getElementById('cfpMinimizeBtn');
+  var minimizado = panel.classList.toggle('minimized');
+  btn.textContent = minimizado ? '▲' : '─';
 }
 
 // Sincroniza campos do balão com a tab antiga (caso alguém use a tab)
@@ -3131,6 +3172,8 @@ async function chatEntrar() {
     }
 
     // Mostra interface do chat no balão flutuante
+    // Salva sessão para não precisar logar novamente
+    try { sessionStorage.setItem('_chatSession', JSON.stringify({ tag: _chatUser.tag, senha: btoa(senha), name: _chatUser.name, emoji: _chatUser.emoji })); } catch(e) {}
     document.getElementById('cfpLogin').style.display = 'none';
     var cfpChat = document.getElementById('cfpChat');
     cfpChat.style.display = 'flex';
@@ -3349,6 +3392,8 @@ function chatSair() {
   document.getElementById('cfpLogin').style.display = 'block';
   document.getElementById('cfpChat').style.display = 'none';
   document.getElementById('cfpMsgs').innerHTML = '';
+  // Limpa sessão salva
+  try { sessionStorage.removeItem('_chatSession'); } catch(e) {}
   var cfpTag = document.getElementById('cfpTag');
   if (cfpTag) cfpTag.value = '';
   var cfpSenha = document.getElementById('cfpSenha');
@@ -3399,7 +3444,9 @@ async function carregarBattleStats(tag, trofeus) {
       // Horário
       var t = b.battleTime || '';
       if (t) {
-        var dt = new Date(t.replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/,'$1-$2-$3T$4:$5:$6Z'));
+        var tClean = t.replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2}).*/, '$1-$2-$3T$4:$5:$6.000Z');
+        var dt = new Date(tClean);
+        if (isNaN(dt.getTime())) return;
         var hora = dt.getHours();
         horasCount[hora] = (horasCount[hora]||0) + 1;
         var dia = diasNomes[dt.getDay()];
