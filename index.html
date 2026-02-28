@@ -55,6 +55,8 @@ body {
   color: var(--text);
   min-height: 100vh;
   overflow-x: clip;
+  padding-bottom: 40px;
+}
 
 /* Fundo neon com nebulosa */
 body::before {
@@ -641,7 +643,7 @@ main {
 #shareCanvas { display:none; }
 
 /* ===== FOOTER ===== */
-footer { position:relative; z-index:10; text-align:center; padding:18px; padding-bottom:80px; font-weight:900; font-size:0.6rem; color:var(--text-muted); letter-spacing:2px; border-top:1px solid var(--border); max-width:780px; margin:0 auto; text-transform:uppercase; }
+footer { position:fixed; bottom:0; left:0; right:0; z-index:100; text-align:center; padding:10px 18px; font-weight:900; font-size:0.6rem; color:var(--text-muted); letter-spacing:2px; border-top:1px solid var(--border); background:var(--bg); text-transform:uppercase; }
 
 /* ===== NOTIF ===== */
 .notif-item { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; display:flex; align-items:flex-start; gap:12px; }
@@ -1210,6 +1212,7 @@ footer { position:relative; z-index:10; text-align:center; padding:18px; padding
       </div>
     </div>
     </div><!-- /cfp-body -->
+  </div><!-- /chatFloatPanel -->
   <button id="chatFloatBtn" onclick="toggleChatFloat()">
     💬
     <span id="chatFloatBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.6rem;font-weight:900;display:none;align-items:center;justify-content:center;">!</span>
