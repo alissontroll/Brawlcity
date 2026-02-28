@@ -747,6 +747,81 @@ footer { position:relative; z-index:10; text-align:center; padding:18px; font-we
 .admin-player-item { display:flex; align-items:center; justify-content:space-between; padding:8px; background:var(--surface2); border-radius:8px; margin-bottom:6px; }
 .admin-remove-btn { background:rgba(255,23,68,0.1); border:1px solid rgba(255,23,68,0.3); color:#ff8a80; padding:4px 10px; border-radius:6px; font-size:0.75rem; cursor:pointer; font-family:monospace; }
 
+/* ===== CHAT FLUTUANTE ===== */
+#chatFloat {
+  position: fixed;
+  bottom: 24px;
+  right: 18px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
+}
+#chatFloatBtn {
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--neon));
+  border: none;
+  color: #fff;
+  font-size: 1.6rem;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(201,64,255,0.5);
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: all;
+  transition: transform 0.2s;
+  position: relative;
+}
+#chatFloatBtn:hover { transform: scale(1.08); }
+#chatFloatBadge {
+  position: absolute;
+  top: -4px; right: -4px;
+  background: var(--red);
+  color: #fff;
+  border-radius: 50%;
+  width: 18px; height: 18px;
+  font-size: 0.6rem;
+  font-weight: 900;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+#chatFloatPanel {
+  width: min(340px, calc(100vw - 24px));
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  pointer-events: all;
+  max-height: 75vh;
+}
+#chatFloatPanel.open { display: flex; }
+.cfp-header {
+  background: linear-gradient(135deg, var(--purple), var(--neon));
+  padding: 12px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.cfp-title { font-family:'Lilita One',cursive; font-size:1rem; color:#fff; letter-spacing:1px; }
+.cfp-close { background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:8px; padding:4px 10px; cursor:pointer; font-size:0.9rem; }
+.cfp-userbar { padding:8px 12px; background:var(--surface2); display:flex; align-items:center; justify-content:space-between; font-size:0.7rem; flex-shrink:0; border-bottom:1px solid var(--border); }
+.cfp-msgs { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding:10px 10px 4px; min-height:200px; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+.cfp-typing { font-size:0.7rem; color:var(--text-muted); padding:2px 10px 6px; min-height:18px; font-style:italic; flex-shrink:0; }
+.cfp-input-row { display:flex; gap:6px; padding:8px 10px; border-top:1px solid var(--border); flex-shrink:0; }
+.cfp-input { flex:1; background:var(--surface2); border:1px solid var(--border2); color:var(--text); padding:9px 12px; border-radius:10px; font-family:Nunito,sans-serif; font-size:0.85rem; }
+.cfp-input:focus { outline:none; border-color:var(--neon); }
+.cfp-send { background:linear-gradient(135deg,var(--purple),var(--neon)); border:none; color:#fff; padding:9px 14px; border-radius:10px; font-size:1rem; cursor:pointer; }
+/* Animação digitando */
+.typing-dots { display:inline-flex; gap:3px; align-items:center; }
+.typing-dots span { width:5px; height:5px; background:var(--text-muted); border-radius:50%; animation:tdot 1.2s infinite; }
+.typing-dots span:nth-child(2) { animation-delay:0.2s; }
+.typing-dots span:nth-child(3) { animation-delay:0.4s; }
+@keyframes tdot { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+
 /* ===== CHAT AO VIVO ===== */
 .chat-container { display:flex; flex-direction:column; height:calc(100vh - 180px); padding:12px; gap:10px; }
 .chat-login-box { background:var(--surface); border:1px solid var(--border2); border-radius:var(--r); padding:24px; text-align:center; }
@@ -1094,6 +1169,44 @@ footer { position:relative; z-index:10; text-align:center; padding:18px; font-we
       <button class="admin-btn admin-btn-secondary" onclick="fecharAdmin()">FECHAR PAINEL</button>
     </div>
   </div>
+</div>
+
+<!-- CHAT FLUTUANTE -->
+<div id="chatFloat">
+  <div id="chatFloatPanel">
+    <div class="cfp-header">
+      <span class="cfp-title">💬 CHAT AO VIVO</span>
+      <button class="cfp-close" onclick="toggleChatFloat()">✕</button>
+    </div>
+    <!-- Login -->
+    <div id="cfpLogin" style="padding:16px;">
+      <div style="text-align:center;font-size:0.75rem;color:var(--text-dim);font-weight:800;margin-bottom:12px;">Entre com sua TAG do Brawl Stars</div>
+      <input class="chat-login-input" id="cfpTag" type="text" placeholder="#SUA TAG" maxlength="15" onkeydown="if(event.key==='Enter')document.getElementById('cfpSenha').focus()">
+      <input class="chat-login-input" id="cfpSenha" type="password" placeholder="Senha (mín. 6 caracteres)" maxlength="30" onkeydown="if(event.key==='Enter')chatEntrar()">
+      <button class="chat-login-btn" id="cfpLoginBtn" onclick="chatEntrar()">🎮 ENTRAR NO CHAT</button>
+      <div class="chat-login-error" id="cfpLoginError"></div>
+    </div>
+    <!-- Chat ativo -->
+    <div id="cfpChat" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="cfp-userbar">
+        <span><span id="cfpUserEmoji">🎮</span> <strong id="cfpUserName">-</strong> <span style="color:var(--text-muted);font-family:monospace;font-size:0.6rem;" id="cfpUserTag"></span></span>
+        <span style="display:flex;gap:8px;align-items:center;">
+          <span style="color:var(--green);font-weight:900;display:flex;align-items:center;gap:3px;"><span class="live-dot" style="width:5px;height:5px;"></span><span id="cfpOnline">0</span> online</span>
+          <button onclick="chatSair()" style="background:rgba(255,23,68,0.1);border:1px solid rgba(255,23,68,0.3);color:var(--red);padding:3px 8px;border-radius:6px;font-size:0.65rem;font-weight:900;cursor:pointer;">SAIR</button>
+        </span>
+      </div>
+      <div class="cfp-msgs" id="cfpMsgs"></div>
+      <div class="cfp-typing" id="cfpTyping"></div>
+      <div class="cfp-input-row">
+        <input class="cfp-input" id="cfpInput" placeholder="Digite sua mensagem..." maxlength="200" onkeydown="if(event.key==='Enter')chatEnviar()" oninput="chatDigitando()">
+        <button class="cfp-send" onclick="chatEnviar()">➤</button>
+      </div>
+    </div>
+  </div>
+  <button id="chatFloatBtn" onclick="toggleChatFloat()">
+    💬
+    <span id="chatFloatBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.6rem;font-weight:900;display:none;align-items:center;justify-content:center;">!</span>
+  </button>
 </div>
 
 <footer id="adminTrigger" style="cursor:default;">BRAWLCITY RANK • PERNAMBUCO • VERIFIQUE EM BRAWLIFY.COM</footer>
@@ -2947,11 +3060,28 @@ window.iaEnviar = async function() {
 var _chatUser = null;
 var _chatUnsub = null;
 
+function toggleChatFloat() {
+  var panel = document.getElementById('chatFloatPanel');
+  panel.classList.toggle('open');
+}
+
+// Sincroniza campos do balão com a tab antiga (caso alguém use a tab)
+function _chatGetFields() {
+  // Usa campos do balão flutuante como primários
+  return {
+    tagEl: document.getElementById('cfpTag') || document.getElementById('chatTagInput'),
+    senhaEl: document.getElementById('cfpSenha') || document.getElementById('chatSenhaInput'),
+    errEl: document.getElementById('cfpLoginError') || document.getElementById('chatLoginError'),
+    btn: document.getElementById('cfpLoginBtn') || document.getElementById('chatLoginBtn'),
+  };
+}
+
 async function chatEntrar() {
-  var tagRaw = document.getElementById('chatTagInput').value.trim().toUpperCase();
-  var senha = document.getElementById('chatSenhaInput').value.trim();
-  var errEl = document.getElementById('chatLoginError');
-  var btn = document.getElementById('chatLoginBtn');
+  var f = _chatGetFields();
+  var tagRaw = f.tagEl.value.trim().toUpperCase();
+  var senha = f.senhaEl.value.trim();
+  var errEl = f.errEl;
+  var btn = f.btn;
 
   if (!tagRaw) { errEl.textContent = '⚠️ Digite sua TAG!'; return; }
   if (senha.length < 6) { errEl.textContent = '⚠️ Senha deve ter pelo menos 6 caracteres!'; return; }
@@ -3000,28 +3130,71 @@ async function chatEntrar() {
       _chatUser = { tag: tag, name: apiData.name, emoji: emoji, banned: false };
     }
 
-    // Mostra interface do chat
-    document.getElementById('chatLoginBox').style.display = 'none';
-    document.getElementById('chatUserBar').style.display = 'flex';
-    var cm = document.getElementById('chatMessages');
-    cm.style.display = 'flex';
-    cm.style.flexDirection = 'column';
-    cm.style.minHeight = '200px';
-    cm.style.maxHeight = '400px';
-    cm.style.overflowY = 'auto';
-    document.getElementById('chatInputRow').style.display = 'flex';
-    document.getElementById('chatUserName').textContent = _chatUser.name;
-    document.getElementById('chatUserTag').textContent = _chatUser.tag;
-    document.getElementById('chatUserEmoji').textContent = _chatUser.emoji;
+    // Mostra interface do chat no balão flutuante
+    document.getElementById('cfpLogin').style.display = 'none';
+    var cfpChat = document.getElementById('cfpChat');
+    cfpChat.style.display = 'flex';
+    document.getElementById('cfpUserName').textContent = _chatUser.name;
+    document.getElementById('cfpUserTag').textContent = _chatUser.tag;
+    document.getElementById('cfpUserEmoji').textContent = _chatUser.emoji;
+    // Atualiza badge do botão
+    document.getElementById('chatFloatBadge').style.display = 'none';
+
+    // Também atualiza tab antiga se existir
+    var oldLogin = document.getElementById('chatLoginBox');
+    if (oldLogin) oldLogin.style.display = 'none';
+    var oldBar = document.getElementById('chatUserBar');
+    if (oldBar) { oldBar.style.display = 'flex'; }
+    var oldMsgs = document.getElementById('chatMessages');
+    if (oldMsgs) { oldMsgs.style.display = 'flex'; oldMsgs.style.flexDirection = 'column'; }
+    var oldInput = document.getElementById('chatInputRow');
+    if (oldInput) oldInput.style.display = 'flex';
+    var oldName = document.getElementById('chatUserName');
+    if (oldName) oldName.textContent = _chatUser.name;
+    var oldTag = document.getElementById('chatUserTag');
+    if (oldTag) oldTag.textContent = _chatUser.tag;
+    var oldEmoji = document.getElementById('chatUserEmoji');
+    if (oldEmoji) oldEmoji.textContent = _chatUser.emoji;
 
     // Escuta mensagens em tempo real
     chatEscutar();
+    // Rastreia presença online
+    chatPresenca();
 
   } catch(e) {
     errEl.textContent = '❌ ' + (e.message || 'Erro ao entrar');
   }
   btn.disabled = false;
   btn.textContent = '🎮 ENTRAR NO CHAT';
+}
+
+function _renderMsgs(msgs, container) {
+  if (!container) return;
+  var isBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 80;
+  container.innerHTML = '';
+  msgs.forEach(function(m) {
+    var isMine = _chatUser && m.tag === _chatUser.tag;
+    var div = document.createElement('div');
+    div.className = 'chat-msg' + (isMine ? ' mine' : '');
+    var hora = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '';
+    div.innerHTML =
+      '<div class="chat-msg-avatar">' + (m.emoji || '🎮') + '</div>' +
+      '<div class="chat-msg-body">' +
+        '<div class="chat-msg-name">' + (m.name || '?') + ' <span style="color:var(--text-muted);font-size:0.55rem;">' + (m.trophies ? '🏆'+m.trophies.toLocaleString('pt-BR') : '') + '</span></div>' +
+        '<div class="chat-msg-bubble">' + escapeHtml(m.text) + '</div>' +
+        '<div class="chat-msg-time">' + hora + (isMine ? ' ✓' : '') + '</div>' +
+      '</div>';
+    if (_chatUser && _chatUser.tag === '#JQ2UUJLP' && !isMine) {
+      var banBtn = document.createElement('button');
+      banBtn.textContent = '🚫';
+      banBtn.title = 'Banir';
+      banBtn.style.cssText = 'background:none;border:none;cursor:pointer;font-size:0.8rem;opacity:0.5;align-self:center;';
+      banBtn.onclick = (function(tag){ return function(){ chatBanir(tag); }; })(m.tag);
+      div.appendChild(banBtn);
+    }
+    container.appendChild(div);
+  });
+  if (isBottom) container.scrollTop = container.scrollHeight;
 }
 
 function chatEscutar() {
@@ -3033,58 +3206,116 @@ function chatEscutar() {
     var msgs = [];
     snap.forEach(function(d) { msgs.push({id: d.id, ...d.data()}); });
     msgs.reverse();
-    var container = document.getElementById('chatMessages');
-    if (!container) return;
-    var isBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
-    container.innerHTML = '';
-    msgs.forEach(function(m) {
-      var isMine = _chatUser && m.tag === _chatUser.tag;
-      var div = document.createElement('div');
-      div.className = 'chat-msg' + (isMine ? ' mine' : '');
-      var hora = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '';
-      div.innerHTML =
-        '<div class="chat-msg-avatar">' + (m.emoji || '🎮') + '</div>' +
-        '<div class="chat-msg-body">' +
-          '<div class="chat-msg-name">' + (m.name || '?') + ' <span style="color:var(--text-muted);font-size:0.55rem;">' + (m.trophies ? '🏆'+m.trophies.toLocaleString('pt-BR') : '') + '</span></div>' +
-          '<div class="chat-msg-bubble">' + escapeHtml(m.text) + '</div>' +
-          '<div class="chat-msg-time">' + hora + (isMine ? ' ✓' : '') + '</div>' +
-        '</div>';
-      // Botão ban para admin (sua TAG)
-      if (_chatUser && _chatUser.tag === '#JQ2UUJLP' && !isMine) {
-        var banBtn = document.createElement('button');
-        banBtn.textContent = '🚫';
-        banBtn.title = 'Banir usuário';
-        banBtn.style.cssText = 'background:none;border:none;cursor:pointer;font-size:0.8rem;opacity:0.5;align-self:center;';
-        banBtn.onclick = function() { chatBanir(m.tag); };
-        div.appendChild(banBtn);
-      }
-      container.appendChild(div);
-    });
-    if (isBottom) container.scrollTop = container.scrollHeight;
 
-    // Badge de novas mensagens
-    var badge = document.getElementById('chatBadge');
+    // Renderiza no float
+    _renderMsgs(msgs, document.getElementById('cfpMsgs'));
+    // Renderiza na tab antiga também
+    _renderMsgs(msgs, document.getElementById('chatMessages'));
+
+    // Badge no botão flutuante se painel fechado
+    var panel = document.getElementById('chatFloatPanel');
+    var badge = document.getElementById('chatFloatBadge');
+    if (badge && panel && !panel.classList.contains('open') && msgs.length > 0) {
+      badge.style.display = 'flex';
+    }
+    // Badge da tab
+    var tabBadge = document.getElementById('chatBadge');
     var chatTab = document.getElementById('tab-chat');
-    if (badge && chatTab && !chatTab.classList.contains('active') && msgs.length > 0) {
-      badge.style.display = 'inline-block';
+    if (tabBadge && chatTab && !chatTab.classList.contains('active') && msgs.length > 0) {
+      tabBadge.style.display = 'inline-block';
     }
   });
+
+  // Escuta "digitando..."
+  var typingRef = _fs.collection(window.db, 'chatTyping');
+  _fs.onSnapshot(typingRef, function(snap) {
+    var digitando = [];
+    var agora = Date.now();
+    snap.forEach(function(d) {
+      var data = d.data();
+      if (data.tag !== (_chatUser && _chatUser.tag) && data.ts && agora - data.ts < 4000) {
+        digitando.push(data.name || data.tag);
+      }
+    });
+    var el = document.getElementById('cfpTyping');
+    if (el) {
+      if (digitando.length) {
+        el.innerHTML = '<span style="font-style:italic;color:var(--text-muted);">' + digitando[0] + ' está digitando <span class="typing-dots"><span></span><span></span><span></span></span></span>';
+      } else {
+        el.innerHTML = '';
+      }
+    }
+  });
+
+  // Escuta online count
+  var presRef = _fs.collection(window.db, 'chatPresenca');
+  _fs.onSnapshot(presRef, function(snap) {
+    var agora = Date.now();
+    var count = 0;
+    snap.forEach(function(d) {
+      var data = d.data();
+      if (data.ts && agora - data.ts < 30000) count++;
+    });
+    var el = document.getElementById('cfpOnline');
+    if (el) el.textContent = count;
+    var el2 = document.getElementById('chatOnlineCount');
+    if (el2) el2.textContent = count;
+  });
+}
+
+var _typingTimer = null;
+function chatDigitando() {
+  if (!_chatUser) return;
+  var _fs = window._firestore;
+  var cleanTag = _chatUser.tag.replace('#','');
+  _fs.setDoc(_fs.doc(window.db, 'chatTyping', cleanTag), {
+    tag: _chatUser.tag, name: _chatUser.name, ts: Date.now()
+  }).catch(function(){});
+  clearTimeout(_typingTimer);
+  _typingTimer = setTimeout(function() {
+    _fs.deleteDoc(_fs.doc(window.db, 'chatTyping', cleanTag)).catch(function(){});
+  }, 3000);
+}
+
+function chatPresenca() {
+  if (!_chatUser) return;
+  var _fs = window._firestore;
+  var cleanTag = _chatUser.tag.replace('#','');
+  function ping() {
+    _fs.setDoc(_fs.doc(window.db, 'chatPresenca', cleanTag), {
+      tag: _chatUser.tag, name: _chatUser.name, ts: Date.now()
+    }).catch(function(){});
+  }
+  ping();
+  if (window._presencaInterval) clearInterval(window._presencaInterval);
+  window._presencaInterval = setInterval(ping, 20000);
 }
 
 async function chatEnviar() {
   if (!_chatUser) return;
-  var input = document.getElementById('chatInput');
+  // Pega do input do float ou da tab antiga
+  var input = document.getElementById('cfpInput') || document.getElementById('chatInput');
   var texto = input.value.trim();
   if (!texto) return;
   input.value = '';
+  // Limpa digitando
+  if (_typingTimer) { clearTimeout(_typingTimer); _typingTimer = null; }
+  var _fs = window._firestore;
+  _fs.deleteDoc(_fs.doc(window.db, 'chatTyping', _chatUser.tag.replace('#',''))).catch(function(){});
+
+  // Busca troféus reais do jogador
+  var trofeus = window._perfilTrofeus || 0;
+  if (!trofeus && window.allPlayers) {
+    var jogador = window.allPlayers.find(function(p){ return (p.tag||'') === _chatUser.tag; });
+    if (jogador) trofeus = jogador.trophies || 0;
+  }
 
   try {
-    var _fs = window._firestore;
     await _fs.addDoc(_fs.collection(window.db, 'chatMessages'), {
       tag: _chatUser.tag,
       name: _chatUser.name,
       emoji: _chatUser.emoji,
-      trophies: 0,
+      trophies: trofeus,
       text: texto,
       timestamp: Date.now()
     });
@@ -3104,15 +3335,38 @@ async function chatBanir(tag) {
 }
 
 function chatSair() {
+  if (_chatUser) {
+    var _fs = window._firestore;
+    var cleanTag = _chatUser.tag.replace('#','');
+    _fs.deleteDoc(_fs.doc(window.db, 'chatTyping', cleanTag)).catch(function(){});
+    _fs.deleteDoc(_fs.doc(window.db, 'chatPresenca', cleanTag)).catch(function(){});
+    if (window._presencaInterval) { clearInterval(window._presencaInterval); window._presencaInterval = null; }
+  }
   _chatUser = null;
   if (_chatUnsub) { _chatUnsub(); _chatUnsub = null; }
-  document.getElementById('chatLoginBox').style.display = 'block';
-  document.getElementById('chatUserBar').style.display = 'none';
-  document.getElementById('chatMessages').style.display = 'none';
-  document.getElementById('chatInputRow').style.display = 'none';
-  document.getElementById('chatMessages').innerHTML = '';
-  document.getElementById('chatTagInput').value = '';
-  document.getElementById('chatSenhaInput').value = '';
+
+  // Reset float
+  document.getElementById('cfpLogin').style.display = 'block';
+  document.getElementById('cfpChat').style.display = 'none';
+  document.getElementById('cfpMsgs').innerHTML = '';
+  var cfpTag = document.getElementById('cfpTag');
+  if (cfpTag) cfpTag.value = '';
+  var cfpSenha = document.getElementById('cfpSenha');
+  if (cfpSenha) cfpSenha.value = '';
+
+  // Reset tab antiga
+  var oldLogin = document.getElementById('chatLoginBox');
+  if (oldLogin) oldLogin.style.display = 'block';
+  var oldBar = document.getElementById('chatUserBar');
+  if (oldBar) oldBar.style.display = 'none';
+  var oldMsgs = document.getElementById('chatMessages');
+  if (oldMsgs) { oldMsgs.style.display = 'none'; oldMsgs.innerHTML = ''; }
+  var oldInput = document.getElementById('chatInputRow');
+  if (oldInput) oldInput.style.display = 'none';
+  var oldTagIn = document.getElementById('chatTagInput');
+  if (oldTagIn) oldTagIn.value = '';
+  var oldSenhaIn = document.getElementById('chatSenhaInput');
+  if (oldSenhaIn) oldSenhaIn.value = '';
 }
 
 function escapeHtml(text) {
@@ -3127,7 +3381,7 @@ async function carregarBattleStats(tag, trofeus) {
   var el = document.getElementById('perfilBattleStats');
   if (!el) return;
   try {
-    var res = await fetch('/.netlify/functions/battlelog?tag=' + encodeURIComponent('#'+tag));
+    var res = await fetch('/.netlify/functions/player?type=battlelog&tag=' + encodeURIComponent('#'+tag));
     if (!res.ok) throw new Error('battlelog falhou');
     var data = await res.json();
     var battles = data.items || [];
@@ -3152,21 +3406,36 @@ async function carregarBattleStats(tag, trofeus) {
         diasCount[dia] = (diasCount[dia]||0) + 1;
         diasJogou.add(dt.toDateString());
       }
-      // Brawler usado
+      // Brawler usado — suporta teams (3v3) e players (solo/duo)
       var battle = b.battle || {};
+      var found = false;
+      // Formato teams (3v3, bounty, etc)
       var teams = battle.teams || [];
       teams.forEach(function(team) {
-        team.forEach(function(player) {
-          if (player.tag && player.tag.replace('#','') === tag) {
+        (Array.isArray(team) ? team : [team]).forEach(function(player) {
+          if (player && player.tag && player.tag.replace('#','') === tag) {
+            var bName = player.brawler && player.brawler.name ? player.brawler.name : null;
+            if (bName) { brawlerCount[bName] = (brawlerCount[bName]||0) + 1; found = true; }
+          }
+        });
+      });
+      // Formato players (solo showdown)
+      if (!found) {
+        var players = battle.players || [];
+        players.forEach(function(player) {
+          if (player && player.tag && player.tag.replace('#','') === tag) {
             var bName = player.brawler && player.brawler.name ? player.brawler.name : null;
             if (bName) brawlerCount[bName] = (brawlerCount[bName]||0) + 1;
           }
         });
-      });
-      // Vitórias/derrotas
+      }
+      // Vitórias/derrotas — result ou rank (solo: rank 1-4 = vitória)
       var result = battle.result || '';
       if (result === 'victory') vitorias++;
       else if (result === 'defeat') derrotas++;
+      else if (!result && battle.rank) {
+        if (battle.rank <= 4) vitorias++; else derrotas++;
+      }
     });
 
     // Horário pico
