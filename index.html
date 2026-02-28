@@ -107,8 +107,10 @@ header {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 40px rgba(201,64,255,0.5));
+  filter: drop-shadow(0 0 40px rgba(201,64,255,0.4));
   animation: logoIn 0.8s cubic-bezier(.16,1,.3,1) both;
+  position: relative;
+  z-index: 1;
 }
 
 @keyframes logoIn {
@@ -282,7 +284,6 @@ main {
   border: 1px solid var(--border);
   border-top: none;
   border-radius: 0 0 var(--r) var(--r);
-  backdrop-filter: blur(8px);
 }
 
 .tab-content { display: none; }
@@ -645,6 +646,30 @@ main {
 /* ===== FOOTER ===== */
 footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:center; padding:10px 18px; font-weight:900; font-size:0.6rem; color:var(--text-muted); letter-spacing:2px; border-top:1px solid var(--border); background:var(--bg); text-transform:uppercase; }
 
+/* ===== MINHA POSIÇÃO FIXA ===== */
+#myPositionBar {
+  display: none;
+  position: fixed;
+  bottom: 36px;
+  left: 0; right: 0;
+  z-index: 7999;
+  background: linear-gradient(135deg, rgba(30,18,60,0.97), rgba(40,20,70,0.97));
+  border-top: 2px solid var(--purple2);
+  padding: 8px 14px;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 -4px 24px rgba(138,43,226,0.3);
+}
+#myPositionBar .mpb-rank { font-family:'Lilita One',cursive; font-size:1.1rem; color:var(--neon); min-width:36px; }
+#myPositionBar .mpb-avatar { width:34px; height:34px; border-radius:50%; border:2px solid var(--purple2); overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+#myPositionBar .mpb-avatar img { width:100%; height:100%; object-fit:cover; }
+#myPositionBar .mpb-info { flex:1; min-width:0; }
+#myPositionBar .mpb-name { font-family:'Lilita One',cursive; font-size:0.85rem; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#myPositionBar .mpb-tag { font-size:0.55rem; color:var(--text-muted); font-family:monospace; }
+#myPositionBar .mpb-trophies { font-family:'Lilita One',cursive; font-size:1rem; color:var(--gold); white-space:nowrap; }
+#myPositionBar .mpb-label { font-size:0.5rem; color:var(--text-muted); font-weight:900; letter-spacing:1px; text-align:right; }
+#myPositionBar .mpb-badge { font-size:0.6rem; background:var(--purple); color:#fff; padding:2px 7px; border-radius:10px; font-weight:900; white-space:nowrap; }
+
 /* ===== NOTIF ===== */
 .notif-item { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; display:flex; align-items:flex-start; gap:12px; }
 .notif-icon { font-size:1.5rem; }
@@ -921,7 +946,7 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
   <button class="tab-btn notif-tab" id="btnNotif" onclick="switchTab('notif',this)">🔔<span id="notifBadge" style="display:none" class="notif-badge">0</span></button>
   <button class="tab-btn" style="color:#a78bfa;" onclick="switchTab('semana',this)">📅 Semana</button>
   <button class="tab-btn" id="tabBtnPerfil" style="color:#00ff88;display:none;" onclick="switchTab('perfil',this)">👤 Perfil</button>
-  <button class="tab-btn" onclick="switchTab('chat',this)" style="color:#00e5ff;">💬 Chat<span id="chatBadge" style="display:none" class="notif-badge">!</span></button>
+  
 </div>
 <div class="city-bar" id="cityBar"></div>
 <main>
@@ -1183,7 +1208,7 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
       <span class="cfp-title">💬 CHAT AO VIVO</span>
       <div style="display:flex;gap:4px;">
         <button class="cfp-minimize" onclick="minimizarChatFloat()" id="cfpMinimizeBtn" title="Minimizar">─</button>
-        <button class="cfp-close" onclick="toggleChatFloat()">✕</button>
+        <button class="cfp-close" onclick="fecharChatFloat()">✕</button>
       </div>
     </div>
     <div class="cfp-body">
@@ -1217,6 +1242,20 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
     💬
     <span id="chatFloatBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.6rem;font-weight:900;display:none;align-items:center;justify-content:center;">!</span>
   </button>
+</div>
+
+<!-- MINHA POSIÇÃO FIXA -->
+<div id="myPositionBar">
+  <div class="mpb-rank" id="mpbRank">#?</div>
+  <div class="mpb-avatar" id="mpbAvatar">🎮</div>
+  <div class="mpb-info">
+    <div class="mpb-name" id="mpbName">-</div>
+    <div class="mpb-tag" id="mpbTag"></div>
+  </div>
+  <div style="text-align:right;">
+    <div class="mpb-trophies" id="mpbTrophies">🏆 -</div>
+    <div class="mpb-label">SUA POSIÇÃO</div>
+  </div>
 </div>
 
 <footer id="adminTrigger" style="cursor:default;">BRAWLCITY RANK • PERNAMBUCO • VERIFIQUE EM BRAWLIFY.COM</footer>
@@ -1739,6 +1778,9 @@ window.register = async function() {
     var color = COLORS[Math.floor(Math.random()*COLORS.length)];
     var iconId = data.iconId || null;
     await addDoc(collection(db, 'players'), {name: data.name, tag: data.tag, city: city, trophies: data.trophies, horas: data.horas || 0, emoji: emoji, color: color, joined: Date.now(), brawlerCount: data.brawlerCount || 0, newBrawlers: 0, iconId: iconId});
+    // Salva tag do jogador logado para mostrar posição fixa
+    _myTag = data.tag;
+    try { sessionStorage.setItem('_myRankTag', data.tag); } catch(e) {}
     document.getElementById('inputTag').value = '';
     showToast('✓ ' + data.name + ' entrou com ' + data.trophies.toLocaleString('pt-BR') + ' troféus!', 'success');
     setCity(city);
@@ -1802,7 +1844,7 @@ function buildCards(players, containerId) {
     list.appendChild(card);
   });
 }
-function renderRanking() { buildCards(allPlayers.filter(function(p){ return p.city === activeCity; }).sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingList'); }
+function renderRanking() { buildCards(allPlayers.filter(function(p){ return p.city === activeCity; }).sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingList'); atualizarMyPositionBar(); }
 function renderRankingPE() { buildCards(allPlayers.slice().sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingListPE'); }
 
 window.atualizarManual = async function() {
@@ -1976,6 +2018,89 @@ window.compartilharRanking = function(tipo) {
     }
   }, 'image/png');
 };
+
+// ===== MINHA POSIÇÃO FIXA =====
+var _myTag = null; // tag do jogador logado
+
+function atualizarMyPositionBar() {
+  var bar = document.getElementById('myPositionBar');
+  if (!bar || !_myTag) return;
+
+  // Descobre posição no ranking atual da cidade
+  var sorted = allPlayers.filter(function(p){ return p.city === activeCity; }).sort(function(a,b){ return b.trophies-a.trophies; });
+  var idx = sorted.findIndex(function(p){ return (p.tag||'').toUpperCase() === _myTag.toUpperCase(); });
+  if (idx === -1) { bar.style.display = 'none'; return; }
+
+  var p = sorted[idx];
+  var pos = idx + 1;
+
+  document.getElementById('mpbRank').textContent = pos===1?'🥇':pos===2?'🥈':pos===3?'🥉':'#'+pos;
+  document.getElementById('mpbName').textContent = p.name || '-';
+  document.getElementById('mpbTag').textContent = p.tag || '';
+  document.getElementById('mpbTrophies').textContent = '🏆 ' + (p.trophies||0).toLocaleString('pt-BR');
+
+  var avatarEl = document.getElementById('mpbAvatar');
+  if (p.iconId) {
+    avatarEl.innerHTML = '<img src="https://cdn.brawlify.com/profile-icons/regular/' + p.iconId + '.png" onerror="this.parentElement.textContent=\'' + (p.emoji||'🎮') + '\'">';
+  } else {
+    avatarEl.textContent = p.emoji || '🎮';
+  }
+
+  // Mostra/esconde baseado na visibilidade do card do jogador na tela
+  var myCard = null;
+  var lista = document.getElementById('rankingList');
+  if (lista) {
+    var cards = lista.querySelectorAll('.player-card');
+    if (cards[idx]) myCard = cards[idx];
+  }
+
+  function checkVisibility() {
+    if (!myCard) { bar.style.display = 'flex'; return; }
+    var rect = myCard.getBoundingClientRect();
+    var visivel = rect.top < window.innerHeight - 80 && rect.bottom > 80;
+    bar.style.display = visivel ? 'none' : 'flex';
+  }
+
+  checkVisibility();
+  window.removeEventListener('scroll', window._mpbScrollHandler);
+  window._mpbScrollHandler = checkVisibility;
+  window.addEventListener('scroll', window._mpbScrollHandler, { passive: true });
+}
+
+// Detecta tag cadastrada ao entrar no ranking
+var _origCadastrar = window.cadastrarJogador;
+document.addEventListener('DOMContentLoaded', function() {
+  // Hook no botão entrar no ranking para capturar a tag
+  var btnEntrar = document.querySelector('.btn-register');
+  if (btnEntrar) {
+    btnEntrar.addEventListener('click', function() {
+      var tagInput = document.getElementById('inputTag');
+      if (tagInput && tagInput.value.trim()) {
+        var t = tagInput.value.trim().toUpperCase();
+        _myTag = t.startsWith('#') ? t : '#' + t;
+        setTimeout(atualizarMyPositionBar, 2000);
+      }
+    });
+  }
+  // Garante que footer e chatFloat estão diretamente no body (fix para Android)
+  var fixedEls = ['chatFloat', 'myPositionBar', 'adminTrigger'];
+  fixedEls.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el && el.parentNode !== document.body) {
+      document.body.appendChild(el);
+    }
+  });
+  var footer = document.querySelector('footer');
+  if (footer && footer.parentNode !== document.body) {
+    document.body.appendChild(footer);
+  }
+
+  // Restaura tag salva em sessionStorage
+  try {
+    var saved = sessionStorage.getItem('_myRankTag');
+    if (saved) { _myTag = saved; setTimeout(atualizarMyPositionBar, 2500); }
+  } catch(e) {}
+});
 
 // Bind botões
 document.addEventListener('DOMContentLoaded', function() {
@@ -3102,19 +3227,25 @@ var _chatUnsub = null;
 
 function toggleChatFloat() {
   var panel = document.getElementById('chatFloatPanel');
-  panel.classList.toggle('open');
-  // Se abrir, remove minimizado
-  if (panel.classList.contains('open')) {
-    panel.classList.remove('minimized');
-    document.getElementById('cfpMinimizeBtn').textContent = '─';
+  var isOpen = panel.classList.contains('open');
+  if (isOpen) {
+    panel.classList.remove('open');
+  } else {
+    panel.classList.add('open');
   }
 }
 
 function minimizarChatFloat() {
+  // Esconde o painel inteiro — fica só o balão
   var panel = document.getElementById('chatFloatPanel');
-  var btn = document.getElementById('cfpMinimizeBtn');
-  var minimizado = panel.classList.toggle('minimized');
-  btn.textContent = minimizado ? '▲' : '─';
+  panel.classList.remove('open');
+}
+
+function fecharChatFloat() {
+  // Fecha e desloga — precisa logar novamente ao abrir
+  var panel = document.getElementById('chatFloatPanel');
+  panel.classList.remove('open');
+  chatSair();
 }
 
 // Sincroniza campos do balão com a tab antiga (caso alguém use a tab)
