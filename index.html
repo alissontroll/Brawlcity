@@ -3439,11 +3439,18 @@ async function carregarBattleStats(tag, trofeus) {
     });
 
     // Horário pico
-    var horaPico = Object.keys(horasCount).sort(function(a,b){ return horasCount[b]-horasCount[a]; })[0];
-    var horaPicoStr = horaPico !== undefined ? horaPico + 'h - ' + (parseInt(horaPico)+1) + 'h' : '?';
+    // Horário pico — só considera horas que tiveram pelo menos 1 partida
+    var horasKeys = Object.keys(horasCount).filter(function(h){ return horasCount[h] > 0; });
+    horasKeys.sort(function(a,b){ return horasCount[b]-horasCount[a]; });
+    var horaPico = horasKeys[0];
+    var horaPicoStr = horaPico !== undefined
+      ? parseInt(horaPico) + 'h - ' + (parseInt(horaPico)+1) + 'h'
+      : '?';
 
-    // Dia pico
-    var diaPico = Object.keys(diasCount).sort(function(a,b){ return diasCount[b]-diasCount[a]; })[0] || '?';
+    // Dia pico — só considera dias com pelo menos 1 partida
+    var diasKeys = Object.keys(diasCount).filter(function(d){ return diasCount[d] > 0; });
+    diasKeys.sort(function(a,b){ return diasCount[b]-diasCount[a]; });
+    var diaPico = diasKeys[0] || '?';
 
     // Brawler mais usado
     var brawlerMais = Object.keys(brawlerCount).sort(function(a,b){ return brawlerCount[b]-brawlerCount[a]; })[0] || '?';
