@@ -747,6 +747,43 @@ footer { position:relative; z-index:10; text-align:center; padding:18px; font-we
 .admin-player-item { display:flex; align-items:center; justify-content:space-between; padding:8px; background:var(--surface2); border-radius:8px; margin-bottom:6px; }
 .admin-remove-btn { background:rgba(255,23,68,0.1); border:1px solid rgba(255,23,68,0.3); color:#ff8a80; padding:4px 10px; border-radius:6px; font-size:0.75rem; cursor:pointer; font-family:monospace; }
 
+/* ===== CHAT AO VIVO ===== */
+.chat-container { display:flex; flex-direction:column; height:calc(100vh - 180px); padding:12px; gap:10px; }
+.chat-login-box { background:var(--surface); border:1px solid var(--border2); border-radius:var(--r); padding:24px; text-align:center; }
+.chat-login-title { font-family:'Lilita One',cursive; font-size:1.4rem; color:var(--purple3); letter-spacing:2px; margin-bottom:6px; }
+.chat-login-desc { font-size:0.75rem; color:var(--text-dim); font-weight:800; margin-bottom:20px; }
+.chat-login-input { width:100%; background:var(--surface2); border:1px solid var(--border2); color:var(--text); padding:11px 14px; border-radius:10px; font-family:'Nunito',sans-serif; font-size:0.9rem; margin-bottom:10px; }
+.chat-login-input:focus { outline:none; border-color:var(--neon); }
+.chat-login-btn { width:100%; background:linear-gradient(135deg,var(--purple),var(--neon)); border:none; color:#fff; padding:12px; border-radius:10px; font-family:'Nunito',sans-serif; font-weight:900; font-size:1rem; cursor:pointer; letter-spacing:1px; transition:opacity 0.2s; }
+.chat-login-btn:hover { opacity:0.88; }
+.chat-login-btn:disabled { opacity:0.5; cursor:not-allowed; }
+.chat-login-error { color:var(--red); font-size:0.75rem; font-weight:800; margin-top:8px; }
+.chat-user-bar { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.chat-user-info { display:flex; align-items:center; gap:8px; }
+.chat-user-avatar { font-size:1.4rem; }
+.chat-user-name { font-family:'Lilita One',cursive; font-size:1rem; color:var(--text); letter-spacing:1px; }
+.chat-user-tag { font-family:'JetBrains Mono',monospace; font-size:0.6rem; color:var(--text-muted); }
+.chat-logout-btn { background:rgba(255,23,68,0.1); border:1px solid rgba(255,23,68,0.3); color:var(--red); padding:5px 12px; border-radius:8px; font-size:0.7rem; font-weight:900; cursor:pointer; letter-spacing:1px; }
+.chat-messages { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding:4px 0; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+.chat-msg { display:flex; align-items:flex-start; gap:8px; animation:fadeUp 0.25s ease both; }
+.chat-msg.mine { flex-direction:row-reverse; }
+.chat-msg-avatar { width:34px; height:34px; border-radius:50%; background:var(--surface2); border:2px solid var(--border2); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+.chat-msg-body { max-width:72%; }
+.chat-msg-name { font-size:0.62rem; font-weight:900; color:var(--purple3); letter-spacing:1px; margin-bottom:2px; }
+.chat-msg.mine .chat-msg-name { text-align:right; color:var(--cyan); }
+.chat-msg-bubble { background:var(--surface2); border:1px solid var(--border); border-radius:12px; border-top-left-radius:4px; padding:8px 12px; font-size:0.85rem; font-weight:700; line-height:1.4; word-break:break-word; }
+.chat-msg.mine .chat-msg-bubble { background:linear-gradient(135deg,rgba(138,43,226,0.25),rgba(201,64,255,0.15)); border-color:rgba(201,64,255,0.3); border-radius:12px; border-top-right-radius:4px; }
+.chat-msg-time { font-family:'JetBrains Mono',monospace; font-size:0.55rem; color:var(--text-muted); margin-top:2px; }
+.chat-msg.mine .chat-msg-time { text-align:right; }
+.chat-msg-banned { background:rgba(255,23,68,0.08); border:1px solid rgba(255,23,68,0.2); border-radius:8px; padding:6px 12px; font-size:0.75rem; color:var(--red); font-weight:800; font-style:italic; }
+.chat-input-row { display:flex; gap:8px; flex-shrink:0; }
+.chat-input { flex:1; background:var(--surface2); border:1px solid var(--border2); color:var(--text); padding:11px 14px; border-radius:10px; font-family:'Nunito',sans-serif; font-size:0.9rem; }
+.chat-input:focus { outline:none; border-color:var(--neon); }
+.chat-send-btn { background:linear-gradient(135deg,var(--purple),var(--neon)); border:none; color:#fff; padding:11px 18px; border-radius:10px; font-size:1.1rem; cursor:pointer; transition:opacity 0.2s; }
+.chat-send-btn:hover { opacity:0.85; }
+.chat-online-count { font-size:0.65rem; font-weight:900; color:var(--green); letter-spacing:1px; display:flex; align-items:center; gap:4px; }
+.chat-banned-msg { background:rgba(255,23,68,0.1); border:1px solid rgba(255,23,68,0.3); border-radius:10px; padding:16px; text-align:center; color:var(--red); font-weight:900; font-size:0.85rem; letter-spacing:1px; }
+
 /* ===== MODAL PERFIL ===== */
 .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; padding:16px; }
 .modal-overlay.open { display:flex; }
@@ -804,6 +841,7 @@ footer { position:relative; z-index:10; text-align:center; padding:18px; font-we
   <button class="tab-btn notif-tab" id="btnNotif" onclick="switchTab('notif',this)">🔔<span id="notifBadge" style="display:none" class="notif-badge">0</span></button>
   <button class="tab-btn" style="color:#a78bfa;" onclick="switchTab('semana',this)">📅 Semana</button>
   <button class="tab-btn" id="tabBtnPerfil" style="color:#00ff88;display:none;" onclick="switchTab('perfil',this)">👤 Perfil</button>
+  <button class="tab-btn" onclick="switchTab('chat',this)" style="color:#00e5ff;">💬 Chat<span id="chatBadge" style="display:none" class="notif-badge">!</span></button>
 </div>
 <div class="city-bar" id="cityBar"></div>
 <main>
@@ -870,6 +908,52 @@ footer { position:relative; z-index:10; text-align:center; padding:18px; font-we
     <div style="padding:16px;">
       <div style="font-family:Teko,sans-serif;font-size:1.3rem;color:#f39c12;letter-spacing:2px;margin-bottom:16px;">🔔 NOVIDADES</div>
       <div id="notifList"><div class="notif-empty">NENHUMA NOVIDADE AINDA</div></div>
+    </div>
+  </div>
+
+  <!-- TAB CHAT -->
+  <div class="tab-content" id="tab-chat">
+    <div class="chat-container">
+
+      <!-- TELA DE LOGIN -->
+      <div id="chatLoginBox" class="chat-login-box">
+        <div style="font-size:2.5rem;margin-bottom:8px;">💬</div>
+        <div class="chat-login-title">CHAT AO VIVO</div>
+        <div class="chat-login-desc">Entre com sua TAG do Brawl Stars para participar</div>
+        <input class="chat-login-input" id="chatTagInput" type="text" placeholder="#SUA TAG" maxlength="15" onkeydown="if(event.key==='Enter')chatEntrar()">
+        <input class="chat-login-input" id="chatSenhaInput" type="password" placeholder="Senha (mínimo 6 caracteres)" maxlength="30" onkeydown="if(event.key==='Enter')chatEntrar()">
+        <button class="chat-login-btn" id="chatLoginBtn" onclick="chatEntrar()">🎮 ENTRAR NO CHAT</button>
+        <div class="chat-login-error" id="chatLoginError"></div>
+        <div style="font-size:0.65rem;color:var(--text-muted);margin-top:12px;font-weight:800;">
+          Primeira vez? Crie sua conta digitando sua TAG e uma senha.<br>
+          Sua identidade é verificada pela API do Brawl Stars.
+        </div>
+      </div>
+
+      <!-- BARRA DO USUÁRIO LOGADO -->
+      <div id="chatUserBar" class="chat-user-bar" style="display:none;">
+        <div class="chat-user-info">
+          <div class="chat-user-avatar" id="chatUserEmoji">🎮</div>
+          <div>
+            <div class="chat-user-name" id="chatUserName">-</div>
+            <div class="chat-user-tag" id="chatUserTag">-</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="chat-online-count"><span class="live-dot" style="width:6px;height:6px;"></span><span id="chatOnlineCount">0</span> online</div>
+          <button class="chat-logout-btn" onclick="chatSair()">SAIR</button>
+        </div>
+      </div>
+
+      <!-- MENSAGENS -->
+      <div id="chatMessages" class="chat-messages" style="display:none;"></div>
+
+      <!-- INPUT -->
+      <div id="chatInputRow" class="chat-input-row" style="display:none;">
+        <input class="chat-input" id="chatInput" type="text" placeholder="Digite sua mensagem..." maxlength="200" onkeydown="if(event.key==='Enter')chatEnviar()">
+        <button class="chat-send-btn" onclick="chatEnviar()">➤</button>
+      </div>
+
     </div>
   </div>
 
@@ -1016,7 +1100,7 @@ footer { position:relative; z-index:10; text-align:center; padding:18px; font-we
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyAi05OMG44jmNm_HUEtv9LS_wa-tBvErd8",
   authDomain: "brawlcity-rank.firebaseapp.com",
@@ -2257,6 +2341,20 @@ async function abrirPerfilTab(p, pos) {
     '<div class="perfil-section-title">📈 EVOLUÇÃO DE TROFÉUS</div>' +
     '<div class="chart-container" style="margin-bottom:16px;"><div id="perfilChartArea"><div class="chart-empty">Carregando...</div></div></div>' +
 
+    // STATS DO BATTLELOG
+    '<div class="perfil-section-title">⚡ ESTATÍSTICAS DE JOGO</div>' +
+    '<div id="perfilBattleStats"><div class="chart-empty" style="padding:20px;">🔄 Analisando partidas...</div></div>' +
+
+    // META DE TROFÉUS
+    '<div class="perfil-section-title">🎯 META DE TROFÉUS</div>' +
+    '<div id="perfilMetaBox" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px;">' +
+      '<div style="display:flex;gap:8px;margin-bottom:10px;">' +
+        '<input id="metaInput" type="number" placeholder="Ex: 50000" min="1" style="flex:1;background:var(--surface);border:1px solid var(--border2);color:var(--text);padding:8px 12px;border-radius:8px;font-family:Nunito,sans-serif;font-size:0.9rem;">' +
+        '<button onclick="salvarMeta(\'' + (p.tag||'').replace('#','') + '\')" style="background:linear-gradient(135deg,var(--purple),var(--neon));border:none;color:#fff;padding:8px 16px;border-radius:8px;font-weight:900;font-size:0.85rem;cursor:pointer;">SALVAR</button>' +
+      '</div>' +
+      '<div id="metaProgressArea"></div>' +
+    '</div>' +
+
     // IA
     '<div class="ia-section">' +
       '<div class="ia-header"><div class="ia-title">🤖 ASSISTENTE IA</div><div class="ia-status"><span class="ia-dot"></span>ONLINE</div></div>' +
@@ -2322,6 +2420,10 @@ async function abrirPerfilTab(p, pos) {
     var ca2 = document.getElementById('perfilChartArea');
     if (ca2) ca2.innerHTML = '<div class="chart-empty">Erro ao carregar histórico</div>';
   }
+
+  // ===== BATTLELOG: horário, streak, brawler mais usado =====
+  carregarBattleStats(cleanTag, trofeus);
+  carregarMeta(cleanTag, trofeus);
 
   // Botão salvar perfil na aba
   var cp2 = document.getElementById('colorPickerTab');
@@ -2832,7 +2934,316 @@ window.iaEnviar = async function() {
   input.focus();
 };
 
-// === SKELETON LOADING ===
+// ===== CHAT AO VIVO =====
+var _chatUser = null;
+var _chatUnsub = null;
+
+async function chatEntrar() {
+  var tagRaw = document.getElementById('chatTagInput').value.trim().toUpperCase();
+  var senha = document.getElementById('chatSenhaInput').value.trim();
+  var errEl = document.getElementById('chatLoginError');
+  var btn = document.getElementById('chatLoginBtn');
+
+  if (!tagRaw) { errEl.textContent = '⚠️ Digite sua TAG!'; return; }
+  if (senha.length < 6) { errEl.textContent = '⚠️ Senha deve ter pelo menos 6 caracteres!'; return; }
+
+  var tag = tagRaw.startsWith('#') ? tagRaw : '#' + tagRaw;
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  try {
+    // Verifica TAG na API do Brawl Stars
+    var res = await fetch('/.netlify/functions/player?tag=' + encodeURIComponent(tag));
+    if (!res.ok) throw new Error('TAG não encontrada no Brawl Stars!');
+    var apiData = await res.json();
+    if (!apiData.name) throw new Error('TAG inválida!');
+
+    // Verifica/cria usuário no Firestore
+    var userRef = doc(db, 'chatUsers', tag.replace('#',''));
+    var userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      // Usuário já existe - verifica senha
+      var userData = userSnap.data();
+      if (userData.banned) {
+        errEl.textContent = '🚫 Você foi banido do chat!';
+        btn.disabled = false; btn.textContent = '🎮 ENTRAR NO CHAT';
+        return;
+      }
+      // Senha simples com hash
+      if (userData.senha !== btoa(senha)) {
+        errEl.textContent = '❌ Senha incorreta!';
+        btn.disabled = false; btn.textContent = '🎮 ENTRAR NO CHAT';
+        return;
+      }
+      // Atualiza dados da API
+      await updateDoc(userRef, { name: apiData.name, trophies: apiData.trophies || 0, lastLogin: Date.now() });
+      _chatUser = { tag: tag, name: apiData.name, emoji: userData.emoji || '🎮', banned: false };
+    } else {
+      // Novo usuário - cria conta
+      var emoji = ['🎮','⚡','🏆','💥','🦁','👑','🔥','💎','🌟','🎯'][Math.floor(Math.random()*10)];
+      await setDoc(userRef, {
+        tag: tag, name: apiData.name, trophies: apiData.trophies || 0,
+        senha: btoa(senha), emoji: emoji, banned: false, created: Date.now(), lastLogin: Date.now()
+      });
+      _chatUser = { tag: tag, name: apiData.name, emoji: emoji, banned: false };
+    }
+
+    // Mostra interface do chat
+    document.getElementById('chatLoginBox').style.display = 'none';
+    document.getElementById('chatUserBar').style.display = 'flex';
+    document.getElementById('chatMessages').style.display = 'flex';
+    document.getElementById('chatInputRow').style.display = 'flex';
+    document.getElementById('chatUserName').textContent = _chatUser.name;
+    document.getElementById('chatUserTag').textContent = _chatUser.tag;
+    document.getElementById('chatUserEmoji').textContent = _chatUser.emoji;
+
+    // Escuta mensagens em tempo real
+    chatEscutar();
+
+  } catch(e) {
+    errEl.textContent = '❌ ' + (e.message || 'Erro ao entrar');
+  }
+  btn.disabled = false;
+  btn.textContent = '🎮 ENTRAR NO CHAT';
+}
+
+function chatEscutar() {
+  if (_chatUnsub) _chatUnsub();
+  var messagesRef = collection(db, 'chatMessages');
+  var q = query(messagesRef, orderBy('timestamp', 'desc'), limit(50));
+  _chatUnsub = onSnapshot(q, function(snap) {
+    var msgs = [];
+    snap.forEach(function(d) { msgs.push({id: d.id, ...d.data()}); });
+    msgs.reverse();
+    var container = document.getElementById('chatMessages');
+    if (!container) return;
+    var isBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
+    container.innerHTML = '';
+    msgs.forEach(function(m) {
+      var isMine = _chatUser && m.tag === _chatUser.tag;
+      var div = document.createElement('div');
+      div.className = 'chat-msg' + (isMine ? ' mine' : '');
+      var hora = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '';
+      div.innerHTML =
+        '<div class="chat-msg-avatar">' + (m.emoji || '🎮') + '</div>' +
+        '<div class="chat-msg-body">' +
+          '<div class="chat-msg-name">' + (m.name || '?') + ' <span style="color:var(--text-muted);font-size:0.55rem;">' + (m.trophies ? '🏆'+m.trophies.toLocaleString('pt-BR') : '') + '</span></div>' +
+          '<div class="chat-msg-bubble">' + escapeHtml(m.text) + '</div>' +
+          '<div class="chat-msg-time">' + hora + (isMine ? ' ✓' : '') + '</div>' +
+        '</div>';
+      // Botão ban para admin (sua TAG)
+      if (_chatUser && _chatUser.tag === '#JQ2UUJLP' && !isMine) {
+        var banBtn = document.createElement('button');
+        banBtn.textContent = '🚫';
+        banBtn.title = 'Banir usuário';
+        banBtn.style.cssText = 'background:none;border:none;cursor:pointer;font-size:0.8rem;opacity:0.5;align-self:center;';
+        banBtn.onclick = function() { chatBanir(m.tag); };
+        div.appendChild(banBtn);
+      }
+      container.appendChild(div);
+    });
+    if (isBottom) container.scrollTop = container.scrollHeight;
+
+    // Badge de novas mensagens
+    var badge = document.getElementById('chatBadge');
+    var chatTab = document.getElementById('tab-chat');
+    if (badge && chatTab && !chatTab.classList.contains('active') && msgs.length > 0) {
+      badge.style.display = 'inline-block';
+    }
+  });
+}
+
+async function chatEnviar() {
+  if (!_chatUser) return;
+  var input = document.getElementById('chatInput');
+  var texto = input.value.trim();
+  if (!texto) return;
+  input.value = '';
+
+  try {
+    await addDoc(collection(db, 'chatMessages'), {
+      tag: _chatUser.tag,
+      name: _chatUser.name,
+      emoji: _chatUser.emoji,
+      trophies: 0,
+      text: texto,
+      timestamp: Date.now()
+    });
+  } catch(e) {
+    console.error('Erro ao enviar:', e);
+  }
+}
+
+async function chatBanir(tag) {
+  if (!confirm('Banir ' + tag + ' do chat?')) return;
+  try {
+    var userRef = doc(db, 'chatUsers', tag.replace('#',''));
+    await updateDoc(userRef, { banned: true });
+    alert('Usuário banido!');
+  } catch(e) { alert('Erro ao banir'); }
+}
+
+function chatSair() {
+  _chatUser = null;
+  if (_chatUnsub) { _chatUnsub(); _chatUnsub = null; }
+  document.getElementById('chatLoginBox').style.display = 'block';
+  document.getElementById('chatUserBar').style.display = 'none';
+  document.getElementById('chatMessages').style.display = 'none';
+  document.getElementById('chatInputRow').style.display = 'none';
+  document.getElementById('chatMessages').innerHTML = '';
+  document.getElementById('chatTagInput').value = '';
+  document.getElementById('chatSenhaInput').value = '';
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Esconde badge ao abrir chat
+var _origSwitchTab = switchTab;
+
+// ===== BATTLELOG STATS =====
+async function carregarBattleStats(tag, trofeus) {
+  var el = document.getElementById('perfilBattleStats');
+  if (!el) return;
+  try {
+    var res = await fetch('https://bsproxy.royaleapi.dev/v1/players/' + encodeURIComponent('#'+tag) + '/battlelog', {
+      headers: { 'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjljZTRjNDI3LTQ0MzMtNDFjZi04MzhkLWZlZTZlYzk4NTJiOSIsImlhdCI6MTc3MTc3MTQzNywic3ViIjoiZGV2ZWxvcGVyL2U4MjM0ZjYyLWFkZjgtN2UzZC0yYjI5LTk5OGI0YThlN2Q0YSIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiNDUuNzkuMjE4Ljc5Il0sInR5cGUiOiJjbGllbnQifV19.0an3H-7dBNfLxC01JZB3ZehQ3zw23w6oo3TKLblKXDEtxDbLny3C5xkqVLgPwyzuvD02KQstReqEx7k5MtmPGw' }
+    });
+    if (!res.ok) throw new Error('battlelog falhou');
+    var data = await res.json();
+    var battles = data.items || [];
+    if (!battles.length) { el.innerHTML = '<div class="chart-empty">Sem partidas recentes</div>'; return; }
+
+    // Analisa horários
+    var horasCount = {};
+    var diasCount = { 'Dom':0,'Seg':0,'Ter':0,'Qua':0,'Qui':0,'Sex':0,'Sáb':0 };
+    var diasNomes = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    var brawlerCount = {};
+    var diasJogou = new Set();
+    var vitorias = 0; var derrotas = 0;
+
+    battles.forEach(function(b) {
+      // Horário
+      var t = b.battleTime || '';
+      if (t) {
+        var dt = new Date(t.replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/,'$1-$2-$3T$4:$5:$6Z'));
+        var hora = dt.getHours();
+        horasCount[hora] = (horasCount[hora]||0) + 1;
+        var dia = diasNomes[dt.getDay()];
+        diasCount[dia] = (diasCount[dia]||0) + 1;
+        diasJogou.add(dt.toDateString());
+      }
+      // Brawler usado
+      var battle = b.battle || {};
+      var teams = battle.teams || [];
+      teams.forEach(function(team) {
+        team.forEach(function(player) {
+          if (player.tag && player.tag.replace('#','') === tag) {
+            var bName = player.brawler && player.brawler.name ? player.brawler.name : null;
+            if (bName) brawlerCount[bName] = (brawlerCount[bName]||0) + 1;
+          }
+        });
+      });
+      // Vitórias/derrotas
+      var result = battle.result || '';
+      if (result === 'victory') vitorias++;
+      else if (result === 'defeat') derrotas++;
+    });
+
+    // Horário pico
+    var horaPico = Object.keys(horasCount).sort(function(a,b){ return horasCount[b]-horasCount[a]; })[0];
+    var horaPicoStr = horaPico !== undefined ? horaPico + 'h - ' + (parseInt(horaPico)+1) + 'h' : '?';
+
+    // Dia pico
+    var diaPico = Object.keys(diasCount).sort(function(a,b){ return diasCount[b]-diasCount[a]; })[0] || '?';
+
+    // Brawler mais usado
+    var brawlerMais = Object.keys(brawlerCount).sort(function(a,b){ return brawlerCount[b]-brawlerCount[a]; })[0] || '?';
+    var brawlerMaisQtd = brawlerMais !== '?' ? brawlerCount[brawlerMais] : 0;
+
+    // Streak de dias
+    var diasArr = Array.from(diasJogou).map(function(d){ return new Date(d).getTime(); }).sort(function(a,b){return b-a;});
+    var streak = 1; var hoje = new Date(); hoje.setHours(0,0,0,0);
+    for (var i=0; i<diasArr.length-1; i++) {
+      var diff = (diasArr[i] - diasArr[i+1]) / (1000*60*60*24);
+      if (diff <= 1) streak++; else break;
+    }
+
+    // Winrate
+    var total = vitorias + derrotas;
+    var winrate = total > 0 ? Math.round((vitorias/total)*100) : 0;
+
+    el.innerHTML =
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">' +
+        '<div class="perfil-stat"><div class="perfil-stat-val" style="color:var(--cyan);">🕐 ' + horaPicoStr + '</div><div class="perfil-stat-lbl">Horário que mais joga</div></div>' +
+        '<div class="perfil-stat"><div class="perfil-stat-val" style="color:#a78bfa;">📅 ' + diaPico + '</div><div class="perfil-stat-lbl">Dia mais produtivo</div></div>' +
+        '<div class="perfil-stat"><div class="perfil-stat-val" style="color:var(--gold);">🔥 ' + streak + ' dias</div><div class="perfil-stat-lbl">Sequência jogando</div></div>' +
+        '<div class="perfil-stat"><div class="perfil-stat-val" style="color:var(--green);">' + winrate + '%</div><div class="perfil-stat-lbl">Winrate recente</div></div>' +
+      '</div>' +
+      '<div class="perfil-stat" style="text-align:center;padding:12px;">' +
+        '<div style="font-size:0.65rem;font-weight:900;color:var(--text-dim);letter-spacing:1px;margin-bottom:4px;">🎮 BRAWLER MAIS USADO RECENTEMENTE</div>' +
+        '<div style="font-family:\'Lilita One\',cursive;font-size:1.4rem;color:var(--purple3);">' + brawlerMais + '</div>' +
+        '<div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">' + brawlerMaisQtd + ' partidas nas últimas 25</div>' +
+      '</div>';
+
+  } catch(e) {
+    if (el) el.innerHTML = '<div class="chart-empty">Não foi possível carregar partidas recentes</div>';
+  }
+}
+
+// ===== META DE TROFÉUS =====
+function carregarMeta(tag, trofeus) {
+  var metaInput = document.getElementById('metaInput');
+  var area = document.getElementById('metaProgressArea');
+  if (!metaInput || !area) return;
+
+  // Carrega meta salva no localStorage
+  var metaSalva = localStorage.getItem('meta_' + tag);
+  if (metaSalva) {
+    metaInput.value = metaSalva;
+    renderMeta(parseInt(metaSalva), trofeus);
+  }
+}
+
+function salvarMeta(tag) {
+  var metaInput = document.getElementById('metaInput');
+  if (!metaInput) return;
+  var meta = parseInt(metaInput.value);
+  if (!meta || meta <= 0) { alert('Digite um número válido!'); return; }
+  localStorage.setItem('meta_' + tag, meta);
+  // Busca troféus atuais do jogador
+  var trofeus = 0;
+  if (window.allPlayers) {
+    var jogador = window.allPlayers.find(function(p){ return (p.tag||'').replace('#','') === tag; });
+    if (jogador) trofeus = jogador.trophies || 0;
+  }
+  renderMeta(meta, trofeus);
+}
+
+function renderMeta(meta, trofeus) {
+  var area = document.getElementById('metaProgressArea');
+  if (!area) return;
+  var pct = Math.min(Math.round((trofeus / meta) * 100), 100);
+  var faltam = Math.max(meta - trofeus, 0);
+  var cor = pct >= 100 ? 'var(--green)' : pct >= 75 ? 'var(--gold)' : pct >= 50 ? 'var(--cyan)' : 'var(--purple3)';
+  area.innerHTML =
+    '<div style="display:flex;justify-content:space-between;font-size:0.72rem;font-weight:900;margin-bottom:6px;">' +
+      '<span style="color:var(--text-dim);">🏆 ' + trofeus.toLocaleString('pt-BR') + ' / ' + meta.toLocaleString('pt-BR') + '</span>' +
+      '<span style="color:' + cor + ';">' + pct + '%</span>' +
+    '</div>' +
+    '<div style="background:var(--surface);border-radius:20px;height:14px;overflow:hidden;border:1px solid var(--border);">' +
+      '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,' + cor + ',var(--neon));border-radius:20px;transition:width 0.8s ease;box-shadow:0 0 10px ' + cor + ';"></div>' +
+    '</div>' +
+    (pct >= 100
+      ? '<div style="text-align:center;color:var(--green);font-weight:900;font-size:0.85rem;margin-top:8px;">🎉 META ATINGIDA! Defina uma nova meta!</div>'
+      : '<div style="text-align:center;color:var(--text-muted);font-size:0.68rem;margin-top:6px;">Faltam <strong style="color:var(--text);">' + faltam.toLocaleString('pt-BR') + '</strong> troféus para sua meta</div>'
+    );
+}
+
+// ===== SKELETON LOADING =====
 function renderSkeletons(containerId, count) {
   count = count || 7;
   var html = '';
@@ -2871,6 +3282,10 @@ function switchTab(tab, el) {
   document.getElementById('tab-'+tab).classList.add('active');
   el.classList.add('active');
   document.getElementById('cityBar').style.display = tab==='cidade' ? 'flex' : 'none';
+  if (tab === 'chat') {
+    var badge = document.getElementById('chatBadge');
+    if (badge) badge.style.display = 'none';
+  }
   if (tab === 'mapas' && !window._mapaCarregado) {
     window._mapaCarregado = true;
     setTimeout(function(){
