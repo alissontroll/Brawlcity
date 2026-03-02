@@ -670,6 +670,292 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
 #myPositionBar .mpb-label { font-size:0.5rem; color:var(--text-muted); font-weight:900; letter-spacing:1px; text-align:right; }
 #myPositionBar .mpb-badge { font-size:0.6rem; background:var(--purple); color:#fff; padding:2px 7px; border-radius:10px; font-weight:900; white-space:nowrap; }
 
+.tab-btn.fama-tab.active {
+  background: linear-gradient(135deg, #b8860b, var(--gold));
+  border-color: var(--gold);
+  color: #000;
+  box-shadow: 0 4px 20px rgba(255,208,0,0.4);
+}
+
+/* ===== PREVISÃO DE QUEDA ===== */
+@keyframes previsao-pulse {
+  0%,100% { box-shadow: 0 0 0px rgba(201,64,255,0); }
+  50%      { box-shadow: 0 0 16px rgba(201,64,255,0.25); }
+}
+.previsao-card {
+  border-radius: 10px;
+  padding: 14px;
+  animation: previsao-pulse 3s ease-in-out infinite;
+}
+.previsao-card.subindo {
+  background: rgba(0,230,118,0.06);
+  border: 1px solid rgba(0,230,118,0.3);
+}
+.previsao-card.estavel {
+  background: rgba(0,229,255,0.06);
+  border: 1px solid rgba(0,229,255,0.25);
+}
+.previsao-card.caindo {
+  background: rgba(255,23,68,0.06);
+  border: 1px solid rgba(255,23,68,0.3);
+}
+.previsao-card.risco {
+  background: rgba(255,152,0,0.06);
+  border: 1px solid rgba(255,152,0,0.35);
+}
+.previsao-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.previsao-icon { font-size: 2rem; line-height: 1; }
+.previsao-label { font-family: 'Lilita One', cursive; font-size: 1rem; letter-spacing: 1px; }
+.previsao-card.subindo .previsao-label { color: var(--green); }
+.previsao-card.estavel .previsao-label { color: var(--cyan); }
+.previsao-card.caindo .previsao-label { color: var(--red); }
+.previsao-card.risco .previsao-label { color: #ff9800; }
+.previsao-texto {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  line-height: 1.55;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 10px;
+  margin-top: 2px;
+}
+.previsao-stats {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.previsao-stat {
+  flex: 1;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  padding: 6px 8px;
+  text-align: center;
+}
+.previsao-stat-val { font-family: 'Lilita One', cursive; font-size: 0.95rem; line-height: 1; }
+.previsao-stat-lbl { font-size: 0.52rem; font-weight: 900; color: var(--text-muted); letter-spacing: 1px; margin-top: 2px; }
+
+/* ===== HALL DA FAMA ===== */
+@keyframes floatCrown {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+@keyframes fama-shine {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.fama-card {
+  position: relative;
+  border-radius: var(--r);
+  padding: 18px;
+  margin-bottom: 14px;
+  overflow: hidden;
+  cursor: default;
+  animation: fadeUp 0.5s ease both;
+}
+.fama-card-1 {
+  background: linear-gradient(135deg, #1a1200, #2d2000);
+  border: 2px solid rgba(255,208,0,0.5);
+  box-shadow: 0 0 30px rgba(255,208,0,0.15), inset 0 1px 0 rgba(255,208,0,0.2);
+}
+.fama-card-2 {
+  background: linear-gradient(135deg, #111418, #1a1e24);
+  border: 2px solid rgba(192,208,224,0.4);
+  box-shadow: 0 0 20px rgba(192,208,224,0.1);
+}
+.fama-card-3 {
+  background: linear-gradient(135deg, #120a00, #1e1200);
+  border: 2px solid rgba(205,127,50,0.4);
+  box-shadow: 0 0 20px rgba(205,127,50,0.1);
+}
+.fama-card-n {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+}
+.fama-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+  background-size: 200% 100%;
+  animation: fama-shine 4s linear infinite;
+  pointer-events: none;
+}
+.fama-numero {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-family: 'Lilita One', cursive;
+  font-size: 3rem;
+  opacity: 0.06;
+  line-height: 1;
+  pointer-events: none;
+}
+.fama-top-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.fama-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  overflow: hidden;
+}
+.fama-card-1 .fama-avatar { border: 3px solid var(--gold); box-shadow: 0 0 16px rgba(255,208,0,0.4); }
+.fama-card-2 .fama-avatar { border: 3px solid var(--silver); box-shadow: 0 0 12px rgba(192,208,224,0.3); }
+.fama-card-3 .fama-avatar { border: 3px solid var(--bronze); box-shadow: 0 0 12px rgba(205,127,50,0.3); }
+.fama-card-n .fama-avatar { border: 2px solid var(--border2); }
+.fama-crown { font-size: 1.4rem; line-height: 1; margin-bottom: 2px; }
+.fama-info { flex: 1; min-width: 0; }
+.fama-name { font-family: 'Lilita One', cursive; font-size: 1.3rem; letter-spacing: 1px; color: #fff; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fama-card-1 .fama-name { color: var(--gold); }
+.fama-week { font-size: 0.65rem; font-weight: 900; color: var(--text-dim); letter-spacing: 1px; margin-top: 2px; }
+.fama-trofeus { font-family: 'Lilita One', cursive; font-size: 1.5rem; color: var(--green); text-align: right; flex-shrink: 0; }
+.fama-trofeus-label { font-size: 0.55rem; font-weight: 900; color: var(--text-dim); letter-spacing: 1px; text-align: right; }
+.fama-stats-row {
+  display: flex;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.fama-stat {
+  flex: 1;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  padding: 6px 8px;
+  text-align: center;
+}
+.fama-stat-val { font-family: 'Lilita One', cursive; font-size: 1rem; color: var(--purple3); line-height: 1; }
+.fama-stat-lbl { font-size: 0.52rem; font-weight: 900; color: var(--text-muted); letter-spacing: 1px; margin-top: 2px; }
+.fama-empty { text-align: center; padding: 50px 20px; color: var(--text-dim); font-family: 'Lilita One', cursive; font-size: 1.1rem; letter-spacing: 2px; }
+
+/* ===== INSÍGNIA MVP ===== */
+@keyframes mvp-glow {
+  0%,100% { filter: drop-shadow(0 0 4px rgba(255,208,0,0.6)); }
+  50%      { filter: drop-shadow(0 0 10px rgba(255,208,0,1)); }
+}
+.mvp-insignia {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: linear-gradient(135deg, rgba(255,208,0,0.18), rgba(255,149,0,0.12));
+  border: 1px solid rgba(255,208,0,0.45);
+  border-radius: 20px;
+  padding: 2px 7px 2px 5px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 0.5px;
+  vertical-align: middle;
+  margin-left: 5px;
+  white-space: nowrap;
+  animation: mvp-glow 2.5s ease-in-out infinite;
+  cursor: default;
+}
+.mvp-insignia-crown { font-size: 0.75rem; line-height: 1; }
+
+/* ===== ZOAÇÃO SEMANA ===== */
+@keyframes zzz-float {
+  0%,100% { transform: translateY(0) scale(1); opacity:0.7; }
+  50%      { transform: translateY(-8px) scale(1.15); opacity:1; }
+}
+@keyframes roast-shake {
+  0%,100% { transform: rotate(0deg); }
+  25%     { transform: rotate(-1.5deg); }
+  75%     { transform: rotate(1.5deg); }
+}
+@keyframes roast-pulse-red {
+  0%,100% { box-shadow: 0 0 0px rgba(255,23,68,0); }
+  50%     { box-shadow: 0 0 18px rgba(255,23,68,0.45); }
+}
+@keyframes roast-pulse-yellow {
+  0%,100% { box-shadow: 0 0 0px rgba(255,193,7,0); }
+  50%     { box-shadow: 0 0 14px rgba(255,193,7,0.3); }
+}
+@keyframes skull-spin {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(15deg) scale(1.2); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+.roast-tier0 {
+  opacity: 0.62;
+  filter: grayscale(0.75) brightness(0.72);
+  border-color: rgba(80,60,80,0.3) !important;
+  animation: roast-shake 4s ease-in-out infinite;
+}
+.roast-tier0:hover { filter: none; opacity:1; animation: none; }
+.roast-tier1 {
+  border-color: rgba(255,23,68,0.4) !important;
+  background: rgba(255,23,68,0.05) !important;
+  animation: roast-pulse-red 2s ease-in-out infinite;
+}
+.roast-tier2 {
+  border-color: rgba(255,193,7,0.35) !important;
+  background: rgba(255,193,7,0.04) !important;
+  animation: roast-pulse-yellow 2.5s ease-in-out infinite;
+}
+.roast-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  border-radius: 8px;
+  padding: 5px 8px;
+  margin-top: 6px;
+  max-width: 100%;
+  word-break: break-word;
+  line-height: 1.35;
+}
+.roast-badge.b0 {
+  background: rgba(55,35,80,0.55);
+  border: 1px solid rgba(100,70,140,0.4);
+}
+.roast-badge.b1 {
+  background: rgba(255,23,68,0.13);
+  border: 1px solid rgba(255,23,68,0.42);
+}
+.roast-badge.b2 {
+  background: rgba(255,193,7,0.1);
+  border: 1px solid rgba(255,193,7,0.38);
+}
+.roast-badge-title {
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.b0 .roast-badge-title { color: #b39ddb; }
+.b1 .roast-badge-title { color: #ff5370; }
+.b2 .roast-badge-title { color: #ffd740; }
+.roast-badge-text {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-dim);
+}
+.roast-overlay-icon {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  font-size: 1.1rem;
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0.6;
+}
+.roast-zzz { animation: zzz-float 2s ease-in-out infinite; filter: drop-shadow(0 0 5px #7c4dff88); }
+.roast-skull { animation: skull-spin 3s ease-in-out infinite; filter: drop-shadow(0 0 5px rgba(255,23,68,0.6)); }
+
 /* ===== NOTIF ===== */
 .notif-item { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; display:flex; align-items:flex-start; gap:12px; }
 .notif-icon { font-size:1.5rem; }
@@ -945,6 +1231,7 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
   <button class="tab-btn map-tab" onclick="switchTab('mapas',this)">🗺️ Mapas</button>
   <button class="tab-btn notif-tab" id="btnNotif" onclick="switchTab('notif',this)">🔔<span id="notifBadge" style="display:none" class="notif-badge">0</span></button>
   <button class="tab-btn" style="color:#a78bfa;" onclick="switchTab('semana',this)">📅 Semana</button>
+  <button class="tab-btn fama-tab" onclick="switchTab('fama',this)">🏛️ Fama</button>
   <button class="tab-btn" id="tabBtnPerfil" style="color:#00ff88;display:none;" onclick="switchTab('perfil',this)">👤 Perfil</button>
   
 </div>
@@ -1006,6 +1293,17 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
       </div>
       <div id="mvpBanner"></div>
       <div id="rankingSemanaList"><div class="loading-state"><div class="empty-icon">⏳</div><p>CARREGANDO...</p></div></div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-fama">
+    <div style="padding:16px;">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:3rem;filter:drop-shadow(0 0 20px rgba(255,208,0,0.6));animation:floatCrown 2s ease-in-out infinite;">🏛️</div>
+        <div style="font-family:'Lilita One',cursive;font-size:1.8rem;letter-spacing:3px;background:linear-gradient(135deg,var(--gold),var(--gold2),var(--neon));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">HALL DA FAMA</div>
+        <div style="font-size:0.65rem;font-weight:900;color:var(--text-dim);letter-spacing:3px;margin-top:4px;">OS MAIORES CAMPEÕES DO BRAWLCITY</div>
+      </div>
+      <div id="hallFamaList"><div class="loading-state"><div class="empty-icon">⏳</div><p>CARREGANDO...</p></div></div>
     </div>
   </div>
 
@@ -1178,6 +1476,22 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
         <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:10px;font-family:monospace;">Reseta os troféus base de todos os jogadores para iniciar uma nova semana.</div>
         <button class="admin-btn" style="background:#e67e2222;border:1px solid #e67e22;color:#e67e22;" id="btnResetSemana">⚠️ RESETAR SEMANA AGORA</button>
         <div id="adminResetMsg" style="font-size:0.75rem;margin-top:6px;"></div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">🏛️ REGISTRAR MVP NO HALL DA FAMA</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;font-family:monospace;">Registre manualmente um MVP histórico.</div>
+        <select class="admin-input" id="adminFamaPlayer" style="margin-bottom:8px;">
+          <option value="">— Selecione o jogador —</option>
+        </select>
+        <input class="admin-input" id="adminFamaGanho" type="number" placeholder="Troféus ganhos naquela semana (ex: 858)" style="margin-bottom:8px;">
+        <input class="admin-input" id="adminFamaData" type="text" placeholder="Data (ex: 01/03/2026)" style="margin-bottom:8px;">
+        <button class="admin-btn admin-btn-primary" id="btnRegistrarFama">👑 REGISTRAR NO HALL DA FAMA</button>
+        <div id="adminFamaMsg" style="font-size:0.75rem;margin-top:6px;font-weight:800;"></div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">👑 INSÍGNIAS MVP</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;font-family:monospace;">Ajuste manualmente quantas vezes cada jogador foi MVP da semana.</div>
+        <div id="adminMvpList"></div>
       </div>
       <div class="admin-section">
         <div class="admin-section-title">🔒 BLOQUEAR JOGADOR</div>
@@ -1827,7 +2141,7 @@ function buildCards(players, containerId) {
           (p.iconId ? '<img src="https://cdn.brawlify.com/profile-icons/regular/' + p.iconId + '.png" style="width:100%;height:100%;object-fit:cover;" onerror="this.textContent=\'' + (p.emoji||'🎮') + '\'" data-fb="' + (p.emoji||'🎮') + '">' : (p.emoji || '🎮')) +
         '</div>' +
         '<div class="player-info">' +
-          '<div class="player-name">' + p.name + '</div>' +
+          '<div class="player-name">' + p.name + (p.mvpCount > 0 ? '<span class="mvp-insignia" title="MVP da Semana ' + p.mvpCount + 'x"><span class="mvp-insignia-crown">👑</span>×' + p.mvpCount + '</span>' : '') + '</div>' +
           '<div class="player-meta">' +
             '<span class="player-tag">' + p.tag + '</span>' +
             '<span class="player-city">📍 ' + p.city + '</span>' +
@@ -1907,21 +2221,90 @@ function renderRankingSemana() {
   var medals = ['🥇','🥈','🥉'];
   renderMVP(comGanho);
   verificarMVP(comGanho);
+  var roastsTier0 = [
+    'Morreu? Desapareceu? Foi pra escola? Ninguém sabe.',
+    'Dormiu a semana inteira. Respeito, mas que vergonha.',
+    'O celular deve tá carregando desde segunda-feira.',
+    'Nem o radar detectou esse cara essa semana.',
+    'Cadastrou no ranking pra aparecer zero vez. Genial.',
+    'Esse slot no ranking tá desperdiçado.',
+    'Foi assistir os outros jogarem no YouTube.',
+    'Zumbi do ranking. Existe mas não joga.',
+    'Sumiu do mapa. A cidade tá melhor sem você.',
+    'Descanse em paz. O jogo segue sem você.',
+  ];
+  var roastsTier1 = [
+    'Jogou sim, mas queria não ter jogado.',
+    'Esse ganho é um insulto à humanidade.',
+    'Mais devagar impossível. Tartaruga ganha mais.',
+    'Foi só pra não zerar? Honra de nada.',
+    'Jogou assim de propósito? Foi horrível.',
+    'Esse desempenho deveria ser ilegal.',
+    'Esse número de troféus é uma piada. Literalmente.',
+    'Até os bots jogam melhor que isso.',
+    'Tá enferrujado demais. Urgente.',
+    'Esse troféu ganhou ou perdeu? Difícil saber.',
+  ];
+  var roastsTier2 = [
+    'Pelo menos jogou. Mas não animou muito não.',
+    'Seco, sem graça, mediano ao extremo.',
+    'Desempenho de NPC de fundo de cenário.',
+    'Não foi ruim. Mas também não foi nada.',
+    'Bocejei enquanto via esse ganho aqui.',
+    'Foi um passo de caracol essa semana.',
+    'Existe, joga, mas não impressiona ninguém.',
+  ];
+
+  function getRoast(tier) {
+    var arr = tier===0?roastsTier0:tier===1?roastsTier1:roastsTier2;
+    return arr[Math.floor(Math.random()*arr.length)];
+  }
+
   lista.innerHTML = comGanho.map(function(p, i) {
     var medal = i < 3 ? medals[i] : '#'+(i+1);
     var cor = i===0?'#f5a623':i===1?'#aaa':i===2?'#cd7f32':'var(--text-dim)';
-    return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">' +
-      '<div style="font-family:Teko,sans-serif;font-size:1.3rem;color:'+cor+';min-width:32px;">'+medal+'</div>' +
-      '<div style="font-size:1.6rem;">'+p.emoji+'</div>' +
-      '<div style="flex:1;">' +
-        '<div style="font-family:Teko,sans-serif;font-size:1.1rem;color:var(--text);">'+p.name+'</div>' +
-        '<div style="font-size:0.7rem;color:var(--text-muted);">📍 '+p.city+'</div>' +
+
+    var cardClass='', overlayIcon='', roastBadgeHtml='', trofeusColor='#555';
+
+    if (p.ganhoSemana === 0) {
+      cardClass = 'roast-tier0';
+      overlayIcon = '';
+      roastBadgeHtml = '<div class="roast-badge b0"><span class="roast-badge-title">💤 Desaparecido</span><span class="roast-badge-text">' + getRoast(0) + '</span></div>';
+    } else if (p.ganhoSemana <= 50) {
+      cardClass = 'roast-tier1';
+      overlayIcon = '';
+      roastBadgeHtml = '<div class="roast-badge b1"><span class="roast-badge-title">💀 Vergonha do ranking</span><span class="roast-badge-text">' + getRoast(1) + '</span></div>';
+      trofeusColor = '#ff5370';
+    } else if (p.ganhoSemana <= 150) {
+      cardClass = 'roast-tier2';
+      overlayIcon = '';
+      roastBadgeHtml = '<div class="roast-badge b2"><span class="roast-badge-title">😑 Medíocre</span><span class="roast-badge-text">' + getRoast(2) + '</span></div>';
+      trofeusColor = '#ffd740';
+    } else {
+      trofeusColor = '#2ecc71';
+    }
+
+    var avatarHtml = p.iconId
+      ? '<img src="https://cdn.brawlify.com/profile-icons/regular/'+p.iconId+'.png" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(138,43,226,0.4);object-fit:cover;flex-shrink:0;" onerror="this.outerHTML=\'<span style=font-size:1.6rem;flex-shrink:0>'+p.emoji+'</span>\'">'
+      : '<span style="font-size:1.6rem;flex-shrink:0;">'+p.emoji+'</span>';
+
+    return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;position:relative;overflow:hidden;" class="'+cardClass+'">' +
+      // Linha de cima: posição + avatar + nome + troféus
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:'+(roastBadgeHtml?'8px':'0')+'">' +
+        '<div style="font-family:Teko,sans-serif;font-size:1.3rem;color:'+cor+';min-width:28px;flex-shrink:0;">'+medal+'</div>' +
+        avatarHtml +
+        '<div style="flex:1;min-width:0;overflow:hidden;">' +
+          '<div style="font-family:Teko,sans-serif;font-size:1.1rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+p.name+(p.mvpCount>0?' <span class="mvp-insignia"><span class="mvp-insignia-crown">👑</span>×'+p.mvpCount+'</span>':'')+'</div>' +
+          '<div style="font-size:0.7rem;color:var(--text-muted);">📍 '+p.city+'</div>' +
+        '</div>' +
+        '<div style="text-align:right;flex-shrink:0;">' +
+          '<div style="font-family:Teko,sans-serif;font-size:1.25rem;color:'+trofeusColor+';line-height:1;">'+(p.ganhoSemana>0?'+':'')+p.ganhoSemana.toLocaleString('pt-BR')+'</div>' +
+          '<div style="font-size:0.58rem;color:var(--text-dim);letter-spacing:1px;">TROFÉUS</div>' +
+          '<div style="font-size:0.63rem;color:var(--text-dim);">🏆 '+p.trophies.toLocaleString('pt-BR')+' total</div>' +
+        '</div>' +
       '</div>' +
-      '<div style="text-align:right;">' +
-        '<div style="font-family:Teko,sans-serif;font-size:1.2rem;color:' + (p.ganhoSemana > 0 ? '#2ecc71' : '#666') + ';">' + (p.ganhoSemana > 0 ? '+' : '') + p.ganhoSemana.toLocaleString('pt-BR') + '</div>' +
-        '<div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;">TROFÉUS</div>' +
-        '<div style="font-size:0.65rem;color:var(--text-dim);">🏆 '+p.trophies.toLocaleString('pt-BR')+' total</div>' +
-      '</div>' +
+      // Badge de zoação embaixo, largura total
+      roastBadgeHtml +
     '</div>';
   }).join('');
 }
@@ -2235,6 +2618,49 @@ window.fecharAdmin = function() {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Preenche select de jogadores no Hall da Fama admin
+  function preencherSelectFama() {
+    var sel = document.getElementById('adminFamaPlayer');
+    if (!sel || !allPlayers.length) return;
+    var sorted = allPlayers.slice().sort(function(a,b){ return a.name.localeCompare(b.name); });
+    sel.innerHTML = '<option value="">— Selecione o jogador —</option>' +
+      sorted.map(function(p){ return '<option value="'+p.id+'" data-name="'+p.name+'" data-tag="'+p.tag+'" data-city="'+p.city+'" data-emoji="'+(p.emoji||'🎮')+'" data-iconid="'+(p.iconId||'')+'" data-trophies="'+p.trophies+'">'+p.name+' ('+p.city+')</option>'; }).join('');
+  }
+
+  // Repreenche ao clicar no select (garante dados atualizados)
+  document.getElementById('adminFamaPlayer').addEventListener('mousedown', preencherSelectFama);
+  document.getElementById('adminFamaPlayer').addEventListener('focus', preencherSelectFama);
+
+  // Registrar no Hall da Fama
+  document.getElementById('btnRegistrarFama').addEventListener('click', async function() {
+    var sel = document.getElementById('adminFamaPlayer');
+    var opt = sel.options[sel.selectedIndex];
+    var ganho = parseInt(document.getElementById('adminFamaGanho').value);
+    var data = document.getElementById('adminFamaData').value.trim();
+    var msg = document.getElementById('adminFamaMsg');
+    if (!opt || !opt.value) { msg.style.color='#e74c3c'; msg.textContent='Selecione um jogador!'; return; }
+    if (!ganho || ganho <= 0) { msg.style.color='#e74c3c'; msg.textContent='Digite os troféus ganhos!'; return; }
+    if (!data) { msg.style.color='#e74c3c'; msg.textContent='Digite a data!'; return; }
+    try {
+      await addDoc(collection(db, 'hallDaFama'), {
+        playerId: opt.value,
+        name: opt.dataset.name,
+        tag: opt.dataset.tag,
+        city: opt.dataset.city,
+        emoji: opt.dataset.emoji,
+        iconId: opt.dataset.iconid || null,
+        ganhoSemana: ganho,
+        trophies: parseInt(opt.dataset.trophies) || 0,
+        timestamp: Date.now(),
+        semana: data
+      });
+      msg.style.color='#2ecc71';
+      msg.textContent='✅ Registrado no Hall da Fama!';
+      document.getElementById('adminFamaGanho').value='';
+      document.getElementById('adminFamaData').value='';
+    } catch(e) { msg.style.color='#e74c3c'; msg.textContent='Erro ao registrar!'; }
+  });
+
   // Login admin
   document.getElementById('btnAdminLogin').addEventListener('click', async function() {
     var user = document.getElementById('adminUser').value;
@@ -2246,6 +2672,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('adminPainel').style.display = 'block';
       carregarAdminPlayers();
       carregarVisitas();
+      preencherSelectFama();
     } else {
       document.getElementById('adminErr').style.display = 'block';
     }
@@ -2370,8 +2797,45 @@ function carregarAdminPlayers() {
     lista.appendChild(item);
   });
 
-  // Lista de bloqueio
-  var blockList = document.getElementById('adminBlockList');
+  // Lista MVP
+  var mvpList = document.getElementById('adminMvpList');
+  if (mvpList) {
+    mvpList.innerHTML = '';
+    sorted.forEach(function(p) {
+      var item3 = document.createElement('div');
+      item3.className = 'admin-player-item';
+      item3.style.cssText = 'flex-wrap:wrap;gap:6px;';
+      var mvpAtual = p.mvpCount || 0;
+      item3.innerHTML =
+        '<div style="flex:1;min-width:0;">' +
+          '<span style="font-family:Teko,sans-serif;font-size:0.95rem;">'+p.name+'</span>' +
+          '<br><span style="font-size:0.65rem;color:var(--text-dim);">👑 '+mvpAtual+'x MVP</span>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:6px;">' +
+          '<button class="admin-remove-btn" style="background:rgba(138,43,226,0.12);border-color:rgba(138,43,226,0.4);color:#d580ff;font-size:1rem;padding:4px 10px;" data-action="dec">−</button>' +
+          '<span class="mvp-count-display" style="font-family:Teko,sans-serif;font-size:1.1rem;color:var(--gold);min-width:20px;text-align:center;">'+mvpAtual+'</span>' +
+          '<button class="admin-remove-btn" style="background:rgba(255,208,0,0.12);border-color:rgba(255,208,0,0.4);color:var(--gold);font-size:1rem;padding:4px 10px;" data-action="inc">+</button>' +
+        '</div>';
+
+      var countDisplay = item3.querySelector('.mvp-count-display');
+      var currentCount = mvpAtual;
+
+      item3.querySelectorAll('button[data-action]').forEach(function(btn) {
+        btn.addEventListener('click', async function() {
+          var action = this.dataset.action;
+          if (action === 'inc') currentCount++;
+          else if (action === 'dec' && currentCount > 0) currentCount--;
+          countDisplay.textContent = currentCount;
+          try {
+            await updateDoc(doc(db, 'players', p.id), { mvpCount: currentCount });
+          } catch(e) { alert('Erro ao salvar!'); }
+        });
+      });
+
+      mvpList.appendChild(item3);
+    });
+  }
+
   if (blockList) {
     blockList.innerHTML = '';
     sorted.forEach(function(p) {
@@ -2432,6 +2896,32 @@ function verificarMVP(comGanho) {
   sessionStorage.setItem('mvpCelebrado', '1');
 
   var mvp = comGanho[0];
+
+  // ===== SALVA NO FIREBASE (mvpCount + Hall da Fama) =====
+  (async function() {
+    try {
+      var { updateDoc, doc: docRef, increment, addDoc, collection: col } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      // Incrementa mvpCount
+      await updateDoc(docRef(db, 'players', mvp.id), {
+        mvpCount: increment(1),
+        lastMvpDate: Date.now()
+      });
+      // Salva no Hall da Fama
+      await addDoc(col(db, 'hallDaFama'), {
+        playerId: mvp.id,
+        name: mvp.name,
+        tag: mvp.tag,
+        city: mvp.city,
+        emoji: mvp.emoji || '🎮',
+        iconId: mvp.iconId || null,
+        ganhoSemana: mvp.ganhoSemana,
+        trophies: mvp.trophies,
+        timestamp: Date.now(),
+        semana: new Date().toLocaleDateString('pt-BR')
+      });
+    } catch(e) { console.warn('Erro ao salvar MVP:', e); }
+  })();
+
   document.getElementById('celebracaoNome').textContent = mvp.name;
   document.getElementById('celebracaoTrofeus').textContent = '🏆 +' + mvp.ganhoSemana.toLocaleString('pt-BR') + ' troféus essa semana!';
   
@@ -2596,7 +3086,7 @@ async function abrirPerfilTab(p, pos) {
     '<div class="perfil-hero">' +
       '<div class="perfil-avatar-big">' + avatarHtml + '</div>' +
       '<div class="perfil-hero-info">' +
-        '<div class="perfil-hero-name">' + (p.name||'?') + '</div>' +
+        '<div class="perfil-hero-name">' + (p.name||'?') + (p.mvpCount > 0 ? ' <span class="mvp-insignia" title="MVP da Semana ' + p.mvpCount + 'x"><span class="mvp-insignia-crown">👑</span>×' + p.mvpCount + '</span>' : '') + '</div>' +
         '<div class="perfil-hero-tag">' + (p.tag||'') + '</div>' +
         '<div class="perfil-hero-city">📍 ' + (p.city||'?') + ' • 🏠 ' + clube + '</div>' +
       '</div>' +
@@ -2631,6 +3121,12 @@ async function abrirPerfilTab(p, pos) {
     // STATS DO BATTLELOG
     '<div class="perfil-section-title">⚡ ESTATÍSTICAS DE JOGO</div>' +
     '<div id="perfilBattleStats"><div class="chart-empty" style="padding:20px;">🔄 Analisando partidas...</div></div>' +
+
+    // PREVISÃO DE QUEDA IA
+    '<div class="perfil-section-title">🔮 PREVISÃO DE QUEDA</div>' +
+    '<div id="perfilPrevisao" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px;">' +
+      '<div style="text-align:center;color:var(--text-dim);font-size:0.75rem;font-weight:800;letter-spacing:1px;">🤖 Analisando histórico...</div>' +
+    '</div>' +
 
     // META DE TROFÉUS
     '<div class="perfil-section-title">🎯 META DE TROFÉUS</div>' +
@@ -2711,6 +3207,8 @@ async function abrirPerfilTab(p, pos) {
   // ===== BATTLELOG: horário, streak, brawler mais usado =====
   carregarBattleStats(cleanTag, trofeus);
   carregarMeta(cleanTag, trofeus);
+  // ===== PREVISÃO DE QUEDA =====
+  gerarPrevisaoQueda(p, pontos2 && pontos2.length >= 3 ? pontos2 : []);
 
   // Botão salvar perfil na aba
   var cp2 = document.getElementById('colorPickerTab');
@@ -3735,6 +4233,131 @@ function renderMeta(meta, trofeus) {
     );
 }
 
+// ===== PREVISÃO DE QUEDA =====
+async function gerarPrevisaoQueda(p, historico) {
+  var el = document.getElementById('perfilPrevisao');
+  if (!el) return;
+
+  // Precisa de pelo menos 3 pontos de histórico
+  if (!historico || historico.length < 3) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:0.75rem;font-weight:800;padding:8px;">📊 Histórico insuficiente — volte em alguns dias!</div>';
+    return;
+  }
+
+  // Calcula métricas do histórico
+  var trofeus = historico.map(function(h){ return h.trophies; });
+  var ultimo = trofeus[trofeus.length - 1];
+  var primeiro = trofeus[0];
+  var tendencia = ultimo - primeiro;
+  var variacoes = [];
+  for (var i = 1; i < trofeus.length; i++) variacoes.push(trofeus[i] - trofeus[i-1]);
+  var mediaVariacao = Math.round(variacoes.reduce(function(a,b){return a+b;},0) / variacoes.length);
+  var quedas = variacoes.filter(function(v){ return v < 0; }).length;
+  var subidas = variacoes.filter(function(v){ return v > 0; }).length;
+  var maiorQueda = Math.min.apply(null, variacoes);
+  var maiorSubida = Math.max.apply(null, variacoes);
+
+  // Determina status
+  var status, icon, label;
+  if (mediaVariacao > 100) { status='subindo'; icon='📈'; label='EM ASCENSÃO'; }
+  else if (mediaVariacao > 0) { status='estavel'; icon='➡️'; label='ESTÁVEL'; }
+  else if (quedas > subidas) { status='caindo'; icon='📉'; label='EM QUEDA'; }
+  else { status='risco'; icon='⚠️'; label='EM RISCO'; }
+
+  // Mostra card de stats enquanto IA carrega
+  el.innerHTML =
+    '<div class="previsao-card '+status+'">' +
+      '<div class="previsao-status">' +
+        '<div class="previsao-icon">'+icon+'</div>' +
+        '<div><div class="previsao-label">'+label+'</div>' +
+        '<div style="font-size:0.62rem;color:var(--text-muted);font-family:monospace;">Baseado nos últimos '+historico.length+' registros</div></div>' +
+      '</div>' +
+      '<div class="previsao-stats">' +
+        '<div class="previsao-stat"><div class="previsao-stat-val" style="color:'+(mediaVariacao>=0?'var(--green)':'var(--red)')+';">'+(mediaVariacao>=0?'+':'')+mediaVariacao+'</div><div class="previsao-stat-lbl">MÉDIA/DIA</div></div>' +
+        '<div class="previsao-stat"><div class="previsao-stat-val" style="color:var(--red);">'+maiorQueda+'</div><div class="previsao-stat-lbl">MAIOR QUEDA</div></div>' +
+        '<div class="previsao-stat"><div class="previsao-stat-val" style="color:var(--green);">+'+maiorSubida+'</div><div class="previsao-stat-lbl">MAIOR SUBIDA</div></div>' +
+      '</div>' +
+      '<div class="previsao-texto" id="previsaoTextoIA">🤖 Gerando análise da IA...</div>' +
+    '</div>';
+
+  // Chama Groq pra análise em linguagem natural
+  try {
+    var GROQ_KEY = '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';
+    var histResume = trofeus.map(function(t,i){ return 'Dia '+(i+1)+': '+t; }).join(', ');
+    var prompt = 'Você é um analista de Brawl Stars. Analise o histórico de troféus deste jogador e dê uma previsão curta e divertida (máx 2 frases, sem asteriscos, em português BR com emojis). ' +
+      'Jogador: '+p.name+' | Troféus atual: '+p.trophies+' | Tendência: '+(tendencia>=0?'+':'')+tendencia+' no período | Média diária: '+(mediaVariacao>=0?'+':'')+mediaVariacao+' | Quedas: '+quedas+'x | Subidas: '+subidas+'x | Histórico: '+histResume+'. ' +
+      'Se tiver em queda, avise que é hora dos rivais atacarem. Se subindo, elogie. Seja direto e engraçado.';
+
+    var res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 150,
+        temperature: 0.85
+      })
+    });
+    var data = await res.json();
+    var texto = data.choices && data.choices[0] ? data.choices[0].message.content : '⚠️ Não foi possível gerar análise.';
+    var iaEl = document.getElementById('previsaoTextoIA');
+    if (iaEl) iaEl.innerHTML = texto.replace(/\n/g, '<br>');
+  } catch(e) {
+    var iaEl = document.getElementById('previsaoTextoIA');
+    if (iaEl) iaEl.textContent = '⚠️ IA indisponível no momento.';
+  }
+}
+
+// ===== HALL DA FAMA =====
+async function carregarHallDaFama() {
+  var lista = document.getElementById('hallFamaList');
+  if (!lista) return;
+  lista.innerHTML = '<div class="loading-state"><div class="empty-icon">⏳</div><p>CARREGANDO...</p></div>';
+  try {
+    var { collection: col, query: q, orderBy: ob, getDocs: gd } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    var snap = await gd(q(col(db, 'hallDaFama'), ob('timestamp', 'desc')));
+    var entries = [];
+    snap.forEach(function(d) { entries.push(Object.assign({id: d.id}, d.data())); });
+
+    if (!entries.length) {
+      lista.innerHTML = '<div class="fama-empty">👑<br>NENHUM MVP REGISTRADO AINDA<br><span style="font-size:0.7rem;color:var(--text-muted);font-family:monospace;letter-spacing:1px;">O primeiro campeão aparecerá aqui!</span></div>';
+      return;
+    }
+
+    var cardClasses = ['fama-card-1','fama-card-2','fama-card-3'];
+    var crowns = ['👑','🥈','🥉'];
+    lista.innerHTML = entries.map(function(e, i) {
+      var cls = i < 3 ? cardClasses[i] : 'fama-card-n';
+      var crown = i < 3 ? crowns[i] : '#'+(i+1);
+      var avatarHtml = e.iconId
+        ? '<img src="https://cdn.brawlify.com/profile-icons/regular/'+e.iconId+'.png" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML=\'<span style=font-size:1.8rem>'+e.emoji+'</span>\'">'
+        : '<span style="font-size:1.8rem;">'+e.emoji+'</span>';
+      var delay = (i * 0.07).toFixed(2);
+      return '<div class="fama-card '+cls+'" style="animation-delay:'+delay+'s">' +
+        '<div class="fama-numero">'+(i+1)+'</div>' +
+        '<div class="fama-top-row">' +
+          '<div class="fama-avatar">'+avatarHtml+'</div>' +
+          '<div class="fama-info">' +
+            '<div class="fama-crown">'+crown+'</div>' +
+            '<div class="fama-name">'+e.name+'</div>' +
+            '<div class="fama-week">📍 '+e.city+' • '+e.semana+'</div>' +
+          '</div>' +
+          '<div>' +
+            '<div class="fama-trofeus">+'+e.ganhoSemana.toLocaleString('pt-BR')+'</div>' +
+            '<div class="fama-trofeus-label">TROFÉUS NA SEMANA</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="fama-stats-row">' +
+          '<div class="fama-stat"><div class="fama-stat-val">🏆 '+e.trophies.toLocaleString('pt-BR')+'</div><div class="fama-stat-lbl">TOTAL NA ÉPOCA</div></div>' +
+          '<div class="fama-stat"><div class="fama-stat-val" style="color:var(--gold);">👑 MVP</div><div class="fama-stat-lbl">DA SEMANA</div></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } catch(e) {
+    lista.innerHTML = '<div class="fama-empty">Erro ao carregar Hall da Fama</div>';
+  }
+}
+
 // ===== SKELETON LOADING =====
 function renderSkeletons(containerId, count) {
   count = count || 7;
@@ -3786,6 +4409,9 @@ function switchTab(tab, el) {
         setInterval(window.carregarMapas, 5 * 60 * 1000);
       }
     }, 200);
+  }
+  if (tab === 'fama') {
+    carregarHallDaFama();
   }
 }
 </script>
