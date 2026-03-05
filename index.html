@@ -2086,9 +2086,7 @@ onSnapshot(qNotif, function(snap) {
   var validas = [];
   snap.forEach(function(d) {
     var n = Object.assign({id: d.id}, d.data());
-    // Só mostra notificações das últimas 24h
     if (agora - n.timestamp < 24 * 60 * 60 * 1000) validas.push(n);
-    // Deleta notificações com mais de 24h
     else deleteDoc(doc(db, 'notifications', n.id)).catch(function(){});
   });
 
@@ -2706,19 +2704,19 @@ document.addEventListener('DOMContentLoaded', function() {
     var msg = document.getElementById('adminB1000Msg');
     if (!opt || !opt.value) { msg.style.color='#e74c3c'; msg.textContent='Selecione um jogador!'; return; }
     if (!brawlerNome) { msg.style.color='#e74c3c'; msg.textContent='Digite o nome do brawler!'; return; }
+    msg.style.color='#f39c12'; msg.textContent='⏳ Salvando...';
     try {
       var playerId = opt.value;
-      // Busca brawlers1000 atuais do jogador
-      var playerDoc = allPlayers.find(function(p){ return p.id === playerId; });
-      var lista = (playerDoc && playerDoc.brawlers1000) ? playerDoc.brawlers1000.slice() : [];
-      if (lista.indexOf(brawlerNome) !== -1) {
-        msg.style.color='#f39c12'; msg.textContent='Esse brawler já está na lista!'; return;
-      }
+      msg.textContent='⏳ Buscando dados do Firebase...';
+      var { getDoc, doc: docRef2 } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      var freshDoc = await getDoc(docRef2(db, 'players', playerId));
+      var freshData = freshDoc.exists() ? freshDoc.data() : {};
+      var lista = (freshData.brawlers1000) ? freshData.brawlers1000.slice() : [];
+      msg.textContent='⏳ Lista atual: ['+lista.join(', ')+'] — adicionando '+brawlerNome+'...';
       lista.push(brawlerNome);
-      // Atualiza brawlers1000 no Firebase
       await updateDoc(doc(db, 'players', playerId), { brawlers1000: lista });
-      // Cria notificação no feed
-      await addDoc(collection(db, 'notifications'), {
+      msg.textContent='⏳ brawlers1000 salvo! Criando notificação...';
+      var notifRef = await addDoc(collection(db, 'notifications'), {
         playerName: opt.dataset.name,
         playerEmoji: opt.dataset.emoji || '🎮',
         playerIconId: opt.dataset.iconid || null,
@@ -2729,9 +2727,13 @@ document.addEventListener('DOMContentLoaded', function() {
         type: 'brawler1000'
       });
       msg.style.color='#2ecc71';
-      msg.textContent='✅ '+opt.dataset.name+' — '+brawlerNome+' registrado nos 1000!';
+      msg.textContent='✅ Salvo! ID da notif: '+notifRef.id+' — vai aparecer no feed agora!';
+      showToast('🏆 '+brawlerNome+' da '+opt.dataset.name+' aparece no feed agora!', 'success');
       document.getElementById('adminB1000Nome').value = '';
-    } catch(e) { msg.style.color='#e74c3c'; msg.textContent='Erro: '+e.message; }
+    } catch(e) {
+      msg.style.color='#e74c3c';
+      msg.textContent='❌ ERRO: '+e.message;
+    }
   });
 
   // Preenche select de jogadores no Hall da Fama admin
