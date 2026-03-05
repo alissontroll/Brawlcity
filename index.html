@@ -2715,13 +2715,27 @@ document.addEventListener('DOMContentLoaded', function() {
       msg.textContent='⏳ Lista atual: ['+lista.join(', ')+'] — adicionando '+brawlerNome+'...';
       lista.push(brawlerNome);
       await updateDoc(doc(db, 'players', playerId), { brawlers1000: lista });
-      msg.textContent='⏳ brawlers1000 salvo! Criando notificação...';
+      msg.textContent='⏳ brawlers1000 salvo! Buscando imagem do brawler...';
+      // Busca imagem do brawler na API do Brawlify
+      var brawlerImg = '';
+      try {
+        var brawlifyRes = await fetch('https://api.brawlify.com/v1/brawlers');
+        if (brawlifyRes.ok) {
+          var brawlifyData = await brawlifyRes.json();
+          var found = (brawlifyData.list || []).find(function(b){
+            return (b.name||'').toUpperCase() === brawlerNome;
+          });
+          if (found && found.imageUrl2) brawlerImg = found.imageUrl2;
+          else if (found && found.imageUrl) brawlerImg = found.imageUrl;
+        }
+      } catch(eImg) { /* sem imagem */ }
+      msg.textContent='⏳ Criando notificação...';
       var notifRef = await addDoc(collection(db, 'notifications'), {
         playerName: opt.dataset.name,
         playerEmoji: opt.dataset.emoji || '🎮',
         playerIconId: opt.dataset.iconid || null,
         brawlerNome: brawlerNome,
-        brawlerImg: '',
+        brawlerImg: brawlerImg,
         trophies: 1000,
         timestamp: Date.now(),
         type: 'brawler1000'
