@@ -1478,6 +1478,16 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
         <div id="adminResetMsg" style="font-size:0.75rem;margin-top:6px;"></div>
       </div>
       <div class="admin-section">
+        <div class="admin-section-title">🏆 REGISTRAR BRAWLER NOS 1000</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;font-family:monospace;">Registra manualmente um brawler que chegou aos 1000 troféus e aparece no feed de novidades.</div>
+        <select class="admin-input" id="adminB1000Player" style="margin-bottom:8px;">
+          <option value="">— Selecione o jogador —</option>
+        </select>
+        <input class="admin-input" id="adminB1000Nome" type="text" placeholder="Nome do brawler (ex: BUZZ)" style="margin-bottom:8px;" oninput="this.value=this.value.toUpperCase()">
+        <button class="admin-btn admin-btn-primary" id="btnRegistrarB1000">🏆 REGISTRAR NOS 1000</button>
+        <div id="adminB1000Msg" style="font-size:0.75rem;margin-top:6px;font-weight:800;"></div>
+      </div>
+      <div class="admin-section">
         <div class="admin-section-title">🏛️ REGISTRAR MVP NO HALL DA FAMA</div>
         <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;font-family:monospace;">Registre manualmente um MVP histórico.</div>
         <select class="admin-input" id="adminFamaPlayer" style="margin-bottom:8px;">
@@ -1970,10 +1980,39 @@ async function atualizarDados() {
         updates.newBrawlers = diff;
         updates.brawlerCount = data.brawlerCount;
         // Salva notificação no Firebase
-        var notif = {playerName: player.name, count: diff, timestamp: Date.now()};
+        var notif = {playerName: player.name, count: diff, timestamp: Date.now(), type: 'newBrawler'};
         addDoc(collection(db, 'notifications'), notif).catch(function(){});
       } else if (data.brawlerCount && !player.brawlerCount) {
         updates.brawlerCount = data.brawlerCount;
+      }
+
+      // ===== DETECTA BRAWLERS QUE CHEGARAM AOS 1000 TROFÉUS =====
+      if (data.brawlers && data.brawlers.length > 0) {
+        var mil1000Atuais = data.brawlers
+          .filter(function(b){ return (b.trophies||0) >= 1000; })
+          .map(function(b){ return (b.name||'').toUpperCase(); });
+        var mil1000Salvos = player.brawlers1000 || [];
+        var novosNo1000 = mil1000Atuais.filter(function(nome){ return mil1000Salvos.indexOf(nome) === -1; });
+        if (novosNo1000.length > 0 && mil1000Salvos.length > 0) {
+          // Só notifica se já tinha dados salvos (evita spam no primeiro cadastro)
+          novosNo1000.forEach(function(brawlerNome) {
+            var brawlerData = data.brawlers.find(function(b){ return (b.name||'').toUpperCase() === brawlerNome; });
+            var imgUrl = brawlerData ? (brawlerData.imageUrl || '') : '';
+            addDoc(collection(db, 'notifications'), {
+              playerName: player.name,
+              playerEmoji: player.emoji || '🎮',
+              playerIconId: player.iconId || null,
+              brawlerNome: brawlerNome,
+              brawlerImg: imgUrl,
+              trophies: brawlerData ? (brawlerData.trophies || 1000) : 1000,
+              timestamp: Date.now(),
+              type: 'brawler1000'
+            }).catch(function(){});
+          });
+        }
+        if (JSON.stringify(mil1000Atuais.sort()) !== JSON.stringify(mil1000Salvos.slice().sort())) {
+          updates.brawlers1000 = mil1000Atuais;
+        }
       }
       if (Object.keys(updates).length > 0) await updateDoc(doc(db, 'players', player.id), updates);
       // Salva histórico de troféus
@@ -2065,6 +2104,33 @@ onSnapshot(qNotif, function(snap) {
       var tempoStr = tempo < 60000 ? 'agora mesmo' :
                      tempo < 3600000 ? Math.floor(tempo/60000) + ' min atrás' :
                      Math.floor(tempo/3600000) + 'h atrás';
+
+      if (n.type === 'brawler1000') {
+        var avatarHtml = n.playerIconId
+          ? '<img src="https://cdn.brawlify.com/profile-icons/regular/'+n.playerIconId+'.png" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,208,0,0.4);" onerror="this.outerHTML=\'<span style=font-size:1.4rem>\'+(n.playerEmoji||\'🎮\')+\'</span>\'">'
+          : '<span style="font-size:1.4rem;">'+(n.playerEmoji||'🎮')+'</span>';
+        var brawlerImgHtml = n.brawlerImg
+          ? '<img src="'+n.brawlerImg+'" style="width:40px;height:40px;object-fit:contain;" onerror="this.style.display=\'none\'">'
+          : '<span style="font-size:1.6rem;">🎮</span>';
+        return '<div class="notif-item" style="border-color:rgba(255,208,0,0.3);background:rgba(255,208,0,0.04);">' +
+          '<div class="notif-icon" style="display:flex;flex-direction:column;align-items:center;gap:4px;">' +
+            avatarHtml +
+          '</div>' +
+          '<div class="notif-text" style="flex:1;">' +
+            '<div class="notif-name">'+n.playerName+'</div>' +
+            '<div class="notif-desc" style="display:flex;align-items:center;gap:6px;">' +
+              '<span>colocou</span>' +
+              brawlerImgHtml +
+              '<strong style="color:var(--gold);">'+n.brawlerNome+'</strong>' +
+              '<span>nos</span>' +
+              '<strong style="color:var(--gold);">🏆 1000</strong>' +
+            '</div>' +
+            '<div class="notif-time">'+tempoStr+'</div>' +
+          '</div>' +
+        '</div>';
+      }
+
+      // Notificação padrão (novo brawler desbloqueado)
       return '<div class="notif-item">' +
         '<div class="notif-icon">🆕</div>' +
         '<div class="notif-text">' +
@@ -2621,6 +2687,53 @@ window.fecharAdmin = function() {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Preenche select brawler 1000
+  function preencherSelectB1000() {
+    var sel = document.getElementById('adminB1000Player');
+    if (!sel || !allPlayers.length) return;
+    var sorted = allPlayers.slice().sort(function(a,b){ return a.name.localeCompare(b.name); });
+    sel.innerHTML = '<option value="">— Selecione o jogador —</option>' +
+      sorted.map(function(p){ return '<option value="'+p.id+'" data-name="'+p.name+'" data-emoji="'+(p.emoji||'🎮')+'" data-iconid="'+(p.iconId||'')+'">'+p.name+' ('+p.city+')</option>'; }).join('');
+  }
+  document.getElementById('adminB1000Player').addEventListener('focus', preencherSelectB1000);
+  document.getElementById('adminB1000Player').addEventListener('mousedown', preencherSelectB1000);
+
+  // Registrar brawler nos 1000
+  document.getElementById('btnRegistrarB1000').addEventListener('click', async function() {
+    var sel = document.getElementById('adminB1000Player');
+    var opt = sel.options[sel.selectedIndex];
+    var brawlerNome = document.getElementById('adminB1000Nome').value.trim().toUpperCase();
+    var msg = document.getElementById('adminB1000Msg');
+    if (!opt || !opt.value) { msg.style.color='#e74c3c'; msg.textContent='Selecione um jogador!'; return; }
+    if (!brawlerNome) { msg.style.color='#e74c3c'; msg.textContent='Digite o nome do brawler!'; return; }
+    try {
+      var playerId = opt.value;
+      // Busca brawlers1000 atuais do jogador
+      var playerDoc = allPlayers.find(function(p){ return p.id === playerId; });
+      var lista = (playerDoc && playerDoc.brawlers1000) ? playerDoc.brawlers1000.slice() : [];
+      if (lista.indexOf(brawlerNome) !== -1) {
+        msg.style.color='#f39c12'; msg.textContent='Esse brawler já está na lista!'; return;
+      }
+      lista.push(brawlerNome);
+      // Atualiza brawlers1000 no Firebase
+      await updateDoc(doc(db, 'players', playerId), { brawlers1000: lista });
+      // Cria notificação no feed
+      await addDoc(collection(db, 'notifications'), {
+        playerName: opt.dataset.name,
+        playerEmoji: opt.dataset.emoji || '🎮',
+        playerIconId: opt.dataset.iconid || null,
+        brawlerNome: brawlerNome,
+        brawlerImg: '',
+        trophies: 1000,
+        timestamp: Date.now(),
+        type: 'brawler1000'
+      });
+      msg.style.color='#2ecc71';
+      msg.textContent='✅ '+opt.dataset.name+' — '+brawlerNome+' registrado nos 1000!';
+      document.getElementById('adminB1000Nome').value = '';
+    } catch(e) { msg.style.color='#e74c3c'; msg.textContent='Erro: '+e.message; }
+  });
+
   // Preenche select de jogadores no Hall da Fama admin
   function preencherSelectFama() {
     var sel = document.getElementById('adminFamaPlayer');
@@ -2676,6 +2789,7 @@ document.addEventListener('DOMContentLoaded', function() {
       carregarAdminPlayers();
       carregarVisitas();
       preencherSelectFama();
+      preencherSelectB1000();
     } else {
       document.getElementById('adminErr').style.display = 'block';
     }
