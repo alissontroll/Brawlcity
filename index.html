@@ -1498,7 +1498,10 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
         <div id="adminBlockList"></div>
       </div>
       <div class="admin-section">
-        <div class="admin-section-title">📊 VISITAS DO SITE</div>
+        <div class="admin-section-title" style="display:flex;align-items:center;justify-content:space-between;">
+          📊 VISITAS DO SITE
+          <button onclick="carregarVisitas()" style="background:var(--surface2);border:1px solid var(--border);color:var(--cyan);padding:4px 10px;border-radius:6px;font-size:0.7rem;font-family:monospace;cursor:pointer;">🔄 Recarregar</button>
+        </div>
         <div id="adminVisitas"><div style="color:var(--text-dim);font-size:0.8rem;">Carregando...</div></div>
       </div>
       <div class="admin-section">
@@ -2748,6 +2751,7 @@ onSnapshot(qAvisos, function(snap) {
 async function carregarVisitas() {
   var el = document.getElementById('adminVisitas');
   if (!el) return;
+  el.innerHTML = '<div style="color:var(--text-dim);font-size:0.8rem;">🔄 Carregando...</div>';
   try {
     var snap = await getDocs(collection(db, 'visitas'));
     var total = snap.size;
@@ -3652,7 +3656,7 @@ window.iaEnviar = async function() {
   window._iaHistorico.push({ role: 'user', content: pergunta });
 
   // Groq API (gratuita) - https://console.groq.com para pegar sua chave
-  var GROQ_KEY = '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'; // Substitua pela sua chave do Groq
+  var GROQ_KEY = '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'; // Substitua pela sua chave do Groq
   var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
   var systemPrompt = 'Você é BrawlBot, assistente especialista em Brawl Stars do site BrawlCity Rank de Pernambuco. ' +
@@ -4282,7 +4286,7 @@ async function gerarPrevisaoQueda(p, historico) {
 
   // Chama Groq pra análise em linguagem natural
   try {
-    var GROQ_KEY = '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';
+    var GROQ_KEY = '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';
     var histResume = trofeus.map(function(t,i){ return 'Dia '+(i+1)+': '+t; }).join(', ');
     var prompt = 'Você é um analista de Brawl Stars. Analise o histórico de troféus deste jogador e dê uma previsão curta e divertida (máx 2 frases, sem asteriscos, em português BR com emojis). ' +
       'Jogador: '+p.name+' | Troféus atual: '+p.trophies+' | Tendência: '+(tendencia>=0?'+':'')+tendencia+' no período | Média diária: '+(mediaVariacao>=0?'+':'')+mediaVariacao+' | Quedas: '+quedas+'x | Subidas: '+subidas+'x | Histórico: '+histResume+'. ' +
