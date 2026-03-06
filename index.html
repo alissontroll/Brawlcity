@@ -206,6 +206,13 @@ header {
   box-shadow: 0 4px 20px rgba(255,109,0,0.4);
 }
 
+.tab-btn.rn-tab.active {
+  background: linear-gradient(135deg, #1565c0, #42a5f5);
+  border-color: #42a5f5;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(66,165,245,0.4);
+}
+
 .tab-btn.map-tab.active {
   background: linear-gradient(135deg, #00897b, var(--green));
   border-color: var(--green);
@@ -1391,6 +1398,7 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
 <div class="tab-bar">
   <button class="tab-btn active" onclick="switchTab('cidade',this)">🏙 Cidade</button>
   <button class="tab-btn pe-tab" onclick="switchTab('pe',this)">🏆 PE</button>
+  <button class="tab-btn rn-tab" onclick="switchTab('rn',this)">🌵 RN</button>
   <button class="tab-btn map-tab" onclick="switchTab('mapas',this)">🗺️ Mapas</button>
   <button class="tab-btn notif-tab" id="btnNotif" onclick="switchTab('notif',this)">🔔<span id="notifBadge" style="display:none" class="notif-badge">0</span></button>
   <button class="tab-btn" style="color:#a78bfa;" onclick="switchTab('semana',this)">📅 Semana</button>
@@ -1429,6 +1437,17 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
       <div class="update-info" id="updateInfoPE">AO VIVO</div>
     </div>
     <div id="rankingListPE" class="ranking-list-container"></div>
+  </div>
+  <div class="tab-content" id="tab-rn">
+    <div class="pe-banner" style="background:linear-gradient(135deg,rgba(21,101,192,0.12),rgba(66,165,245,0.06));border-color:rgba(66,165,245,0.22);">
+      <div class="pe-flag">🌵</div>
+      <div><div class="pe-title" style="color:#42a5f5;">TOP RIO GRANDE DO NORTE</div><div class="pe-desc">Os melhores jogadores do RN</div></div>
+    </div>
+    <div class="ranking-header">
+      <div class="ranking-title">RANKING <span class="pe-pill" style="background:rgba(66,165,245,0.12);border-color:rgba(66,165,245,0.3);color:#42a5f5;">RIO GRANDE DO NORTE</span></div>
+      <div class="update-info" id="updateInfoRN">AO VIVO</div>
+    </div>
+    <div id="rankingListRN" class="ranking-list-container"></div>
   </div>
   <div class="tab-content" id="tab-mapas">
     <div class="ranking-header">
@@ -1622,7 +1641,11 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
       </div>
       <div class="admin-section">
         <div class="admin-section-title">🏙️ ADICIONAR CIDADE</div>
-        <input class="admin-input" id="adminNovaCidade" type="text" placeholder="Nome da cidade (ex: Caruaru-PE)">
+        <select class="admin-input" id="adminEstadoCidade" style="margin-bottom:8px;">
+          <option value="PE">🦁 Pernambuco (PE)</option>
+          <option value="RN">🌵 Rio Grande do Norte (RN)</option>
+        </select>
+        <input class="admin-input" id="adminNovaCidade" type="text" placeholder="Nome da cidade (ex: Caruaru)">
         <button class="admin-btn admin-btn-primary" id="btnAdicionarCidade">ADICIONAR CIDADE</button>
         <div id="adminCidadeMsg" style="font-size:0.75rem;margin-top:6px;"></div>
       </div>
@@ -1780,6 +1803,7 @@ window._firestore = {
 };
 
 const CITIES = ['Agrestina-PE','Altinho-PE','Cupira-PE','Caruaru-PE','Petrolina-PE','Recife-PE','Garanhuns-PE','Vitória de Santo Antão-PE'];
+const CITIES_RN = ['Natal-RN','Mossoró-RN','Parnamirim-RN','São Gonçalo do Amarante-RN','Macaíba-RN'];
 const EMOJIS = ['🦁','🐯','🦊','🐺','🦅','🐉','🦈','🐻','🦝','🦉','🔥','⚡','💎'];
 const COLORS = ['#FF6B00','#7B2FBE','#00BFFF','#FF3D5A','#00E676','#FFD000','#FF69B4'];
 
@@ -2091,6 +2115,17 @@ CITIES.forEach(function(c) {
   citySelect.appendChild(opt);
 });
 
+// Separador RN no select
+var sep = document.createElement('option');
+sep.disabled = true; sep.textContent = '── Rio Grande do Norte ──';
+citySelect.appendChild(sep);
+
+CITIES_RN.forEach(function(c) {
+  var opt = document.createElement('option');
+  opt.value = c; opt.textContent = c;
+  citySelect.appendChild(opt);
+});
+
 function setCity(city) {
   activeCity = city;
   document.querySelectorAll('.city-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.city === city); });
@@ -2102,10 +2137,11 @@ var q = query(collection(db, 'players'), orderBy('trophies', 'desc'));
 onSnapshot(q, function(snapshot) {
   allPlayers = [];
   snapshot.forEach(function(d){ allPlayers.push(Object.assign({id: d.id}, d.data())); });
-  renderRanking(); renderRankingPE(); renderRankingSemana();
+  renderRanking(); renderRankingPE(); renderRankingRN(); renderRankingSemana();
   var t = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   document.getElementById('updateInfo').textContent = '🟢 ' + t;
   document.getElementById('updateInfoPE').textContent = '🟢 ' + t;
+  if (document.getElementById('updateInfoRN')) document.getElementById('updateInfoRN').textContent = '🟢 ' + t;
 }, function() {
   document.getElementById('updateInfo').textContent = '🔴 OFFLINE';
   document.getElementById('updateInfoPE').textContent = '🔴 OFFLINE';
@@ -2398,6 +2434,7 @@ function buildCards(players, containerId) {
 }
 function renderRanking() { buildCards(allPlayers.filter(function(p){ return p.city === activeCity; }).sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingList'); atualizarMyPositionBar(); }
 function renderRankingPE() { buildCards(allPlayers.slice().sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingListPE'); }
+function renderRankingRN() { buildCards(allPlayers.filter(function(p){ return p.city && p.city.endsWith('-RN'); }).sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingListRN'); }
 
 window.atualizarManual = async function() {
   var btn = document.getElementById('btnAtualizarSemana');
@@ -2984,23 +3021,40 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Adicionar cidade
   document.getElementById('btnAdicionarCidade').addEventListener('click', async function() {
-    var novaCidade = document.getElementById('adminNovaCidade').value.trim();
+    var nomeCidade = document.getElementById('adminNovaCidade').value.trim();
+    var estado = document.getElementById('adminEstadoCidade').value;
     var msg = document.getElementById('adminCidadeMsg');
-    if (!novaCidade) { msg.style.color='#e74c3c'; msg.textContent='Digite o nome da cidade!'; return; }
+    if (!nomeCidade) { msg.style.color='#e74c3c'; msg.textContent='Digite o nome da cidade!'; return; }
+    // Formata com sufixo do estado
+    var novaCidade = nomeCidade.endsWith('-'+estado) ? nomeCidade : nomeCidade + '-' + estado;
     try {
-      await addDoc(collection(db, 'cidades'), {name: novaCidade, createdAt: Date.now()});
+      await addDoc(collection(db, 'cidades'), {name: novaCidade, estado: estado, createdAt: Date.now()});
       msg.style.color='#2ecc71';
-      msg.textContent='✅ Cidade adicionada!';
+      msg.textContent='✅ ' + novaCidade + ' adicionada!';
       document.getElementById('adminNovaCidade').value = '';
-      // Adicionar à lista de cidades do select
-      var sel = document.getElementById('citySelect');
+      // Adiciona ao select de cadastro
+      var sel = document.getElementById('inputCity');
       if (sel) {
         var opt = document.createElement('option');
         opt.value = novaCidade;
         opt.textContent = novaCidade;
         sel.appendChild(opt);
       }
-    } catch(e) { msg.style.color='#e74c3c'; msg.textContent='Erro ao adicionar!'; }
+      // Se for RN, adiciona ao CITIES_RN
+      if (estado === 'RN') {
+        CITIES_RN.push(novaCidade);
+        renderRankingRN();
+      } else {
+        CITIES.push(novaCidade);
+        // Adiciona botão na city-bar
+        var btn2 = document.createElement('button');
+        btn2.className = 'city-btn';
+        btn2.textContent = novaCidade;
+        btn2.dataset.city = novaCidade;
+        btn2.onclick = function(){ setCity(novaCidade); };
+        document.getElementById('cityBar').appendChild(btn2);
+      }
+    } catch(e) { msg.style.color='#e74c3c'; msg.textContent='Erro ao adicionar: ' + e.message; }
   });
 });
 
@@ -4542,24 +4596,31 @@ async function fixarTodasHoras() {
   var btn = document.getElementById('btnFixHoras');
   var msg = document.getElementById('fixHorasMsg');
   btn.disabled = true;
-  msg.style.color = 'var(--text-dim)';
-  msg.textContent = '⏳ Iniciando...';
   var ok = 0, falhou = 0;
   for (var i = 0; i < allPlayers.length; i++) {
     var player = allPlayers[i];
-    msg.textContent = '⏳ Verificando ' + player.name + ' (' + (i+1) + '/' + allPlayers.length + ')...';
+    msg.style.color = 'var(--text-dim)';
+    msg.textContent = '⏳ ' + player.name + ' (' + (i+1) + '/' + allPlayers.length + ')...';
     try {
       var data = await buscarJogador(player.tag);
       var novasHoras = data.horas || (data.expPoints ? Math.floor(data.expPoints / 22) : 0);
-      if (novasHoras > 0 && novasHoras !== player.horas) {
+      if (novasHoras > 0) {
         await updateDoc(doc(db, 'players', player.id), { horas: novasHoras });
         ok++;
+        msg.style.color = 'var(--green)';
+        msg.textContent = '✅ ' + player.name + ' → ' + novasHoras + 'h (' + (i+1) + '/' + allPlayers.length + ')';
       }
-    } catch(e) { falhou++; }
+    } catch(e) {
+      falhou++;
+      msg.style.color = '#e74c3c';
+      msg.textContent = '❌ Falhou: ' + player.name + ' — ' + e.message;
+    }
+    // Delay de 1s entre cada jogador pra não sobrecarregar a API
+    await new Promise(function(r){ setTimeout(r, 1000); });
   }
   btn.disabled = false;
   msg.style.color = '#2ecc71';
-  msg.textContent = '✅ Concluído! ' + ok + ' jogadores corrigidos' + (falhou > 0 ? ', ' + falhou + ' falharam.' : '!');
+  msg.textContent = '✅ Concluído! ' + ok + ' corrigidos' + (falhou > 0 ? ', ' + falhou + ' falharam.' : '!');
 }
 
 // ===== PREVISÃO DE QUEDA =====
