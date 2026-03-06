@@ -1211,9 +1211,172 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
   .form-grid .full { grid-column:1; }
   .tab-btn { font-size:0.72rem; padding:7px 11px; }
 }
+/* ===== INTRO CINEMATOGRÁFICA ===== */
+#introScreen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+#introScreen.hide {
+  animation: introFadeOut 0.8s ease forwards;
+}
+@keyframes introFadeOut {
+  to { opacity: 0; pointer-events: none; }
+}
+
+.intro-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.3) 2px,
+    rgba(0,0,0,0.3) 4px
+  );
+  pointer-events: none;
+  z-index: 2;
+  animation: scanMove 8s linear infinite;
+}
+@keyframes scanMove {
+  from { background-position: 0 0; }
+  to   { background-position: 0 100px; }
+}
+
+.intro-glitch-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(138,43,226,0.15) 0%, transparent 70%);
+  animation: glitchBg 4s ease-in-out infinite;
+}
+@keyframes glitchBg {
+  0%,100% { opacity: 0.5; transform: scale(1); }
+  50%     { opacity: 1; transform: scale(1.05); }
+}
+
+.intro-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: 20px;
+}
+
+.intro-logo {
+  font-family: 'Lilita One', cursive;
+  font-size: clamp(3.5rem, 18vw, 8rem);
+  background: linear-gradient(135deg, #fff 0%, #c940ff 40%, #FFD000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  opacity: 0;
+  transform: scale(0.3);
+  filter: blur(20px);
+  animation: introLogoIn 1s cubic-bezier(.16,1,.3,1) 0.3s forwards;
+  line-height: 1;
+}
+@keyframes introLogoIn {
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+.intro-subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(0.55rem, 2.5vw, 0.8rem);
+  letter-spacing: 6px;
+  color: rgba(201,64,255,0.8);
+  text-transform: uppercase;
+  margin-top: 8px;
+  opacity: 0;
+  animation: fadeUp 0.6s ease 1.2s forwards;
+  height: 20px;
+}
+
+.intro-typing {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(0.6rem, 2vw, 0.75rem);
+  color: rgba(0,229,255,0.7);
+  letter-spacing: 2px;
+  margin-top: 30px;
+  opacity: 0;
+  animation: fadeUp 0.4s ease 1.8s forwards;
+  min-height: 22px;
+}
+
+.intro-bar-wrap {
+  width: 200px;
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  margin: 20px auto 0;
+  overflow: hidden;
+  opacity: 0;
+  animation: fadeUp 0.4s ease 2s forwards;
+}
+.intro-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--purple), var(--neon), var(--gold));
+  border-radius: 2px;
+  animation: introBarFill 2s ease 2.2s forwards;
+}
+@keyframes introBarFill {
+  to { width: 100%; }
+}
+
+.intro-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.intro-particle {
+  position: absolute;
+  border-radius: 50%;
+  animation: particleFly linear infinite;
+}
+@keyframes particleFly {
+  from { transform: translateY(100vh) scale(0); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.5; }
+  to   { transform: translateY(-100px) scale(1); opacity: 0; }
+}
+
+.intro-flash {
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+  animation: introFlash 0.3s ease 1s forwards;
+}
+@keyframes introFlash {
+  0%  { opacity: 0.4; }
+  100%{ opacity: 0; }
+}
+
 </style>
 </head>
 <body>
+
+<!-- ===== INTRO CINEMATOGRÁFICA ===== -->
+<div id="introScreen">
+  <div class="intro-glitch-bg"></div>
+  <div class="intro-scanlines"></div>
+  <div class="intro-flash"></div>
+  <div class="intro-particles" id="introParticles"></div>
+  <div class="intro-content">
+    <div class="intro-logo">BrawlCity</div>
+    <div class="intro-subtitle">RANKING COMPETITIVO • PERNAMBUCO</div>
+    <div class="intro-typing" id="introTyping"></div>
+    <div class="intro-bar-wrap"><div class="intro-bar"></div></div>
+  </div>
+</div>
 <div id="avisoGeral" style="display:none;background:#e67e22;color:#fff;padding:10px 16px;text-align:center;font-family:Teko,sans-serif;letter-spacing:1px;position:relative;z-index:100;">
   <div id="avisoTitulo" style="font-size:1rem;"></div>
   <div id="avisoTexto" style="font-size:0.8rem;font-family:monospace;"></div>
@@ -1513,6 +1676,13 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
           <button onclick="carregarVisitas()" style="background:var(--surface2);border:1px solid var(--border);color:var(--cyan);padding:4px 10px;border-radius:6px;font-size:0.7rem;font-family:monospace;cursor:pointer;">🔄 Recarregar</button>
         </div>
         <div id="adminVisitas"><div style="color:var(--text-dim);font-size:0.8rem;">Carregando...</div></div>
+      </div>
+
+      <div class="admin-section">
+        <div class="admin-section-title">⏱️ CORRIGIR HORAS DOS JOGADORES</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;font-family:monospace;">Atualiza as horas de todos os jogadores que estão com ?h ou 0h.</div>
+        <button class="admin-btn admin-btn-primary" id="btnFixHoras" onclick="fixarTodasHoras()">⏱️ CORRIGIR HORAS AGORA</button>
+        <div id="fixHorasMsg" style="font-size:0.75rem;margin-top:8px;font-weight:800;line-height:1.6;"></div>
       </div>
       <div class="admin-section">
         <div class="admin-section-title">🎵 MÚSICA DO SITE</div>
@@ -1961,6 +2131,7 @@ async function atualizarDados() {
       var updates = {};
       if (data.trophies && data.trophies !== player.trophies) updates.trophies = data.trophies;
       if (data.horas && data.horas !== player.horas) updates.horas = data.horas;
+      else if (!player.horas && data.expPoints) updates.horas = Math.floor(data.expPoints / 22); // fallback via expPoints
       if (data.iconId && data.iconId !== player.iconId) updates.iconId = data.iconId;
       // Salva imagem do brawler com mais troféus (para o fundo do card)
       if (data.brawlers && data.brawlers.length > 0) {
@@ -2158,7 +2329,7 @@ window.register = async function() {
     var emoji = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
     var color = COLORS[Math.floor(Math.random()*COLORS.length)];
     var iconId = data.iconId || null;
-    await addDoc(collection(db, 'players'), {name: data.name, tag: data.tag, city: city, trophies: data.trophies, horas: data.horas || 0, emoji: emoji, color: color, joined: Date.now(), brawlerCount: data.brawlerCount || 0, newBrawlers: 0, iconId: iconId});
+    await addDoc(collection(db, 'players'), {name: data.name, tag: data.tag, city: city, trophies: data.trophies, horas: data.horas || (data.expPoints ? Math.floor(data.expPoints / 22) : 0), emoji: emoji, color: color, joined: Date.now(), brawlerCount: data.brawlerCount || 0, newBrawlers: 0, iconId: iconId});
     // Salva tag do jogador logado para mostrar posição fixa
     _myTag = data.tag;
     try { sessionStorage.setItem('_myRankTag', data.tag); } catch(e) {}
@@ -4367,6 +4538,30 @@ function renderMeta(meta, trofeus) {
     );
 }
 
+async function fixarTodasHoras() {
+  var btn = document.getElementById('btnFixHoras');
+  var msg = document.getElementById('fixHorasMsg');
+  btn.disabled = true;
+  msg.style.color = 'var(--text-dim)';
+  msg.textContent = '⏳ Iniciando...';
+  var ok = 0, falhou = 0;
+  for (var i = 0; i < allPlayers.length; i++) {
+    var player = allPlayers[i];
+    msg.textContent = '⏳ Verificando ' + player.name + ' (' + (i+1) + '/' + allPlayers.length + ')...';
+    try {
+      var data = await buscarJogador(player.tag);
+      var novasHoras = data.horas || (data.expPoints ? Math.floor(data.expPoints / 22) : 0);
+      if (novasHoras > 0 && novasHoras !== player.horas) {
+        await updateDoc(doc(db, 'players', player.id), { horas: novasHoras });
+        ok++;
+      }
+    } catch(e) { falhou++; }
+  }
+  btn.disabled = false;
+  msg.style.color = '#2ecc71';
+  msg.textContent = '✅ Concluído! ' + ok + ' jogadores corrigidos' + (falhou > 0 ? ', ' + falhou + ' falharam.' : '!');
+}
+
 // ===== PREVISÃO DE QUEDA =====
 async function gerarPrevisaoQueda(p, historico) {
   var el = document.getElementById('perfilPrevisao');
@@ -4548,6 +4743,70 @@ function switchTab(tab, el) {
     carregarHallDaFama();
   }
 }
+</script>
+<script>
+// ===== INTRO CINEMATOGRÁFICA =====
+(function() {
+  // Só mostra uma vez por sessão
+  if (sessionStorage.getItem('introVisto')) {
+    document.getElementById('introScreen').style.display = 'none';
+    return;
+  }
+
+  // Partículas
+  var particles = document.getElementById('introParticles');
+  var colors = ['#c940ff','#FFD000','#00e5ff','#ff1744','#00e676'];
+  for (var i = 0; i < 25; i++) {
+    var p = document.createElement('div');
+    p.className = 'intro-particle';
+    var size = Math.random() * 6 + 2;
+    p.style.cssText = [
+      'width:'+size+'px',
+      'height:'+size+'px',
+      'left:'+Math.random()*100+'%',
+      'background:'+colors[Math.floor(Math.random()*colors.length)],
+      'animation-duration:'+(Math.random()*4+3)+'s',
+      'animation-delay:'+Math.random()*3+'s',
+      'opacity:0.6'
+    ].join(';');
+    particles.appendChild(p);
+  }
+
+  // Typing effect
+  var frases = [
+    'INICIALIZANDO SISTEMA...',
+    'CONECTANDO AO BRAWL STARS...',
+    'CARREGANDO RANKING DE PE...',
+    'BEM-VINDO AO BRAWLCITY! 🔥'
+  ];
+  var el = document.getElementById('introTyping');
+  var fi = 0, ci = 0, texto = '';
+  function type() {
+    if (fi >= frases.length) return;
+    if (ci < frases[fi].length) {
+      texto += frases[fi][ci];
+      el.textContent = texto;
+      ci++;
+      setTimeout(type, 40);
+    } else {
+      setTimeout(function() {
+        texto = '';
+        ci = 0;
+        fi++;
+        setTimeout(type, 100);
+      }, 600);
+    }
+  }
+  setTimeout(type, 1900);
+
+  // Fecha após 4.5s
+  setTimeout(function() {
+    var intro = document.getElementById('introScreen');
+    intro.classList.add('hide');
+    sessionStorage.setItem('introVisto', '1');
+    setTimeout(function() { intro.style.display = 'none'; }, 800);
+  }, 4500);
+})();
 </script>
 </body>
 </html>
