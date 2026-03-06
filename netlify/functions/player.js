@@ -151,7 +151,7 @@ exports.handler = async (event) => {
 
     // Fallback: estima horas por expPoints se Brawlify não retornou
     if (!horasJogadas && data.expPoints) {
-      horasJogadas = Math.floor(data.expPoints / 22);
+      horasJogadas = Math.floor(data.expPoints / 220);
     }
 
     // Busca mapa de imagens da Brawlify para os brawlers
