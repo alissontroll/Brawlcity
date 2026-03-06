@@ -138,6 +138,22 @@ exports.handler = async (event) => {
     }
     const iconId = data.icon && data.icon.id ? data.icon.id : null;
 
+    // Busca horas jogadas na Brawlify
+    let horasJogadas = 0;
+    try {
+      const bfRes = await fetch('https://api.brawlify.com/v1/players/' + encodedTag);
+      if (bfRes.ok) {
+        const bfData = await bfRes.json();
+        if (bfData.hoursPlayed) horasJogadas = bfData.hoursPlayed;
+        else if (bfData.player && bfData.player.hoursPlayed) horasJogadas = bfData.player.hoursPlayed;
+      }
+    } catch(e) {}
+
+    // Fallback: estima horas por expPoints se Brawlify não retornou
+    if (!horasJogadas && data.expPoints) {
+      horasJogadas = Math.floor(data.expPoints / 22);
+    }
+
     // Busca mapa de imagens da Brawlify para os brawlers
     // A API retorna a imageUrl correta com o hash/nome do brawler
     // ex: https://cdn.brawlify.com/brawler/Shelly.png (NÃO usa ID numérico)
@@ -171,6 +187,8 @@ exports.handler = async (event) => {
       name: data.name,
       tag: data.tag,
       expLevel: data.expLevel,
+      expPoints: data.expPoints || 0,
+      horas: horasJogadas,
       brawlerCount: brawlers.length,
       iconId: iconId,
       soloVictories: data.soloVictories,
