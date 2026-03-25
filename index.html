@@ -2223,13 +2223,14 @@ async function atualizarDados() {
       }
 
       // ===== DETECTA BRAWLERS MAXIMIZADOS (POWER 11) =====
-      if (data.brawlers && data.brawlers.length > 0) {
+      // SÓ notifica se brawlersMax já existe como array no Firebase (proteção anti-spam)
+      if (data.brawlers && data.brawlers.length > 0 && Array.isArray(player.brawlersMax)) {
         var maxAtuais = data.brawlers
           .filter(function(b){ return (b.power||0) >= 11; })
           .map(function(b){ return (b.name||'').toUpperCase(); });
-        var maxSalvos = player.brawlersMax || [];
+        var maxSalvos = player.brawlersMax;
         var novosMax = maxAtuais.filter(function(nome){ return maxSalvos.indexOf(nome) === -1; });
-        if (novosMax.length > 0 && maxSalvos.length > 0) {
+        if (novosMax.length > 0) {
           novosMax.forEach(function(brawlerNome) {
             var brawlerData = data.brawlers.find(function(b){ return (b.name||'').toUpperCase() === brawlerNome; });
             var imgUrl = brawlerData ? (brawlerData.imageUrl || '') : '';
@@ -2244,6 +2245,7 @@ async function atualizarDados() {
             }).catch(function(){});
           });
         }
+        // Sempre atualiza o array com os atuais
         if (JSON.stringify(maxAtuais.sort()) !== JSON.stringify(maxSalvos.slice().sort())) {
           updates.brawlersMax = maxAtuais;
         }
@@ -2361,6 +2363,7 @@ onSnapshot(qNotif, function(snap) {
         '</div>';
       }
 
+      // Notificação padrão (novo brawler desbloqueado)
       if (n.type === 'brawlerMax') {
         var avatarHtml = n.playerIconId
           ? '<img src="https://cdn.brawlify.com/profile-icons/regular/'+n.playerIconId+'.png" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid rgba(0,229,255,0.4);" onerror="this.outerHTML=\'<span style=font-size:1.4rem>\'+(n.playerEmoji||\'🎮\')+\'</span>\'">'
@@ -2369,23 +2372,18 @@ onSnapshot(qNotif, function(snap) {
           ? '<img src="'+n.brawlerImg+'" style="width:40px;height:40px;object-fit:contain;" onerror="this.style.display=\'none\'">'
           : '<span style="font-size:1.6rem;">⚡</span>';
         return '<div class="notif-item" style="border-color:rgba(0,229,255,0.3);background:rgba(0,229,255,0.04);">' +
-          '<div class="notif-icon" style="display:flex;flex-direction:column;align-items:center;gap:4px;">' +
-            avatarHtml +
-          '</div>' +
+          '<div class="notif-icon">' + avatarHtml + '</div>' +
           '<div class="notif-text" style="flex:1;">' +
             '<div class="notif-name">'+n.playerName+'</div>' +
             '<div class="notif-desc" style="display:flex;align-items:center;gap:6px;">' +
-              '<span>maximizou</span>' +
-              brawlerImgHtml +
+              '<span>maximizou</span>' + brawlerImgHtml +
               '<strong style="color:#00e5ff;">'+n.brawlerNome+'</strong>' +
               '<span>⚡ Power 11!</span>' +
             '</div>' +
             '<div class="notif-time">'+tempoStr+'</div>' +
-          '</div>' +
-        '</div>';
+          '</div></div>';
       }
 
-      // Notificação padrão (novo brawler desbloqueado)
       return '<div class="notif-item">' +
         '<div class="notif-icon">🆕</div>' +
         '<div class="notif-text">' +
