@@ -1708,6 +1708,18 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
         <div id="fixHorasMsg" style="font-size:0.75rem;margin-top:8px;font-weight:800;line-height:1.6;"></div>
       </div>
       <div class="admin-section">
+        <div class="admin-section-title">⚡ INICIALIZAR POWER 11</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;font-family:monospace;">Salva os brawlers Power 11 atuais de todos os jogadores SEM notificar. Rode uma vez pra evitar spam.</div>
+        <button class="admin-btn admin-btn-primary" id="btnInitMax" onclick="inicializarPower11()">⚡ INICIALIZAR AGORA</button>
+        <div id="initMaxMsg" style="font-size:0.75rem;margin-top:8px;font-weight:800;line-height:1.6;"></div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">🗑️ LIMPAR NOTIFICAÇÕES</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;font-family:monospace;">Apaga TODAS as notificações do feed de novidades de uma vez.</div>
+        <button class="admin-btn" style="background:rgba(244,67,54,0.1);border:1px solid rgba(244,67,54,0.3);color:#ff8a80;" id="btnLimparNotif" onclick="limparNotificacoes()">🗑️ LIMPAR TUDO AGORA</button>
+        <div id="limparNotifMsg" style="font-size:0.75rem;margin-top:8px;font-weight:800;line-height:1.6;"></div>
+      </div>
+      <div class="admin-section">
         <div class="admin-section-title">🎵 MÚSICA DO SITE</div>
         <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:8px;font-weight:700;">Cole o link direto do Google Drive (MP3 público)</div>
         <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:10px;font-family:monospace;">Drive: Arquivo → Compartilhar → Qualquer pessoa com o link → copie o ID da URL e cole aqui como:<br>https://drive.google.com/uc?export=download&id=SEU_ID</div>
@@ -4663,12 +4675,64 @@ async function fixarTodasHoras() {
       msg.style.color = '#e74c3c';
       msg.textContent = '❌ Falhou: ' + player.name + ' — ' + e.message;
     }
-    // Delay de 1s entre cada jogador pra não sobrecarregar a API
     await new Promise(function(r){ setTimeout(r, 1000); });
   }
   btn.disabled = false;
   msg.style.color = '#2ecc71';
   msg.textContent = '✅ Concluído! ' + ok + ' corrigidos' + (falhou > 0 ? ', ' + falhou + ' falharam.' : '!');
+}
+
+async function inicializarPower11() {
+  var btn = document.getElementById('btnInitMax');
+  var msg = document.getElementById('initMaxMsg');
+  btn.disabled = true;
+  var ok = 0;
+  for (var i = 0; i < allPlayers.length; i++) {
+    var player = allPlayers[i];
+    msg.style.color = 'var(--text-dim)';
+    msg.textContent = '⏳ ' + player.name + ' (' + (i+1) + '/' + allPlayers.length + ')...';
+    try {
+      var data = await buscarJogador(player.tag);
+      if (data.brawlers && data.brawlers.length > 0) {
+        var maxAtuais = data.brawlers
+          .filter(function(b){ return (b.power||0) >= 11; })
+          .map(function(b){ return (b.name||'').toUpperCase(); });
+        await updateDoc(doc(db, 'players', player.id), { brawlersMax: maxAtuais });
+        ok++;
+        msg.style.color = 'var(--green)';
+        msg.textContent = '✅ ' + player.name + ' → ' + maxAtuais.length + ' Power 11 salvos';
+      }
+    } catch(e) {
+      msg.style.color = '#e74c3c';
+      msg.textContent = '❌ Falhou: ' + player.name;
+    }
+    await new Promise(function(r){ setTimeout(r, 1000); });
+  }
+  btn.disabled = false;
+  msg.style.color = '#2ecc71';
+  msg.textContent = '✅ Pronto! ' + ok + ' jogadores inicializados! Agora só notifica brawlers novos.';
+}
+
+async function limparNotificacoes() {
+  var btn = document.getElementById('btnLimparNotif');
+  var msg = document.getElementById('limparNotifMsg');
+  if (!confirm('Apagar TODAS as notificações do feed?')) return;
+  btn.disabled = true;
+  msg.style.color = 'var(--text-dim)';
+  msg.textContent = '⏳ Apagando...';
+  try {
+    var snap = await getDocs(collection(db, 'notifications'));
+    var total = snap.size;
+    var promises = [];
+    snap.forEach(function(d){ promises.push(deleteDoc(doc(db, 'notifications', d.id))); });
+    await Promise.all(promises);
+    msg.style.color = '#2ecc71';
+    msg.textContent = '✅ ' + total + ' notificações apagadas!';
+  } catch(e) {
+    msg.style.color = '#e74c3c';
+    msg.textContent = '❌ Erro: ' + e.message;
+  }
+  btn.disabled = false;
 }
 
 // ===== PREVISÃO DE QUEDA =====
