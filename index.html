@@ -4721,10 +4721,11 @@ async function limparNotificacoes() {
   msg.style.color = 'var(--text-dim)';
   msg.textContent = '⏳ Apagando...';
   try {
-    var snap = await getDocs(collection(db, 'notifications'));
+    var { getDocs: gd2, collection: col2, doc: doc2, deleteDoc: dd2 } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    var snap = await gd2(col2(db, 'notifications'));
     var total = snap.size;
     var promises = [];
-    snap.forEach(function(d){ promises.push(deleteDoc(doc(db, 'notifications', d.id))); });
+    snap.forEach(function(d){ promises.push(dd2(doc2(db, 'notifications', d.id))); });
     await Promise.all(promises);
     msg.style.color = '#2ecc71';
     msg.textContent = '✅ ' + total + ' notificações apagadas!';
