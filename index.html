@@ -2196,10 +2196,11 @@ async function atualizarDados() {
       }
       if (data.brawlerCount && player.brawlerCount && data.brawlerCount > player.brawlerCount) {
         var diff = data.brawlerCount - player.brawlerCount;
-        updates.newBrawlers = diff;
+        // Salva imediatamente no Firebase pra evitar spam
+        updateDoc(doc(db, 'players', player.id), { brawlerCount: data.brawlerCount }).catch(function(){});
         updates.brawlerCount = data.brawlerCount;
-        // Salva notificação no Firebase
-        var notif = {playerName: player.name, count: diff, timestamp: Date.now(), type: 'newBrawler'};
+        updates.newBrawlers = diff;
+        var notif = {playerName: player.name, playerEmoji: player.emoji||'🎮', playerIconId: player.iconId||null, count: diff, timestamp: Date.now(), type: 'newBrawler'};
         addDoc(collection(db, 'notifications'), notif).catch(function(){});
       } else if (data.brawlerCount && !player.brawlerCount) {
         updates.brawlerCount = data.brawlerCount;
