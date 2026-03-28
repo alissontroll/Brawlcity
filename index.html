@@ -2210,10 +2210,9 @@ async function atualizarDados() {
         var mil1000Atuais = data.brawlers
           .filter(function(b){ return (b.trophies||0) >= 1000; })
           .map(function(b){ return (b.name||'').toUpperCase(); });
-        var mil1000Salvos = player.brawlers1000 || [];
+        var mil1000Salvos = Array.isArray(player.brawlers1000) ? player.brawlers1000 : [];
         var novosNo1000 = mil1000Atuais.filter(function(nome){ return mil1000Salvos.indexOf(nome) === -1; });
         if (novosNo1000.length > 0 && mil1000Salvos.length > 0) {
-          // Só notifica se já tinha dados salvos (evita spam no primeiro cadastro)
           novosNo1000.forEach(function(brawlerNome) {
             var brawlerData = data.brawlers.find(function(b){ return (b.name||'').toUpperCase() === brawlerNome; });
             var imgUrl = brawlerData ? (brawlerData.imageUrl || '') : '';
@@ -2229,13 +2228,13 @@ async function atualizarDados() {
             }).catch(function(){});
           });
         }
-        if (JSON.stringify(mil1000Atuais.sort()) !== JSON.stringify(mil1000Salvos.slice().sort())) {
-          updates.brawlers1000 = mil1000Atuais;
+        // Sempre salva imediatamente se mudou — não espera outros updates
+        if (JSON.stringify(mil1000Atuais.slice().sort()) !== JSON.stringify(mil1000Salvos.slice().sort())) {
+          updateDoc(doc(db, 'players', player.id), { brawlers1000: mil1000Atuais }).catch(function(){});
         }
       }
 
       // ===== DETECTA BRAWLERS MAXIMIZADOS (POWER 11) =====
-      // SÓ notifica se brawlersMax já existe como array no Firebase (proteção anti-spam)
       if (data.brawlers && data.brawlers.length > 0 && Array.isArray(player.brawlersMax)) {
         var maxAtuais = data.brawlers
           .filter(function(b){ return (b.power||0) >= 11; })
@@ -2257,9 +2256,9 @@ async function atualizarDados() {
             }).catch(function(){});
           });
         }
-        // Sempre atualiza o array com os atuais
-        if (JSON.stringify(maxAtuais.sort()) !== JSON.stringify(maxSalvos.slice().sort())) {
-          updates.brawlersMax = maxAtuais;
+        // Sempre salva imediatamente se mudou
+        if (JSON.stringify(maxAtuais.slice().sort()) !== JSON.stringify(maxSalvos.slice().sort())) {
+          updateDoc(doc(db, 'players', player.id), { brawlersMax: maxAtuais }).catch(function(){});
         }
       }
       // Salva histórico de troféus
