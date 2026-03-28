@@ -2196,11 +2196,10 @@ async function atualizarDados() {
       }
       if (data.brawlerCount && player.brawlerCount && data.brawlerCount > player.brawlerCount) {
         var diff = data.brawlerCount - player.brawlerCount;
-        // Salva imediatamente no Firebase pra evitar spam
-        updateDoc(doc(db, 'players', player.id), { brawlerCount: data.brawlerCount }).catch(function(){});
-        updates.brawlerCount = data.brawlerCount;
         updates.newBrawlers = diff;
-        var notif = {playerName: player.name, playerEmoji: player.emoji||'🎮', playerIconId: player.iconId||null, count: diff, timestamp: Date.now(), type: 'newBrawler'};
+        updates.brawlerCount = data.brawlerCount;
+        // Salva notificação no Firebase
+        var notif = {playerName: player.name, count: diff, timestamp: Date.now(), type: 'newBrawler'};
         addDoc(collection(db, 'notifications'), notif).catch(function(){});
       } else if (data.brawlerCount && !player.brawlerCount) {
         updates.brawlerCount = data.brawlerCount;
@@ -4686,31 +4685,45 @@ async function inicializarPower11() {
   var btn = document.getElementById('btnInitMax');
   var msg = document.getElementById('initMaxMsg');
   btn.disabled = true;
-  var ok = 0;
+  var ok = 0, falhou = 0;
+  msg.style.color = 'var(--text-dim)';
+  msg.textContent = '⏳ Iniciando... ' + allPlayers.length + ' jogadores';
+  await new Promise(function(r){ setTimeout(r, 500); });
+
   for (var i = 0; i < allPlayers.length; i++) {
     var player = allPlayers[i];
     msg.style.color = 'var(--text-dim)';
-    msg.textContent = '⏳ ' + player.name + ' (' + (i+1) + '/' + allPlayers.length + ')...';
+    msg.textContent = '⏳ Buscando ' + player.name + ' (' + (i+1) + '/' + allPlayers.length + ')...';
     try {
       var data = await buscarJogador(player.tag);
-      if (data.brawlers && data.brawlers.length > 0) {
+      if (data && data.brawlers && data.brawlers.length > 0) {
         var maxAtuais = data.brawlers
           .filter(function(b){ return (b.power||0) >= 11; })
           .map(function(b){ return (b.name||'').toUpperCase(); });
         await updateDoc(doc(db, 'players', player.id), { brawlersMax: maxAtuais });
         ok++;
-        msg.style.color = 'var(--green)';
-        msg.textContent = '✅ ' + player.name + ' → ' + maxAtuais.length + ' Power 11 salvos';
+        msg.style.color = '#2ecc71';
+        msg.textContent = '✅ ' + player.name + ': ' + maxAtuais.length + ' Power 11 (' + (i+1) + '/' + allPlayers.length + ')';
+      } else {
+        falhou++;
+        msg.style.color = '#e67e22';
+        msg.textContent = '⚠️ ' + player.name + ': sem brawlers na API (' + (i+1) + '/' + allPlayers.length + ')';
       }
     } catch(e) {
+      falhou++;
       msg.style.color = '#e74c3c';
-      msg.textContent = '❌ Falhou: ' + player.name;
+      msg.textContent = '❌ ' + player.name + ': ' + (e.message || 'erro') + ' (' + (i+1) + '/' + allPlayers.length + ')';
     }
-    await new Promise(function(r){ setTimeout(r, 1000); });
+    await new Promise(function(r){ setTimeout(r, 1200); });
   }
   btn.disabled = false;
-  msg.style.color = '#2ecc71';
-  msg.textContent = '✅ Pronto! ' + ok + ' jogadores inicializados! Agora só notifica brawlers novos.';
+  if (ok > 0) {
+    msg.style.color = '#2ecc71';
+    msg.textContent = '✅ Pronto! ' + ok + ' inicializados' + (falhou > 0 ? ', ' + falhou + ' falharam' : '') + '. Power 11 futuros serão notificados!';
+  } else {
+    msg.style.color = '#e74c3c';
+    msg.textContent = '❌ Nenhum jogador foi inicializado. Verifique a API.';
+  }
 }
 
 async function limparNotificacoes() {
