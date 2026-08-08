@@ -320,10 +320,15 @@ def ai_chat():
     except requests.RequestException as e:
         return jsonify({"error": str(e)}), 500
 
-    data = r.json()
     if not r.ok:
-        msg = (data.get("error") or {}).get("message") if isinstance(data.get("error"), dict) else data.get("error")
-        return jsonify({"error": msg or "Erro da NVIDIA"}), r.status_code
+        return jsonify({
+            "error": f"NVIDIA respondeu {r.status_code}: {r.text[:300]}"
+        }), r.status_code
+
+    try:
+        data = r.json()
+    except ValueError:
+        return jsonify({"error": f"Resposta não era JSON: {r.text[:300]}"}), 502
 
     content = ""
     choices = data.get("choices") or []
