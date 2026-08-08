@@ -18,11 +18,13 @@ API_KEY = os.environ.get("BRAWL_API_KEY", "")
 PROXY_BASE = "https://bsproxy.royaleapi.dev/v1"
 BRAWLIFY_BASE = "https://api.brawlify.com/v1"
 
-# Chave do assistente de IA (NVIDIA) — vem de variável de ambiente, nunca
+# Chave do assistente de IA (Groq) — vem de variável de ambiente, nunca
 # escrita no código, veja o README.md pra configurar no Render.
-NVIDIA_API_KEY = os.environ.get("NVIDIA_API_KEY", "")
-NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
-NVIDIA_MODEL = os.environ.get("NVIDIA_MODEL", "microsoft/phi-3.5-moe-instruct")
+# Chave do assistente de IA (Groq) — vem de variável de ambiente, nunca
+# escrita no código, veja o README.md pra configurar no Render.
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 # serve os arquivos estáticos (index.html, manifest.json, ícones, etc.)
 # direto da raiz do projeto, do mesmo jeito que a Netlify fazia.
@@ -292,10 +294,10 @@ def refresh_all_route():
 
 @app.route("/api/ai-chat", methods=["POST"])
 def ai_chat():
-    """Ponte protegida pro assistente de IA. A chave da NVIDIA fica só
+    """Ponte protegida pro assistente de IA. A chave da Groq fica só
     aqui no servidor, nunca aparece no código do site."""
-    if not NVIDIA_API_KEY:
-        return jsonify({"error": "Chave da NVIDIA não configurada no servidor."}), 500
+    if not GROQ_API_KEY:
+        return jsonify({"error": "Chave da Groq não configurada no servidor."}), 500
 
     body = request.get_json(force=True, silent=True) or {}
     messages = body.get("messages")
@@ -304,25 +306,25 @@ def ai_chat():
 
     try:
         r = requests.post(
-            NVIDIA_URL,
+            GROQ_URL,
             headers={
-                "Authorization": f"Bearer {NVIDIA_API_KEY}",
+                "Authorization": f"Bearer {GROQ_API_KEY}",
                 "Content-Type": "application/json",
             },
             json={
-                "model": NVIDIA_MODEL,
+                "model": GROQ_MODEL,
                 "messages": messages,
                 "max_tokens": body.get("max_tokens", 600),
                 "temperature": body.get("temperature", 0.9),
             },
-            timeout=60,
+            timeout=30,
         )
     except requests.RequestException as e:
         return jsonify({"error": str(e)}), 500
 
     if not r.ok:
         return jsonify({
-            "error": f"NVIDIA respondeu {r.status_code}: {r.text[:300]}"
+            "error": f"Groq respondeu {r.status_code}: {r.text[:300]}"
         }), r.status_code
 
     try:

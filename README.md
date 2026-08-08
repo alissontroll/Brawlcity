@@ -44,13 +44,12 @@ RoyaleAPI). Depois, **apague a chave antiga** lá no site do jogo.
 - Depois de confirmar que está tudo funcionando no Render, você pode
   desativar o site na Netlify (ou simplesmente parar de usá-lo).
 
-## Assistente de IA (NVIDIA)
+## Assistente de IA (Groq)
 
-O assistente de IA agora passa pelo servidor, sem chave exposta no código.
+O assistente de IA passa pelo servidor, sem chave exposta no código.
 Pra ativar:
 
-1. Crie uma conta grátis em https://build.nvidia.com
-2. Abre qualquer modelo (ex: "Llama 3.3 70B Instruct") e clica em
-   **Get API Key** — a chave começa com `nvapi-`
-3. No Render, em **Environment**, adiciona a variável `NVIDIA_API_KEY`
+1. Crie uma conta grátis em https://console.groq.com
+2. Vai em **API Keys > Create API Key** — a chave começa com `gsk_`
+3. No Render, em **Environment**, adiciona a variável `GROQ_API_KEY`
    com essa chave
