@@ -2145,6 +2145,11 @@ function setCity(city) {
   renderRanking();
 }
 
+// Pede pro servidor atualizar todo mundo do ranking em segundo plano.
+// O Firestore (onSnapshot logo abaixo) já reflete sozinho na tela assim
+// que cada jogador for atualizado, sem precisar recarregar a página.
+fetch('/api/refresh-all').catch(function(){});
+
 var q = query(collection(db, 'players'), orderBy('trophies', 'desc'));
 onSnapshot(q, function(snapshot) {
   allPlayers = [];
