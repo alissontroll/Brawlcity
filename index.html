@@ -4078,16 +4078,13 @@ window.iaEnviar = async function() {
   // Adiciona historico ao messages
   window._iaHistorico.push({ role: 'user', content: pergunta });
 
-  // Groq API (gratuita) - https://console.groq.com para pegar sua chave
-  var GROQ_KEY = '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'; // Substitua pela sua chave do Groq
-  var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-
+  // Assistente de IA — passa pelo nosso servidor, que guarda a chave em
+  // segredo (nunca mais fica exposta no código do site).
   var systemPrompt = 'Você é BrawlBot, assistente especialista em Brawl Stars do site BrawlCity Rank de Pernambuco. ' +
     'Responda SEMPRE em português do Brasil, de forma animada e com emojis. ' +
     'Seja conciso (máximo 3 parágrafos). Não use asteriscos, use texto limpo. ' +
     'Dados do jogador: ' + contexto + '.';
 
-  // Monta histórico no formato OpenAI/Groq
   var groqMessages = [{ role: 'system', content: systemPrompt }];
   for (var hi = 0; hi < window._iaHistorico.length - 1; hi++) {
     var h = window._iaHistorico[hi];
@@ -4096,30 +4093,23 @@ window.iaEnviar = async function() {
   groqMessages.push({ role: 'user', content: pergunta });
 
   try {
-    var res = await fetch(GROQ_URL, {
+    var res = await fetch('/api/ai-chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: groqMessages,
-        max_tokens: 600,
-        temperature: 0.9
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: groqMessages, max_tokens: 600, temperature: 0.9 })
     });
 
     var data = await res.json();
-    console.log('Groq status:', res.status);
-    console.log('Groq response:', JSON.stringify(data));
 
     // Pega o texto da resposta com fallback seguro
     var resposta = '';
     if (data.error) {
-      resposta = '❌ Erro da API: ' + (data.error.message || JSON.stringify(data.error));
-    } else if (data.choices && data.choices.length > 0) {
-      resposta = data.choices[0].message && data.choices[0].message.content ? data.choices[0].message.content : '';
+      resposta = '❌ Erro da IA: ' + data.error;
+    } else if (data.content) {
+      resposta = data.content;
     }
     if (!resposta) {
-      resposta = '⚠️ Retorno vazio. Debug: ' + JSON.stringify(data).slice(0, 200);
+      resposta = '⚠️ Retorno vazio da IA.';
     }
 
     // Salva no histórico
@@ -4805,26 +4795,20 @@ async function gerarPrevisaoQueda(p, historico) {
       '<div class="previsao-texto" id="previsaoTextoIA">🤖 Gerando análise da IA...</div>' +
     '</div>';
 
-  // Chama Groq pra análise em linguagem natural
+  // Chama o assistente de IA (pelo servidor) pra análise em linguagem natural
   try {
-    var GROQ_KEY = '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';
     var histResume = trofeus.map(function(t,i){ return 'Dia '+(i+1)+': '+t; }).join(', ');
     var prompt = 'Você é um analista de Brawl Stars. Analise o histórico de troféus deste jogador e dê uma previsão curta e divertida (máx 2 frases, sem asteriscos, em português BR com emojis). ' +
       'Jogador: '+p.name+' | Troféus atual: '+p.trophies+' | Tendência: '+(tendencia>=0?'+':'')+tendencia+' no período | Média diária: '+(mediaVariacao>=0?'+':'')+mediaVariacao+' | Quedas: '+quedas+'x | Subidas: '+subidas+'x | Histórico: '+histResume+'. ' +
       'Se tiver em queda, avise que é hora dos rivais atacarem. Se subindo, elogie. Seja direto e engraçado.';
 
-    var res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    var res = await fetch('/api/ai-chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 150,
-        temperature: 0.85
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], max_tokens: 150, temperature: 0.85 })
     });
     var data = await res.json();
-    var texto = data.choices && data.choices[0] ? data.choices[0].message.content : '⚠️ Não foi possível gerar análise.';
+    var texto = data.content || '⚠️ Não foi possível gerar análise.';
     var iaEl = document.getElementById('previsaoTextoIA');
     if (iaEl) iaEl.innerHTML = texto.replace(/\n/g, '<br>');
   } catch(e) {

@@ -43,3 +43,14 @@ RoyaleAPI). Depois, **apague a chave antiga** lá no site do jogo.
   uns 30-50 segundos pra acordar.
 - Depois de confirmar que está tudo funcionando no Render, você pode
   desativar o site na Netlify (ou simplesmente parar de usá-lo).
+
+## Assistente de IA (NVIDIA)
+
+O assistente de IA agora passa pelo servidor, sem chave exposta no código.
+Pra ativar:
+
+1. Crie uma conta grátis em https://build.nvidia.com
+2. Abre qualquer modelo (ex: "Llama 3.3 70B Instruct") e clica em
+   **Get API Key** — a chave começa com `nvapi-`
+3. No Render, em **Environment**, adiciona a variável `NVIDIA_API_KEY`
+   com essa chave
