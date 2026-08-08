@@ -22,7 +22,7 @@ BRAWLIFY_BASE = "https://api.brawlify.com/v1"
 # escrita no código, veja o README.md pra configurar no Render.
 NVIDIA_API_KEY = os.environ.get("NVIDIA_API_KEY", "")
 NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
-NVIDIA_MODEL = os.environ.get("NVIDIA_MODEL", "mistralai/mixtral-8x7b-instruct-v0.1")
+NVIDIA_MODEL = os.environ.get("NVIDIA_MODEL", "microsoft/phi-3.5-moe-instruct")
 
 # serve os arquivos estáticos (index.html, manifest.json, ícones, etc.)
 # direto da raiz do projeto, do mesmo jeito que a Netlify fazia.
