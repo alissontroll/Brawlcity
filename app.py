@@ -315,7 +315,7 @@ def ai_chat():
                 "max_tokens": body.get("max_tokens", 600),
                 "temperature": body.get("temperature", 0.9),
             },
-            timeout=30,
+            timeout=60,
         )
     except requests.RequestException as e:
         return jsonify({"error": str(e)}), 500
