@@ -176,6 +176,70 @@ def refresh_all_players():
             if top_b.get("imageUrl") and top_b["imageUrl"] != player.get("topBrawlerImg"):
                 updates["topBrawlerImg"] = top_b["imageUrl"]
 
+        # ---- brawler novo desbloqueado ----
+        new_count = data.get("brawlerCount")
+        old_count = player.get("brawlerCount")
+        if new_count and old_count and new_count > old_count:
+            diff = new_count - old_count
+            updates["brawlerCount"] = new_count
+            updates["newBrawlers"] = diff
+            try:
+                db.collection("notifications").add({
+                    "playerName": player.get("name"),
+                    "count": diff,
+                    "timestamp": int(time.time() * 1000),
+                    "type": "newBrawler",
+                })
+            except Exception as e:
+                print(f"[REFRESH] Erro ao notificar brawler novo de {tag}: {repr(e)}")
+        elif new_count and not old_count:
+            updates["brawlerCount"] = new_count
+
+        # ---- brawlers que chegaram aos 1000 troféus ----
+        mil_atuais = sorted({(b.get("name") or "").upper() for b in brawlers if (b.get("trophies") or 0) >= 1000})
+        mil_salvos = sorted(player.get("brawlers1000") or [])
+        if mil_atuais != mil_salvos:
+            if mil_salvos:  # só notifica se já tinha uma lista salva antes (evita spam no primeiro cálculo)
+                novos_1000 = [n for n in mil_atuais if n not in mil_salvos]
+                for nome in novos_1000:
+                    b = next((x for x in brawlers if (x.get("name") or "").upper() == nome), None)
+                    try:
+                        db.collection("notifications").add({
+                            "playerName": player.get("name"),
+                            "playerEmoji": player.get("emoji") or "🎮",
+                            "playerIconId": player.get("iconId"),
+                            "brawlerNome": nome,
+                            "brawlerImg": (b or {}).get("imageUrl", ""),
+                            "trophies": (b or {}).get("trophies", 1000),
+                            "timestamp": int(time.time() * 1000),
+                            "type": "brawler1000",
+                        })
+                    except Exception as e:
+                        print(f"[REFRESH] Erro ao notificar 1000 troféus de {tag}: {repr(e)}")
+            updates["brawlers1000"] = mil_atuais
+
+        # ---- brawlers maximizados (power 11) ----
+        max_atuais = sorted({(b.get("name") or "").upper() for b in brawlers if (b.get("power") or 0) >= 11})
+        max_salvos = sorted(player.get("brawlersMax") or [])
+        if max_atuais != max_salvos:
+            if max_salvos:
+                novos_max = [n for n in max_atuais if n not in max_salvos]
+                for nome in novos_max:
+                    b = next((x for x in brawlers if (x.get("name") or "").upper() == nome), None)
+                    try:
+                        db.collection("notifications").add({
+                            "playerName": player.get("name"),
+                            "playerEmoji": player.get("emoji") or "🎮",
+                            "playerIconId": player.get("iconId"),
+                            "brawlerNome": nome,
+                            "brawlerImg": (b or {}).get("imageUrl", ""),
+                            "timestamp": int(time.time() * 1000),
+                            "type": "brawlerMax",
+                        })
+                    except Exception as e:
+                        print(f"[REFRESH] Erro ao notificar maximização de {tag}: {repr(e)}")
+            updates["brawlersMax"] = max_atuais
+
         if updates:
             try:
                 doc.reference.update(updates)

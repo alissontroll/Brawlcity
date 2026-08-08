@@ -2149,6 +2149,7 @@ function setCity(city) {
 // O Firestore (onSnapshot logo abaixo) já reflete sozinho na tela assim
 // que cada jogador for atualizado, sem precisar recarregar a página.
 fetch('/api/refresh-all').catch(function(){});
+setInterval(function() { fetch('/api/refresh-all').catch(function(){}); }, 30 * 60 * 1000);
 
 var q = query(collection(db, 'players'), orderBy('trophies', 'desc'));
 onSnapshot(q, function(snapshot) {
@@ -2280,7 +2281,10 @@ async function atualizarDados() {
     } catch(e) {}
   }
 }
-setTimeout(atualizarDados, 5000);
+// A atualização automática agora roda no SERVIDOR (Render), não mais aqui
+// no navegador — isso evita que várias pessoas com o site aberto ao mesmo
+// tempo fiquem escrevendo notificações duplicadas umas por cima das outras.
+// setTimeout(atualizarDados, 5000);
 
 // Registrar visita
 (function() {
@@ -2328,7 +2332,7 @@ setTimeout(atualizarDados, 5000);
     data: new Date().toLocaleDateString('pt-BR')
   }).catch(function(){});
 })();
-setInterval(atualizarDados, 30 * 60 * 1000);
+// setInterval(atualizarDados, 30 * 60 * 1000);
 
 // Listener de notificações - mostra novos brawlers
 var qNotif = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'));
