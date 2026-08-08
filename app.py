@@ -35,8 +35,12 @@ try:
         cred = credentials.Certificate(FIREBASE_CRED_PATH)
         firebase_admin.initialize_app(cred)
         db = firestore.client()
+        print("[FIREBASE] Conectado com sucesso ao Firestore.")
+    else:
+        print(f"[FIREBASE] Arquivo secreto não encontrado em {FIREBASE_CRED_PATH}. "
+              f"A atualização automática do ranking vai ficar desativada.")
 except Exception as e:
-    print("Não foi possível iniciar o Firebase Admin:", e)
+    print("[FIREBASE] Erro ao iniciar o Firebase Admin:", repr(e))
 
 _refresh_lock = threading.Lock()
 
@@ -138,20 +142,24 @@ def refresh_all_players():
     direto no Firestore — é a versão do servidor da antiga atualizarDados()
     que rodava só no navegador de quem tivesse o site aberto."""
     if not db:
+        print("[REFRESH] Abortado: Firebase Admin não está configurado.")
         return {"error": "Firebase Admin não configurado"}
 
     players_ref = db.collection("players")
     docs = list(players_ref.stream())
+    print(f"[REFRESH] Começando. {len(docs)} jogador(es) encontrados no Firestore.")
     updated = 0
 
     for doc in docs:
         player = doc.to_dict()
         tag = player.get("tag")
         if not tag:
+            print(f"[REFRESH] Documento {doc.id} não tem campo 'tag', pulando.")
             continue
         try:
             data = fetch_player_full(tag)
-        except Exception:
+        except Exception as e:
+            print(f"[REFRESH] Erro ao buscar {tag}: {repr(e)}")
             continue
 
         updates = {}
@@ -169,15 +177,23 @@ def refresh_all_players():
                 updates["topBrawlerImg"] = top_b["imageUrl"]
 
         if updates:
-            doc.reference.update(updates)
-            updated += 1
+            try:
+                doc.reference.update(updates)
+                updated += 1
+                print(f"[REFRESH] {tag} atualizado: {updates}")
+            except Exception as e:
+                print(f"[REFRESH] Erro ao SALVAR {tag} no Firestore: {repr(e)}")
 
         if data.get("trophies"):
-            doc.reference.collection("history").add({
-                "trophies": data["trophies"],
-                "timestamp": int(time.time() * 1000),
-            })
+            try:
+                doc.reference.collection("history").add({
+                    "trophies": data["trophies"],
+                    "timestamp": int(time.time() * 1000),
+                })
+            except Exception as e:
+                print(f"[REFRESH] Erro ao salvar histórico de {tag}: {repr(e)}")
 
+    print(f"[REFRESH] Concluído. {updated} de {len(docs)} jogador(es) atualizados.")
     return {"updated": updated, "total": len(docs)}
 
 
@@ -191,7 +207,10 @@ def refresh_all_route():
     """Chamada pelo index.html quando alguém abre o ranking. Roda em
     segundo plano pra não travar a resposta esperando todo mundo atualizar."""
     if _refresh_lock.locked():
+        print("[REFRESH] Chamada ignorada: já tem uma atualização rodando.")
         return jsonify({"status": "already_running"})
+
+    print("[REFRESH] Disparado por uma visita ao site.")
 
     def run():
         with _refresh_lock:
