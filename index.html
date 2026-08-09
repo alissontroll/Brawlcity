@@ -2104,7 +2104,7 @@ async function carregarMapas() {
 
     renderMapas(resultado, proximos);
   } catch(e) {
-    document.getElementById('mapGrid').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>ERRO: ' + e.message + '</p></div>';
+    document.getElementById('mapGrid').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Não consegui carregar os mapas agora. Tenta de novo em alguns instantes.</p></div>';
     document.getElementById('updateInfoMapas').textContent = '🔴 ERRO';
     console.error('carregarMapas erro:', e);
   }
@@ -3637,6 +3637,7 @@ async function abrirPerfilTab(p, pos) {
   carregarBattleStats(cleanTag, trofeus);
   carregarMeta(cleanTag, trofeus);
   // ===== PREVISÃO DE QUEDA =====
+  window._trofeusHistorico = pontos2 || [];
   gerarPrevisaoQueda(p, pontos2 && pontos2.length >= 3 ? pontos2 : []);
 
   // Botão salvar perfil na aba
@@ -4110,7 +4111,19 @@ window.iaEnviar = async function() {
     }
   } catch(eMeta) { /* sem meta definida, tudo bem */ }
 
-  // ---- Últimas partidas ----
+  // ---- Troféus subidos/descidos por dia (histórico real salvo, não é soma de partidas) ----
+  try {
+    var histTrofeus = window._trofeusHistorico || [];
+    if (histTrofeus.length >= 2) {
+      var ultimoDia = histTrofeus[histTrofeus.length - 1];
+      var penultimoDia = histTrofeus[histTrofeus.length - 2];
+      var diffHoje = ultimoDia.trophies - penultimoDia.trophies;
+      contexto += ', Variação de troféus do último registro pro anterior: ' + (diffHoje >= 0 ? '+' : '') + diffHoje +
+        ' (de ' + penultimoDia.trophies.toLocaleString('pt-BR') + ' para ' + ultimoDia.trophies.toLocaleString('pt-BR') + ')';
+      contexto += ', Histórico completo de troféus por dia (mais antigo primeiro): ' +
+        histTrofeus.map(function(h){ return h.trophies; }).join(' → ');
+    }
+  } catch(eHist) { /* sem histórico suficiente ainda */ }
   if (p.tag) {
     try {
       var cleanTagBattle = p.tag.startsWith('#') ? p.tag : '#' + p.tag;
@@ -4144,6 +4157,7 @@ window.iaEnviar = async function() {
     '3) Quando perguntarem "qual brawler colocar/focar nos 1000 troféus", escolha um brawler que AINDA NÃO chegou em 1000 troféus (olhe a lista "AINDA NÃO chegaram em 1000") — NUNCA sugira um brawler que já está na lista "JÁ chegaram em 1000+". ' +
     '4) Quando perguntarem "qual brawler focar/upar" (upgrade de power), NUNCA sugira um brawler que já está na lista "Brawlers já maximizados (power 11)" — esses já estão no máximo e não fazem sentido como sugestão de upgrade. Prefira brawlers com power baixo (não maximizados) e poucos troféus, que tenham mais espaço pra crescer. ' +
     '5) Se perguntarem sobre posição no ranking, comparação com outro jogador da cidade, meta de troféus ou últimas partidas, use os dados correspondentes abaixo (se não tiver o dado, diga que não tem essa informação agora). ' +
+    '7) Se perguntarem "quantos troféus eu subi/desci", NUNCA some manualmente as partidas do battlelog (isso mistura dias diferentes e dá conta errada). Use SEMPRE o campo "Variação de troféus do último registro pro anterior" — esse já vem calculado certo. Se ele não estiver nos dados, diga que ainda não tem histórico suficiente. ' +
     '6) Perguntas gerais sobre o jogo (tipo "qual brawler é bom contra X", dicas de mapa, combos) você pode responder com seu conhecimento normal de Brawl Stars, mesmo sem estar nos dados do jogador. ' +
     'Dados do jogador: ' + contexto + '.';
 

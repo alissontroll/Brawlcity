@@ -90,7 +90,10 @@ def fetch_player_full(tag):
     encoded = quote(clean_tag(tag))
 
     r = requests.get(f"{PROXY_BASE}/players/{encoded}", headers=headers, timeout=10)
-    data = r.json()
+    try:
+        data = r.json()
+    except ValueError:
+        raise RuntimeError(f"Resposta inválida do servidor do jogo (código {r.status_code}).")
     if not r.ok:
         raise RuntimeError(data.get("message", "Erro da API"))
 
@@ -357,9 +360,13 @@ def player_function():
         except requests.RequestException as e:
             return jsonify({"error": str(e)}), 500
         if not r.ok:
-            return jsonify({"error": r.text}), r.status_code
+            return jsonify({"error": r.text[:300]}), r.status_code
 
-        raw = r.json()
+        try:
+            raw = r.json()
+        except ValueError:
+            return jsonify({"error": "O servidor do jogo mandou uma resposta inesperada. Tenta de novo."}), 502
+
         todos = raw if isinstance(raw, list) else (raw.get("items") or raw.get("active") or [])
 
         def get_mode(ev):
@@ -394,7 +401,10 @@ def player_function():
             r = requests.get(f"{PROXY_BASE}/players/{encoded}/battlelog", headers=headers, timeout=10)
         except requests.RequestException as e:
             return jsonify({"error": str(e)}), 500
-        data = r.json()
+        try:
+            data = r.json()
+        except ValueError:
+            return jsonify({"error": "O servidor do jogo mandou uma resposta inesperada. Tenta de novo."}), 502
         if not r.ok:
             return jsonify({"error": data.get("message", "Erro da API")}), r.status_code
         return jsonify(data)
