@@ -4064,12 +4064,16 @@ window.iaEnviar = async function() {
         if (apiData.club && apiData.club.name) contexto += ', Clube: ' + apiData.club.name;
         if (apiData.brawlers && apiData.brawlers.length > 0) {
           var bsSorted = apiData.brawlers.slice().sort(function(a,b){ return (b.trophies||0)-(a.trophies||0); });
-          var top10 = bsSorted.slice(0, 10);
-          contexto += ', Top 10 brawlers: ' + top10.map(function(b){ return b.name + ' (' + (b.trophies||0) + ' trofeus, rank ' + (b.rank||'?') + ', power ' + (b.power||'?') + ')'; }).join(' | ');
+          // manda a lista INTEIRA (não só o top 10) pra IA nunca inventar
+          // dados de um brawler que ela não recebeu de verdade
+          contexto += ', Lista COMPLETA de todos os brawlers (use SOMENTE estes dados, nunca invente troféus/power de nenhum brawler): ' +
+            bsSorted.map(function(b){ return b.name + '(trofeus:' + (b.trophies||0) + ',power:' + (b.power||'?') + ')'; }).join(' | ');
           var pw11 = apiData.brawlers.filter(function(b){ return b.power >= 11; });
-          if (pw11.length) contexto += ', Brawlers power 11: ' + pw11.map(function(b){ return b.name; }).join(', ');
+          if (pw11.length) contexto += ', Brawlers já maximizados (power 11, NÃO sugerir upar mais): ' + pw11.map(function(b){ return b.name; }).join(', ');
           var mil = apiData.brawlers.filter(function(b){ return (b.trophies||0) >= 1000; });
-          if (mil.length) contexto += ', Brawlers com 1000+ trofeus: ' + mil.map(function(b){ return b.name + '(' + b.trophies + ')'; }).join(', ');
+          if (mil.length) contexto += ', Brawlers que JÁ chegaram em 1000+ troféus (NUNCA sugerir estes quando perguntarem qual brawler colocar nos 1000, pois já chegaram): ' + mil.map(function(b){ return b.name + '(' + b.trophies + ')'; }).join(', ');
+          var sub1000 = apiData.brawlers.filter(function(b){ return (b.trophies||0) < 1000; }).sort(function(a,b){ return (b.trophies||0)-(a.trophies||0); });
+          if (sub1000.length) contexto += ', Brawlers que AINDA NÃO chegaram em 1000 (candidatos válidos pra sugerir): ' + sub1000.slice(0,15).map(function(b){ return b.name + '(' + (b.trophies||0) + ')'; }).join(', ');
         }
       }
     } catch(eApi) { /* usa dados basicos se API falhar */ }
@@ -4083,6 +4087,11 @@ window.iaEnviar = async function() {
   var systemPrompt = 'Você é BrawlBot, assistente especialista em Brawl Stars do site BrawlCity Rank de Pernambuco. ' +
     'Responda SEMPRE em português do Brasil, de forma animada e com emojis. ' +
     'Seja conciso (máximo 3 parágrafos). Não use asteriscos, use texto limpo. ' +
+    'REGRAS IMPORTANTES: ' +
+    '1) NUNCA invente troféus, power ou rank de nenhum brawler — use SOMENTE os números que estão nos dados abaixo. Se não tiver o dado de um brawler específico, diga que não tem essa informação em vez de chutar um número. ' +
+    '2) "Power" (1 a 11) é o nível de upgrade/investimento do brawler — é isso que importa quando o assunto é "upar" ou "focar". "Rank" é só uma métrica separada de maestria, não confunda os dois nem use rank pra falar de força/investimento. ' +
+    '3) Quando perguntarem "qual brawler colocar/focar nos 1000 troféus", escolha um brawler que AINDA NÃO chegou em 1000 troféus (olhe a lista "AINDA NÃO chegaram em 1000") — NUNCA sugira um brawler que já está na lista "JÁ chegaram em 1000+". ' +
+    '4) Quando perguntarem "qual brawler focar/upar" (upgrade de power), NUNCA sugira um brawler que já está na lista "Brawlers já maximizados (power 11)" — esses já estão no máximo e não fazem sentido como sugestão de upgrade. Prefira brawlers com power baixo (não maximizados) e poucos troféus, que tenham mais espaço pra crescer. ' +
     'Dados do jogador: ' + contexto + '.';
 
   var groqMessages = [{ role: 'system', content: systemPrompt }];
