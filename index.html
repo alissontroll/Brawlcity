@@ -1598,6 +1598,8 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
         <button class="ia-chip" onclick="iaEnviarSugestao(this)">Como ganhar mais troféus?</button>
         <button class="ia-chip" onclick="iaEnviarSugestao(this)">Qual brawler usar no Showdown?</button>
         <button class="ia-chip" onclick="iaEnviarSugestao(this)">Dicas para subir no ranking</button>
+        <button class="ia-chip" onclick="iaEnviarSugestao(this)">Minha posição no ranking</button>
+        <button class="ia-chip" onclick="iaEnviarSugestao(this)">Quanto falta pra minha meta?</button>
       </div>
       <div class="ia-input-row">
         <input class="ia-input" id="iaInput" type="text" placeholder="Pergunte sobre Brawl Stars..." maxlength="400" onkeydown="if(event.key==='Enter')iaEnviar()">
@@ -3569,7 +3571,7 @@ async function abrirPerfilTab(p, pos) {
     '<div class="ia-section">' +
       '<div class="ia-header"><div class="ia-title">🤖 ASSISTENTE IA</div><div class="ia-status"><span class="ia-dot"></span>ONLINE</div></div>' +
       '<div class="ia-messages" id="iaMessages"><div class="ia-msg ia-msg-bot"><div class="ia-msg-avatar">🤖</div><div class="ia-msg-bubble">Oi, <strong>' + (p.name||'jogador') + '</strong>! Careguei seus dados completos. Me pergunta qualquer coisa! 🎮</div></div></div>' +
-      '<div class="ia-suggestions" id="iaSuggestions"><button class="ia-chip" onclick="iaEnviarSugestao(this)">Analise meu perfil</button><button class="ia-chip" onclick="iaEnviarSugestao(this)">Qual brawler focar?</button><button class="ia-chip" onclick="iaEnviarSugestao(this)">Dicas para subir no ranking</button></div>' +
+      '<div class="ia-suggestions" id="iaSuggestions"><button class="ia-chip" onclick="iaEnviarSugestao(this)">Analise meu perfil</button><button class="ia-chip" onclick="iaEnviarSugestao(this)">Qual brawler focar?</button><button class="ia-chip" onclick="iaEnviarSugestao(this)">Dicas para subir no ranking</button><button class="ia-chip" onclick="iaEnviarSugestao(this)">Minha posição no ranking</button></div>' +
       '<div class="ia-input-row"><input class="ia-input" id="iaInput" type="text" placeholder="Pergunte sobre Brawl Stars..." maxlength="400" onkeydown="if(event.key==String.fromCharCode(13))iaEnviar()"><button class="ia-send-btn" id="iaSendBtn" onclick="iaEnviar()">&#x27A4;</button></div>' +
     '</div>' +
 
@@ -4079,6 +4081,55 @@ window.iaEnviar = async function() {
     } catch(eApi) { /* usa dados basicos se API falhar */ }
   }
 
+  // ---- Posição no ranking da cidade + comparação com outros jogadores ----
+  try {
+    var minhaCidade = p.city || '';
+    var rankingCidade = allPlayers
+      .filter(function(pl){ return pl.city === minhaCidade; })
+      .slice().sort(function(a,b){ return (b.trophies||0)-(a.trophies||0); });
+    var minhaPos = rankingCidade.findIndex(function(pl){ return pl.tag === p.tag; });
+    if (minhaPos >= 0) {
+      contexto += ', Posição no ranking de ' + minhaCidade + ': #' + (minhaPos + 1) + ' de ' + rankingCidade.length + ' jogadores';
+    }
+    // manda os 10 primeiros da cidade, pra IA poder comparar com qualquer um
+    var top10Cidade = rankingCidade.slice(0, 10);
+    if (top10Cidade.length) {
+      contexto += ', Ranking de ' + minhaCidade + ' (nome: troféus): ' +
+        top10Cidade.map(function(pl, i){ return '#' + (i+1) + ' ' + pl.name + ' (' + (pl.trophies||0) + ')'; }).join(', ');
+    }
+  } catch(eRank) { /* segue sem essa parte se der erro */ }
+
+  // ---- Meta de troféus que a pessoa definiu ----
+  try {
+    var metaSalvaIA = localStorage.getItem('meta_' + (p.tag || ''));
+    if (metaSalvaIA) {
+      var metaNum = parseInt(metaSalvaIA, 10);
+      var faltamMeta = metaNum - (p.trophies || 0);
+      contexto += ', Meta de troféus definida: ' + metaNum.toLocaleString('pt-BR') +
+        (faltamMeta > 0 ? ' (faltam ' + faltamMeta.toLocaleString('pt-BR') + ' troféus)' : ' (meta já alcançada!)');
+    }
+  } catch(eMeta) { /* sem meta definida, tudo bem */ }
+
+  // ---- Últimas partidas ----
+  if (p.tag) {
+    try {
+      var cleanTagBattle = p.tag.startsWith('#') ? p.tag : '#' + p.tag;
+      var battleRes = await fetch('/.netlify/functions/player?type=battlelog&tag=' + encodeURIComponent(cleanTagBattle));
+      if (battleRes.ok) {
+        var battleData = await battleRes.json();
+        var items = (battleData.items || []).slice(0, 8);
+        if (items.length) {
+          contexto += ', Últimas partidas (mais recente primeiro): ' + items.map(function(it){
+            var b = it.battle || {};
+            var modo = b.mode || (it.event && it.event.mode) || '?';
+            var resultado = b.result ? b.result : (typeof b.trophyChange === 'number' ? (b.trophyChange >= 0 ? '+' + b.trophyChange : b.trophyChange) + ' troféus' : '?');
+            return modo + ':' + resultado;
+          }).join(' | ');
+        }
+      }
+    } catch(eBattle) { /* sem histórico de partidas disponível */ }
+  }
+
   // Adiciona historico ao messages
   window._iaHistorico.push({ role: 'user', content: pergunta });
 
@@ -4092,6 +4143,8 @@ window.iaEnviar = async function() {
     '2) "Power" (1 a 11) é o nível de upgrade/investimento do brawler — é isso que importa quando o assunto é "upar" ou "focar". "Rank" é só uma métrica separada de maestria, não confunda os dois nem use rank pra falar de força/investimento. ' +
     '3) Quando perguntarem "qual brawler colocar/focar nos 1000 troféus", escolha um brawler que AINDA NÃO chegou em 1000 troféus (olhe a lista "AINDA NÃO chegaram em 1000") — NUNCA sugira um brawler que já está na lista "JÁ chegaram em 1000+". ' +
     '4) Quando perguntarem "qual brawler focar/upar" (upgrade de power), NUNCA sugira um brawler que já está na lista "Brawlers já maximizados (power 11)" — esses já estão no máximo e não fazem sentido como sugestão de upgrade. Prefira brawlers com power baixo (não maximizados) e poucos troféus, que tenham mais espaço pra crescer. ' +
+    '5) Se perguntarem sobre posição no ranking, comparação com outro jogador da cidade, meta de troféus ou últimas partidas, use os dados correspondentes abaixo (se não tiver o dado, diga que não tem essa informação agora). ' +
+    '6) Perguntas gerais sobre o jogo (tipo "qual brawler é bom contra X", dicas de mapa, combos) você pode responder com seu conhecimento normal de Brawl Stars, mesmo sem estar nos dados do jogador. ' +
     'Dados do jogador: ' + contexto + '.';
 
   var groqMessages = [{ role: 'system', content: systemPrompt }];
