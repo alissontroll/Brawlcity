@@ -1,5 +1,6 @@
 import os
 import time
+import datetime
 import threading
 from urllib.parse import quote
 
@@ -161,6 +162,12 @@ def refresh_all_players():
     print(f"[REFRESH] Começando. {len(docs)} jogador(es) encontrados no Firestore.")
     updated = 0
 
+    # domingo mais recente (se hoje for domingo, é hoje mesmo) — usamos essa
+    # data como "identificador da semana atual" pra saber se já resetou ou não
+    hoje = datetime.date.today()
+    dias_desde_domingo = (hoje.weekday() + 1) % 7  # weekday(): Seg=0..Dom=6 → queremos Dom=0
+    semana_atual_str = (hoje - datetime.timedelta(days=dias_desde_domingo)).isoformat()
+
     for doc in docs:
         player = doc.to_dict()
         tag = player.get("tag")
@@ -174,6 +181,14 @@ def refresh_all_players():
             continue
 
         updates = {}
+
+        # ---- ranking semanal: define a base na primeira vez, e reseta toda semana nova ----
+        if data.get("trophies"):
+            if player.get("semanaBase") is None or player.get("semanaResetWeek") != semana_atual_str:
+                updates["semanaBase"] = data["trophies"]
+                updates["semanaResetWeek"] = semana_atual_str
+                updates["semanaInicio"] = int(time.time() * 1000)
+
         if data.get("trophies") and data["trophies"] != player.get("trophies"):
             updates["trophies"] = data["trophies"]
         if data.get("horas") and data["horas"] != player.get("horas"):
@@ -261,10 +276,21 @@ def refresh_all_players():
 
         if data.get("trophies"):
             try:
-                doc.reference.collection("history").add({
-                    "trophies": data["trophies"],
-                    "timestamp": int(time.time() * 1000),
-                })
+                hoje_str = datetime.date.today().isoformat()
+                history_ref = doc.reference.collection("history")
+                # procura se já existe um registro de hoje, pra atualizar em vez de duplicar
+                existentes_hoje = list(history_ref.where("dateStr", "==", hoje_str).limit(1).stream())
+                if existentes_hoje:
+                    existentes_hoje[0].reference.update({
+                        "trophies": data["trophies"],
+                        "timestamp": int(time.time() * 1000),
+                    })
+                else:
+                    history_ref.add({
+                        "trophies": data["trophies"],
+                        "timestamp": int(time.time() * 1000),
+                        "dateStr": hoje_str,
+                    })
             except Exception as e:
                 print(f"[REFRESH] Erro ao salvar histórico de {tag}: {repr(e)}")
 
