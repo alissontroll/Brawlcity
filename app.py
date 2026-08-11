@@ -1,5 +1,6 @@
 import os
 import time
+import json
 import datetime
 import threading
 from urllib.parse import quote
@@ -8,6 +9,7 @@ import requests
 import firebase_admin
 from firebase_admin import credentials, firestore
 from flask import Flask, jsonify, request, send_from_directory
+from pywebpush import webpush, WebPushException
 
 # -----------------------------------------------------------------------------
 # CONFIGURAÇÃO
@@ -26,6 +28,12 @@ BRAWLIFY_BASE = "https://api.brawlify.com/v1"
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+
+# Notificações push (Web Push) — as chaves vêm de variável de ambiente,
+# veja o README.md pra saber como gerar/configurar as suas.
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
+VAPID_CLAIMS_EMAIL = os.environ.get("VAPID_CLAIMS_EMAIL", "mailto:contato@brawlcity.onrender.com")
 
 # serve os arquivos estáticos (index.html, manifest.json, ícones, etc.)
 # direto da raiz do projeto, do mesmo jeito que a Netlify fazia.
@@ -161,6 +169,7 @@ def refresh_all_players():
     docs = list(players_ref.stream())
     print(f"[REFRESH] Começando. {len(docs)} jogador(es) encontrados no Firestore.")
     updated = 0
+    instantaneo = []
 
     # domingo mais recente (se hoje for domingo, é hoje mesmo) — usamos essa
     # data como "identificador da semana atual" pra saber se já resetou ou não
@@ -274,6 +283,15 @@ def refresh_all_players():
             except Exception as e:
                 print(f"[REFRESH] Erro ao SALVAR {tag} no Firestore: {repr(e)}")
 
+        instantaneo.append({
+            "doc_id": doc.id,
+            "tag": tag,
+            "name": player.get("name") or data.get("name") or tag,
+            "city": player.get("city") or "",
+            "trophies": data.get("trophies") if data.get("trophies") is not None else player.get("trophies", 0),
+            "lastRankPos": player.get("lastRankPos"),
+        })
+
         if data.get("trophies"):
             try:
                 hoje_str = datetime.date.today().isoformat()
@@ -293,6 +311,44 @@ def refresh_all_players():
                     })
             except Exception as e:
                 print(f"[REFRESH] Erro ao salvar histórico de {tag}: {repr(e)}")
+
+    # ---- checa quem foi ultrapassado no ranking da própria cidade e avisa ----
+    try:
+        subs_docs = list(db.collection("pushSubscriptions").stream())
+        subs_map = {d.id: d.to_dict().get("subscription") for d in subs_docs}
+    except Exception as e:
+        print(f"[PUSH] Erro ao buscar inscrições: {repr(e)}")
+        subs_map = {}
+
+    cidades = {}
+    for p in instantaneo:
+        cidades.setdefault(p["city"], []).append(p)
+
+    for cidade, jogadores in cidades.items():
+        jogadores.sort(key=lambda p: -(p["trophies"] or 0))
+        for i, p in enumerate(jogadores):
+            pos_atual = i + 1
+            pos_antiga = p["lastRankPos"]
+            try:
+                players_ref.document(p["doc_id"]).update({"lastRankPos": pos_atual})
+            except Exception as e:
+                print(f"[REFRESH] Erro ao salvar lastRankPos de {p['tag']}: {repr(e)}")
+
+            if pos_antiga is not None and pos_atual > pos_antiga:
+                sub = subs_map.get(p["tag"])
+                if sub:
+                    quem_passou = jogadores[pos_atual - 2]["name"] if pos_atual >= 2 else "alguém"
+                    ok, motivo = send_push(
+                        sub,
+                        title="📉 Você foi ultrapassado!",
+                        body=f"{quem_passou} passou você no ranking de {cidade}. Bora reagir! 🏆",
+                        url="/",
+                    )
+                    if not ok and motivo == "expirada":
+                        try:
+                            db.collection("pushSubscriptions").document(p["tag"]).delete()
+                        except Exception:
+                            pass
 
     print(f"[REFRESH] Concluído. {updated} de {len(docs)} jogador(es) atualizados.")
     return {"updated": updated, "total": len(docs)}
@@ -319,6 +375,67 @@ def refresh_all_route():
 
     threading.Thread(target=run, daemon=True).start()
     return jsonify({"status": "started"})
+
+
+def send_push(subscription_info, title, body, url="/"):
+    """Manda uma notificação push pra um único inscrito. Se der erro de
+    'inscrição não existe mais' (410/404), avisa o chamador pra poder apagar."""
+    if not VAPID_PRIVATE_KEY:
+        return False, "sem_chave"
+    try:
+        webpush(
+            subscription_info=subscription_info,
+            data=json.dumps({"title": title, "body": body, "url": url}),
+            vapid_private_key=VAPID_PRIVATE_KEY,
+            vapid_claims={"sub": VAPID_CLAIMS_EMAIL},
+        )
+        return True, None
+    except WebPushException as e:
+        status = e.response.status_code if e.response is not None else None
+        if status in (404, 410):
+            return False, "expirada"
+        print(f"[PUSH] Erro ao enviar: {repr(e)}")
+        return False, "erro"
+
+
+@app.route("/api/push/vapid-public-key")
+def push_vapid_public_key():
+    return jsonify({"key": VAPID_PUBLIC_KEY})
+
+
+@app.route("/api/push/subscribe", methods=["POST"])
+def push_subscribe():
+    if not db:
+        return jsonify({"error": "Firebase Admin não configurado"}), 500
+    body = request.get_json(force=True, silent=True) or {}
+    tag = (body.get("tag") or "").replace("#", "").upper()
+    subscription = body.get("subscription")
+    if not tag or not subscription:
+        return jsonify({"error": "Faltou tag ou subscription"}), 400
+    try:
+        db.collection("pushSubscriptions").document(tag).set({
+            "tag": tag,
+            "subscription": subscription,
+            "updatedAt": int(time.time() * 1000),
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    return jsonify({"status": "ok"})
+
+
+@app.route("/api/push/unsubscribe", methods=["POST"])
+def push_unsubscribe():
+    if not db:
+        return jsonify({"error": "Firebase Admin não configurado"}), 500
+    body = request.get_json(force=True, silent=True) or {}
+    tag = (body.get("tag") or "").replace("#", "").upper()
+    if not tag:
+        return jsonify({"error": "Faltou tag"}), 400
+    try:
+        db.collection("pushSubscriptions").document(tag).delete()
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    return jsonify({"status": "ok"})
 
 
 @app.route("/api/ai-chat", methods=["POST"])

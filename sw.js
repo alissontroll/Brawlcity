@@ -59,3 +59,36 @@ self.addEventListener('fetch', function(event) {
       })
   );
 });
+
+// Recebe uma notificação push do servidor e mostra pro usuário
+self.addEventListener('push', function(event) {
+  var payload = { title: 'BrawlCity Rank', body: 'Você tem uma novidade!', url: '/' };
+  try {
+    if (event.data) payload = Object.assign(payload, event.data.json());
+  } catch (e) {}
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      data: { url: payload.url || '/' }
+    })
+  );
+});
+
+// Quando a pessoa toca na notificação, abre (ou foca) o site
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  var url = (event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+      for (var i = 0; i < clientList.length; i++) {
+        if (clientList[i].url.indexOf(self.location.origin) === 0 && 'focus' in clientList[i]) {
+          return clientList[i].focus();
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
+});
