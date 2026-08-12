@@ -230,13 +230,27 @@ def refresh_all_players():
         elif new_count and not old_count:
             updates["brawlerCount"] = new_count
 
-        # ---- brawlers que chegaram aos 1000 troféus ----
-        mil_atuais = sorted({(b.get("name") or "").upper() for b in brawlers if (b.get("trophies") or 0) >= 1000})
-        mil_salvos = sorted(player.get("brawlers1000") or [])
-        if mil_atuais != mil_salvos:
-            if mil_salvos:  # só notifica se já tinha uma lista salva antes (evita spam no primeiro cálculo)
-                novos_1000 = [n for n in mil_atuais if n not in mil_salvos]
-                for nome in novos_1000:
+        # ---- marcos de mil troféus por brawler (1000, 2000, 3000...) ----
+        # Usamos o RECORDE de cada brawler (highestTrophies), que só sobe —
+        # os troféus "atuais" oscilam com derrotas e causavam notificação
+        # duplicada toda vez que o brawler cruzava 1000 pra cima e pra baixo.
+        marcos_atuais = {}
+        for b in brawlers:
+            nome = (b.get("name") or "").upper()
+            pico = b.get("highestTrophies") or b.get("trophies") or 0
+            marco = (pico // 1000) * 1000
+            if marco >= 1000:
+                marcos_atuais[nome] = marco
+
+        marcos_salvos = player.get("brawlerMarcos") or {}
+        novos_marcos = [
+            (nome, marco) for nome, marco in marcos_atuais.items()
+            if marco > marcos_salvos.get(nome, 0)
+        ]
+
+        if novos_marcos:
+            if marcos_salvos:  # só notifica se já tinha marcos salvos antes (evita spam no primeiro cálculo)
+                for nome, marco in novos_marcos:
                     b = next((x for x in brawlers if (x.get("name") or "").upper() == nome), None)
                     try:
                         db.collection("notifications").add({
@@ -245,13 +259,14 @@ def refresh_all_players():
                             "playerIconId": player.get("iconId"),
                             "brawlerNome": nome,
                             "brawlerImg": (b or {}).get("imageUrl", ""),
-                            "trophies": (b or {}).get("trophies", 1000),
+                            "trophies": marco,
                             "timestamp": int(time.time() * 1000),
                             "type": "brawler1000",
                         })
                     except Exception as e:
-                        print(f"[REFRESH] Erro ao notificar 1000 troféus de {tag}: {repr(e)}")
-            updates["brawlers1000"] = mil_atuais
+                        print(f"[REFRESH] Erro ao notificar marco de troféus de {tag}: {repr(e)}")
+            updates["brawlerMarcos"] = marcos_atuais
+            updates["brawlers1000"] = sorted([n for n, m in marcos_atuais.items() if m >= 1000])
 
         # ---- brawlers maximizados (power 11) ----
         max_atuais = sorted({(b.get("name") or "").upper() for b in brawlers if (b.get("power") or 0) >= 11})

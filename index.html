@@ -2379,7 +2379,7 @@ onSnapshot(qNotif, function(snap) {
               brawlerImgHtml +
               '<strong style="color:var(--gold);">'+n.brawlerNome+'</strong>' +
               '<span>nos</span>' +
-              '<strong style="color:var(--gold);">🏆 1000</strong>' +
+              '<strong style="color:var(--gold);">🏆 '+(n.trophies || 1000).toLocaleString('pt-BR')+'</strong>' +
             '</div>' +
             '<div class="notif-time">'+tempoStr+'</div>' +
           '</div>' +
@@ -4644,8 +4644,10 @@ async function carregarBattleStats(tag, trofeus) {
     var diasCount = { 'Dom':0,'Seg':0,'Ter':0,'Qua':0,'Qui':0,'Sex':0,'Sáb':0 };
     var diasNomes = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
     var brawlerCount = {};
+    var brawlerVitorias = {};
     var diasJogou = new Set();
     var vitorias = 0; var derrotas = 0;
+    var resultadosOrdem = []; // mais recente primeiro, pra streak e placar
 
     battles.forEach(function(b) {
       // Horário
@@ -4663,13 +4665,14 @@ async function carregarBattleStats(tag, trofeus) {
       // Brawler usado — suporta teams (3v3) e players (solo/duo)
       var battle = b.battle || {};
       var found = false;
+      var brawlerDaPartida = null;
       // Formato teams (3v3, bounty, etc)
       var teams = battle.teams || [];
       teams.forEach(function(team) {
         (Array.isArray(team) ? team : [team]).forEach(function(player) {
           if (player && player.tag && player.tag.replace('#','') === tag) {
             var bName = player.brawler && player.brawler.name ? player.brawler.name : null;
-            if (bName) { brawlerCount[bName] = (brawlerCount[bName]||0) + 1; found = true; }
+            if (bName) { brawlerCount[bName] = (brawlerCount[bName]||0) + 1; found = true; brawlerDaPartida = bName; }
           }
         });
       });
@@ -4679,16 +4682,25 @@ async function carregarBattleStats(tag, trofeus) {
         players.forEach(function(player) {
           if (player && player.tag && player.tag.replace('#','') === tag) {
             var bName = player.brawler && player.brawler.name ? player.brawler.name : null;
-            if (bName) brawlerCount[bName] = (brawlerCount[bName]||0) + 1;
+            if (bName) { brawlerCount[bName] = (brawlerCount[bName]||0) + 1; brawlerDaPartida = bName; }
           }
         });
       }
       // Vitórias/derrotas — result ou rank (solo: rank 1-4 = vitória)
       var result = battle.result || '';
-      if (result === 'victory') vitorias++;
-      else if (result === 'defeat') derrotas++;
+      var foiVitoria = null;
+      if (result === 'victory') { vitorias++; foiVitoria = true; }
+      else if (result === 'defeat') { derrotas++; foiVitoria = false; }
       else if (!result && battle.rank) {
-        if (battle.rank <= 4) vitorias++; else derrotas++;
+        if (battle.rank <= 4) { vitorias++; foiVitoria = true; } else { derrotas++; foiVitoria = false; }
+      }
+      if (foiVitoria !== null) {
+        resultadosOrdem.push(foiVitoria);
+        if (brawlerDaPartida) {
+          if (!brawlerVitorias[brawlerDaPartida]) brawlerVitorias[brawlerDaPartida] = { v: 0, total: 0 };
+          brawlerVitorias[brawlerDaPartida].total++;
+          if (foiVitoria) brawlerVitorias[brawlerDaPartida].v++;
+        }
       }
     });
 
@@ -4722,6 +4734,33 @@ async function carregarBattleStats(tag, trofeus) {
     var total = vitorias + derrotas;
     var winrate = total > 0 ? Math.round((vitorias/total)*100) : 0;
 
+    // Sequência de vitórias/derrotas atual (olhando da partida mais recente pra trás)
+    var winStreak = 0, lossStreak = 0;
+    if (resultadosOrdem.length) {
+      var primeiro = resultadosOrdem[0];
+      for (var wi = 0; wi < resultadosOrdem.length; wi++) {
+        if (resultadosOrdem[wi] === primeiro) { if (primeiro) winStreak++; else lossStreak++; }
+        else break;
+      }
+    }
+
+    // Brawler com melhor taxa de vitória (mínimo 2 partidas pra contar)
+    var melhorBrawler = null, melhorTaxa = -1;
+    Object.keys(brawlerVitorias).forEach(function(bn) {
+      var info = brawlerVitorias[bn];
+      if (info.total >= 2) {
+        var taxa = info.v / info.total;
+        if (taxa > melhorTaxa) { melhorTaxa = taxa; melhorBrawler = bn; }
+      }
+    });
+    var melhorBrawlerPct = melhorBrawler ? Math.round(melhorTaxa * 100) : 0;
+
+    // Placar visual das últimas partidas (mais recente primeiro)
+    var placarHtml = resultadosOrdem.slice(0, 10).map(function(v) {
+      return '<span style="display:inline-block;width:22px;height:22px;border-radius:6px;text-align:center;line-height:22px;font-size:0.7rem;font-weight:900;margin-right:3px;background:' +
+        (v ? 'rgba(76,217,100,0.25);color:var(--green)' : 'rgba(255,82,82,0.25);color:#ff8a80') + ';">' + (v ? 'V' : 'D') + '</span>';
+    }).join('');
+
     el.innerHTML =
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">' +
         '<div class="perfil-stat"><div class="perfil-stat-val" style="color:var(--cyan);">🕐 ' + horaPicoStr + '</div><div class="perfil-stat-lbl">Horário que mais joga</div></div>' +
@@ -4733,6 +4772,21 @@ async function carregarBattleStats(tag, trofeus) {
         '<div style="font-size:0.65rem;font-weight:900;color:var(--text-dim);letter-spacing:1px;margin-bottom:4px;">🎮 BRAWLER MAIS USADO RECENTEMENTE</div>' +
         '<div style="font-family:\'Lilita One\',cursive;font-size:1.4rem;color:var(--purple3);">' + brawlerMais + '</div>' +
         '<div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">' + brawlerMaisQtd + ' partidas nas últimas 25</div>' +
+      '</div>' +
+      (winStreak >= 2 ? '<div class="perfil-stat" style="text-align:center;padding:10px;margin-top:8px;background:rgba(76,217,100,0.1);">' +
+        '<div style="font-size:1.1rem;font-weight:900;color:var(--green);">🔥 ' + winStreak + ' vitórias seguidas!</div>' +
+      '</div>' : '') +
+      (lossStreak >= 3 ? '<div class="perfil-stat" style="text-align:center;padding:10px;margin-top:8px;background:rgba(255,82,82,0.1);">' +
+        '<div style="font-size:1.1rem;font-weight:900;color:#ff8a80;">📉 ' + lossStreak + ' derrotas seguidas — hora de trocar de brawler!</div>' +
+      '</div>' : '') +
+      (melhorBrawler ? '<div class="perfil-stat" style="text-align:center;padding:12px;margin-top:8px;">' +
+        '<div style="font-size:0.65rem;font-weight:900;color:var(--text-dim);letter-spacing:1px;margin-bottom:4px;">🍀 BRAWLER MAIS "SORTUDO"</div>' +
+        '<div style="font-family:\'Lilita One\',cursive;font-size:1.3rem;color:var(--gold);">' + melhorBrawler + '</div>' +
+        '<div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">' + melhorBrawlerPct + '% de vitórias com ele</div>' +
+      '</div>' : '') +
+      '<div class="perfil-stat" style="text-align:center;padding:12px;margin-top:8px;">' +
+        '<div style="font-size:0.65rem;font-weight:900;color:var(--text-dim);letter-spacing:1px;margin-bottom:8px;">📋 ÚLTIMAS PARTIDAS (mais recente → mais antiga)</div>' +
+        '<div>' + placarHtml + '</div>' +
       '</div>';
 
   } catch(e) {
