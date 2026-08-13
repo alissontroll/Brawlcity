@@ -2105,7 +2105,7 @@ async function carregarMapas() {
 
     renderMapas(resultado, proximos);
   } catch(e) {
-    document.getElementById('mapGrid').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Não consegui carregar os mapas agora. Tenta de novo em alguns instantes.</p></div>';
+    document.getElementById('mapGrid').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Não consegui carregar os mapas agora. Detalhe técnico: ' + (e && e.message ? e.message : e) + '</p></div>';
     document.getElementById('updateInfoMapas').textContent = '🔴 ERRO';
     console.error('carregarMapas erro:', e);
   }
