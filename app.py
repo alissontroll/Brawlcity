@@ -61,6 +61,10 @@ except Exception as e:
 
 _refresh_lock = threading.Lock()
 
+# cache do mapa de fotos dos brawlers (Brawlify) — evita buscar de novo a
+# cada jogador, o que sobrecarregava o serviço e fazia ele bloquear os pedidos
+_brawler_img_cache = {"map": {}, "ts": 0}
+
 # Ciclo completo de rotação do Solo Showdown (14 mapas)
 ROTATION_CYCLE = [
     {"mapName": "Crystal Eye Castle", "mapId": 15001013},
@@ -92,6 +96,30 @@ def clean_tag(tag):
     return tag if tag.startswith("#") else "#" + tag
 
 
+def get_brawler_img_map():
+    """Busca o mapa de fotos dos brawlers na Brawlify, guardando em cache
+    por 1 hora — evita bater no serviço externo repetidas vezes seguidas."""
+    now = time.time()
+    if _brawler_img_cache["map"] and now - _brawler_img_cache["ts"] < 3600:
+        return _brawler_img_cache["map"]
+    novo_map = {}
+    try:
+        bw = requests.get(f"{BRAWLIFY_BASE}/brawlers", timeout=8)
+        if bw.ok:
+            for b in bw.json().get("list", []):
+                if b.get("id") and b.get("imageUrl"):
+                    novo_map[b["id"]] = b["imageUrl"]
+    except (requests.RequestException, ValueError) as e:
+        print(f"[BRAWLIFY] Erro ao buscar lista de brawlers: {repr(e)}")
+
+    if novo_map:
+        _brawler_img_cache["map"] = novo_map
+        _brawler_img_cache["ts"] = now
+        return novo_map
+    # se falhou agora mas tínhamos um cache antigo, usa ele em vez de ficar sem nada
+    return _brawler_img_cache["map"]
+
+
 def fetch_player_full(tag):
     """Busca todos os dados de um jogador (usado tanto pela rota da API
     quanto pela atualização automática do ranking)."""
@@ -114,20 +142,12 @@ def fetch_player_full(tag):
         if bf.ok:
             bfd = bf.json()
             horas = bfd.get("hoursPlayed") or (bfd.get("player") or {}).get("hoursPlayed") or 0
-    except requests.RequestException:
+    except (requests.RequestException, ValueError):
         pass
     if not horas and data.get("expPoints"):
         horas = data["expPoints"] // 220
 
-    brawler_img_map = {}
-    try:
-        bw = requests.get(f"{BRAWLIFY_BASE}/brawlers", timeout=8)
-        if bw.ok:
-            for b in bw.json().get("list", []):
-                if b.get("id") and b.get("imageUrl"):
-                    brawler_img_map[b["id"]] = b["imageUrl"]
-    except requests.RequestException:
-        pass
+    brawler_img_map = get_brawler_img_map()
 
     brawlers = [{
         "id": b.get("id"),
