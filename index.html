@@ -1424,6 +1424,10 @@ footer { position:fixed; bottom:0; left:0; right:0; z-index:8000; text-align:cen
       <div class="ranking-title">TOP <span class="city-pill" id="activeCityTag">AGRESTINA-PE</span></div>
       <div class="update-info" id="updateInfo">CONECTANDO...</div>
     </div>
+    <div id="radarHorario" style="display:none;background:rgba(138,43,226,0.06);border:1px solid rgba(138,43,226,0.25);border-radius:14px;padding:12px 16px;margin-bottom:14px;">
+      <div style="font-family:Teko,sans-serif;font-size:1.1rem;color:#a78bfa;letter-spacing:1px;margin-bottom:6px;">📡 RADAR DE HORÁRIO NOBRE</div>
+      <div id="radarHorarioTexto" style="font-size:0.85rem;color:#c9c3e8;">Carregando...</div>
+    </div>
     <div id="rankingList" class="ranking-list-container"></div>
     <button class="share-btn" id="btnCompartilhar">📤 COMPARTILHAR RANKING</button>
     <canvas id="shareCanvas"></canvas>
@@ -2013,15 +2017,21 @@ async function carregarMapas() {
     var todos = dataOficial.active || [];
 
     // Brawlify brawlers para stats
-    var resBrawlers = await fetch('https://api.brawlify.com/v1/brawlers');
-    var dataBrawlers = resBrawlers.ok ? await resBrawlers.json() : {list:[]};
+    var dataBrawlers = {list: []};
+    try {
+      var resBrawlers = await fetch('https://api.brawlify.com/v1/brawlers');
+      if (resBrawlers.ok) dataBrawlers = await resBrawlers.json();
+    } catch(eBw) { console.warn('Brawlify brawlers indisponível:', eBw); }
     var brawlerMap = {};
     (dataBrawlers.list || []).forEach(function(b){ brawlerMap[b.id] = b.name; });
     window._brawlerMap = brawlerMap;
 
     // Brawlify events para stats dos mapas
-    var resBrawlify = await fetch('https://api.brawlify.com/v1/events');
-    var dataBrawlify = resBrawlify.ok ? await resBrawlify.json() : {active:[]};
+    var dataBrawlify = {active: []};
+    try {
+      var resBrawlify = await fetch('https://api.brawlify.com/v1/events');
+      if (resBrawlify.ok) dataBrawlify = await resBrawlify.json();
+    } catch(eBf) { console.warn('Brawlify events indisponível:', eBf); }
     var brawlifyAtivos = dataBrawlify.active || [];
 
     // Filtra só SOLO SHOWDOWN - API retorna como "soloShowdown"
@@ -2045,7 +2055,7 @@ async function carregarMapas() {
             var mapData = await resMapStats.json();
             statsCache[mapIdStat] = mapData.stats || [];
           }
-        } catch(e) {}
+        } catch(e) { console.warn('Brawlify stats do mapa indisponível:', e); }
       }
       // Fallback: busca nos ativos da Brawlify pelo nome
       if (!statsCache[mapIdStat] || !statsCache[mapIdStat].length) {
@@ -2105,7 +2115,7 @@ async function carregarMapas() {
 
     renderMapas(resultado, proximos);
   } catch(e) {
-    document.getElementById('mapGrid').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Não consegui carregar os mapas agora. Detalhe técnico: ' + (e && e.message ? e.message : e) + '</p></div>';
+    document.getElementById('mapGrid').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Não consegui carregar os mapas agora. Tenta de novo em alguns instantes.</p></div>';
     document.getElementById('updateInfoMapas').textContent = '🔴 ERRO';
     console.error('carregarMapas erro:', e);
   }
@@ -2455,6 +2465,34 @@ function showToast(msg, type) {
   clearTimeout(t._t); t._t = setTimeout(function(){ t.className = 'toast'; }, 5000);
 }
 
+function estaOnline(p) {
+  return !!(p.lastSeen && (Date.now() - p.lastSeen) < 10 * 60 * 1000);
+}
+
+var _radarCidadeCarregada = null;
+async function carregarRadarHorario(city) {
+  if (!city || _radarCidadeCarregada === city) return;
+  var box = document.getElementById('radarHorario');
+  var texto = document.getElementById('radarHorarioTexto');
+  if (!box || !texto) return;
+  try {
+    var res = await fetch('/api/heartbeat/' + encodeURIComponent(city));
+    var data = await res.json();
+    var horas = data.hours || {};
+    var pares = Object.keys(horas).map(function(h){ return {hora: parseInt(h,10), qtd: horas[h]}; });
+    if (!pares.length) { box.style.display = 'none'; return; }
+    pares.sort(function(a,b){ return b.qtd - a.qtd; });
+    var top3 = pares.slice(0, 3);
+    var formatarHora = function(h) { return (h < 10 ? '0'+h : h) + 'h'; };
+    texto.textContent = 'Horários com mais gente jogando em ' + city + ': ' +
+      top3.map(function(p){ return formatarHora(p.hora) + '–' + formatarHora((p.hora+1)%24); }).join(', ');
+    box.style.display = 'block';
+    _radarCidadeCarregada = city;
+  } catch (e) {
+    box.style.display = 'none';
+  }
+}
+
 function buildCards(players, containerId) {
   var list = document.getElementById(containerId);
   if (!players.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">🎮</div><p>NENHUM JOGADOR AINDA</p></div>'; return; }
@@ -2486,7 +2524,7 @@ function buildCards(players, containerId) {
           (p.iconId ? '<img src="https://cdn.brawlify.com/profile-icons/regular/' + p.iconId + '.png" style="width:100%;height:100%;object-fit:cover;" onerror="this.textContent=\'' + (p.emoji||'🎮') + '\'" data-fb="' + (p.emoji||'🎮') + '">' : (p.emoji || '🎮')) +
         '</div>' +
         '<div class="player-info">' +
-          '<div class="player-name">' + p.name + (p.mvpCount > 0 ? '<span class="mvp-insignia" title="MVP da Semana ' + p.mvpCount + 'x"><span class="mvp-insignia-crown">👑</span>×' + p.mvpCount + '</span>' : '') + '</div>' +
+          '<div class="player-name">' + p.name + (estaOnline(p) ? '<span title="Online agora" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#2ecc71;box-shadow:0 0 6px #2ecc71;margin-left:6px;vertical-align:middle;"></span>' : '') + (p.mvpCount > 0 ? '<span class="mvp-insignia" title="MVP da Semana ' + p.mvpCount + 'x"><span class="mvp-insignia-crown">👑</span>×' + p.mvpCount + '</span>' : '') + '</div>' +
           '<div class="player-meta">' +
             '<span class="player-tag">' + p.tag + '</span>' +
             '<span class="player-city">📍 ' + p.city + '</span>' +
@@ -2503,7 +2541,7 @@ function buildCards(players, containerId) {
     list.appendChild(card);
   });
 }
-function renderRanking() { buildCards(allPlayers.filter(function(p){ return p.city === activeCity; }).sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingList'); atualizarMyPositionBar(); }
+function renderRanking() { buildCards(allPlayers.filter(function(p){ return p.city === activeCity; }).sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingList'); atualizarMyPositionBar(); carregarRadarHorario(activeCity); }
 function renderRankingPE() { buildCards(allPlayers.slice().sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingListPE'); }
 function renderRankingRN() { buildCards(allPlayers.filter(function(p){ return p.city && p.city.endsWith('-RN'); }).sort(function(a,b){ return b.trophies-a.trophies; }), 'rankingListRN'); }
 
@@ -3639,6 +3677,14 @@ async function abrirPerfilTab(p, pos) {
   carregarMeta(cleanTag, trofeus);
   // ===== PREVISÃO DE QUEDA =====
   window._trofeusHistorico = pontos2 || [];
+  // marca presença + horário de atividade (pro radar de horário nobre)
+  try {
+    fetch('/api/heartbeat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tag: (p.tag || '').replace('#',''), city: p.city || '' })
+    }).catch(function(){});
+  } catch(eHb) {}
   gerarPrevisaoQueda(p, pontos2 && pontos2.length >= 3 ? pontos2 : []);
 
   // Botão salvar perfil na aba

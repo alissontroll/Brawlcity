@@ -374,6 +374,53 @@ def index():
     return send_from_directory(".", "index.html")
 
 
+@app.route("/api/heartbeat", methods=["POST"])
+def heartbeat():
+    """Chamada pelo site quando alguém abre o próprio perfil. Marca a
+    pessoa como 'online agora' e soma +1 na hora do dia atual, pra
+    montar o radar de horário nobre da cidade."""
+    if not db:
+        return jsonify({"error": "Firebase Admin não configurado"}), 500
+
+    body = request.get_json(force=True, silent=True) or {}
+    tag = (body.get("tag") or "").replace("#", "").upper()
+    city = body.get("city") or ""
+    if not tag:
+        return jsonify({"error": "Faltou tag"}), 400
+
+    try:
+        docs = list(db.collection("players").where("tag", "==", tag).limit(1).stream())
+        if docs:
+            docs[0].reference.update({"lastSeen": int(time.time() * 1000)})
+    except Exception as e:
+        print(f"[HEARTBEAT] Erro ao marcar lastSeen de {tag}: {repr(e)}")
+
+    if city:
+        try:
+            hora_atual = str(datetime.datetime.now().hour)
+            db.collection("activityStats").document(city).set(
+                {"hours": {hora_atual: firestore.Increment(1)}}, merge=True
+            )
+        except Exception as e:
+            print(f"[HEARTBEAT] Erro ao somar atividade de {city}: {repr(e)}")
+
+    return jsonify({"status": "ok"})
+
+
+@app.route("/api/heartbeat/<city>")
+def heartbeat_stats(city):
+    """Devolve o radar de horário nobre de uma cidade (quantas visitas
+    já foram registradas em cada hora do dia, acumulado)."""
+    if not db:
+        return jsonify({"hours": {}})
+    try:
+        doc = db.collection("activityStats").document(city).get()
+        data = doc.to_dict() if doc.exists else {}
+        return jsonify({"hours": data.get("hours", {})})
+    except Exception as e:
+        return jsonify({"hours": {}, "error": str(e)})
+
+
 @app.route("/api/refresh-all")
 def refresh_all_route():
     """Chamada pelo index.html quando alguém abre o ranking. Roda em
