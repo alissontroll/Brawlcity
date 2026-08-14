@@ -2019,7 +2019,7 @@ async function carregarMapas() {
     // Brawlify brawlers para stats
     var dataBrawlers = {list: []};
     try {
-      var resBrawlers = await fetch('https://api.brawlify.com/v1/brawlers');
+      var resBrawlers = await fetch('https://api.brawlapi.com/v1/brawlers');
       if (resBrawlers.ok) dataBrawlers = await resBrawlers.json();
     } catch(eBw) { console.warn('Brawlify brawlers indisponível:', eBw); }
     var brawlerMap = {};
@@ -2029,7 +2029,7 @@ async function carregarMapas() {
     // Brawlify events para stats dos mapas
     var dataBrawlify = {active: []};
     try {
-      var resBrawlify = await fetch('https://api.brawlify.com/v1/events');
+      var resBrawlify = await fetch('https://api.brawlapi.com/v1/events');
       if (resBrawlify.ok) dataBrawlify = await resBrawlify.json();
     } catch(eBf) { console.warn('Brawlify events indisponível:', eBf); }
     var brawlifyAtivos = dataBrawlify.active || [];
@@ -2050,7 +2050,7 @@ async function carregarMapas() {
       var mapNameStat = evStat.event ? evStat.event.map : (evStat.map && evStat.map.name ? evStat.map.name : '');
       if (mapIdStat) {
         try {
-          var resMapStats = await fetch('https://api.brawlify.com/v1/maps/' + mapIdStat);
+          var resMapStats = await fetch('https://api.brawlapi.com/v1/maps/' + mapIdStat);
           if (resMapStats.ok) {
             var mapData = await resMapStats.json();
             statsCache[mapIdStat] = mapData.stats || [];
@@ -3036,7 +3036,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Busca imagem do brawler na API do Brawlify
       var brawlerImg = '';
       try {
-        var brawlifyRes = await fetch('https://api.brawlify.com/v1/brawlers');
+        var brawlifyRes = await fetch('https://api.brawlapi.com/v1/brawlers');
         if (brawlifyRes.ok) {
           var brawlifyData = await brawlifyRes.json();
           var found = (brawlifyData.list || []).find(function(b){

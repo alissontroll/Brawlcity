@@ -19,7 +19,7 @@ from pywebpush import webpush, WebPushException
 # painel do Render. Veja o README.md para o passo a passo.
 API_KEY = os.environ.get("BRAWL_API_KEY", "")
 PROXY_BASE = "https://bsproxy.royaleapi.dev/v1"
-BRAWLIFY_BASE = "https://api.brawlify.com/v1"
+BRAWLIFY_BASE = "https://api.brawlapi.com/v1"
 
 # Chave do assistente de IA (Groq) — vem de variável de ambiente, nunca
 # escrita no código, veja o README.md pra configurar no Render.
