@@ -3476,7 +3476,11 @@ async function abrirPerfilTab(p, pos) {
     }
   } catch(e) {}
 
-  // Busca Brawlify para imagens dos brawlers (sempre, pois tem imageUrl correto)
+  // Busca Brawlify só como reforço, e só se os nossos dados não vieram com foto
+  var jaTemFotos = apiData && apiData.brawlers && apiData.brawlers.length &&
+    apiData.brawlers.some(function(b){ return b.imageUrl; });
+
+  if (!jaTemFotos) {
   try {
     var resBw = await fetch('https://api.brawlify.com/v1/players/' + encodeURIComponent('#' + cleanTag));
     if (resBw.ok) {
@@ -3509,6 +3513,7 @@ async function abrirPerfilTab(p, pos) {
       }
     }
   } catch(e2) {}
+  }
 
   var trofeus = (apiData && apiData.trophies) || p.trophies || 0;
   window._perfilTrofeus = trofeus; // usado pela meta de troféus
